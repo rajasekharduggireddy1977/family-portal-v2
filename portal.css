@@ -3508,15 +3508,14 @@ input:focus, button:focus-visible {
 .sic-section{padding:10px 0 4px;}
 .sic-section-title{font-size:10px;font-weight:800;letter-spacing:1.2px;color:rgba(180,195,255,.7);font-family:'DM Mono',monospace;margin-bottom:10px;text-transform:uppercase;padding:0 16px;}
 .sic-card{
-  background:rgba(255,255,255,.055);
+  background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.1);
   border-radius:18px;
   padding:14px 16px;
   margin-bottom:10px;
   width:100%;
   box-sizing:border-box;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 16px rgba(0,0,0,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(0,0,0,.15);
   animation:sicCardIn .4s cubic-bezier(.34,1.56,.64,1) both;
 }
 @keyframes sicCardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -4391,7 +4390,7 @@ body.dash-active #aura-canvas{ display:block; }
 .tceb-cgpa-num{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:#a78bfa;}
 .tceb-cgpa-lbl{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.4);text-transform:uppercase;letter-spacing:.8px;}
 /* Subject bars */
-.tc-subj-deck{padding:0;display:flex;flex-direction:column;gap:0;}
+.tc-subj-deck{padding:0;display:flex;flex-direction:column;gap:0;transform:translateZ(0);}
 .tc-sd-row{display:flex;flex-direction:column;gap:4px;}
 .tc-sd-top{display:flex;justify-content:space-between;align-items:center;}
 .tc-sd-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;}
