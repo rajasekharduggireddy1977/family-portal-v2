@@ -3945,7 +3945,7 @@ function auraRenderHome() {
   if (evtRaw) {
     try {
       var evts2 = JSON.parse(evtRaw);
-      var GR_ALLOWED = { health:1, travel:1, government:1, family:1, birthday:1, other:1 };
+      var GR_ALLOWED = { health:1, travel:1, government:1, family:1, birthday:1, finance:1, other:1 };
       upcoming = evts2
         .filter(function(e){ return GR_ALLOWED[e.cat]; })
         .sort(function(a,b){ return a.date.localeCompare(b.date); });
