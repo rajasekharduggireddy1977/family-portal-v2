@@ -319,16 +319,11 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   display:block;
   overscroll-behavior:none;
   -webkit-overflow-scrolling:touch;
-  animation:pageEnter .28s cubic-bezier(0.4,0,0.2,1) both;
 }
-.page.slide-in-right{ display:block; animation:slideInRight .28s cubic-bezier(0.4,0,0.2,1) both; }
-.page.slide-in-left{  display:block; animation:slideInLeft  .28s cubic-bezier(0.4,0,0.2,1) both; }
-.page.slide-out-left{ display:block; animation:slideOutLeft .28s cubic-bezier(0.4,0,0.2,1) both; pointer-events:none; }
-.page.slide-out-right{display:block; animation:slideOutRight .28s cubic-bezier(0.4,0,0.2,1) both; pointer-events:none; }
-@keyframes slideInRight{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideInLeft{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideOutLeft{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-48px)}}
-@keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(48px)}}
+.page.slide-in-right{ display:block; }
+.page.slide-in-left{  display:block; }
+.page.slide-out-left{ display:none; pointer-events:none; }
+.page.slide-out-right{ display:none; pointer-events:none; }
 /* Mobile: breathing room between topbar and page content on every page */
 @media (max-width:767px){
   .page.active > *:first-child{ margin-top:4px; }
@@ -353,7 +348,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   #gm-pill{ padding:3px 5px 3px 4px; }
   .tb-right{ gap:4px; }
 }
-@keyframes pageEnter{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
 
 /* ═══════════════════════════════════════
    GLASS CARD
@@ -4460,14 +4455,6 @@ body.dash-active #aura-canvas{ display:block; }
 
 /* Section divider */
 .tc-divider{height:1px;margin:2px 20px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);}
-
-/* Entrance animation — fires only on first visit per session */
-@keyframes auraRise{from{opacity:0;transform:translateY(20px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
-.aura-panel.aura-first-enter .tc{animation:auraRise .42s cubic-bezier(.4,0,.2,1) both;}
-.aura-panel.aura-first-enter .tc:nth-child(1){animation-delay:.04s;}
-.aura-panel.aura-first-enter .tc:nth-child(2){animation-delay:.1s;}
-.aura-panel.aura-first-enter .tc:nth-child(3){animation-delay:.16s;}
-.aura-panel.aura-first-enter .tc:nth-child(4){animation-delay:.22s;}
 
 /* Touch feedback */
 .aura-press:active{opacity:.8;transform:scale(.97);}

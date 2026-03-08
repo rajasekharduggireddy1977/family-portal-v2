@@ -204,14 +204,10 @@ function goPage(page) {
   if (doAnimate) {
     prevEl.classList.remove('active');
     prevEl.classList.add(goingForward ? 'slide-out-left' : 'slide-out-right');
-    nextEl.classList.add(goingForward ? 'slide-in-right' : 'slide-in-left');
-    nextEl.style.display = 'block';
-    setTimeout(function() {
-      prevEl.classList.remove('slide-out-left','slide-out-right');
-      prevEl.style.display = '';
-      nextEl.classList.remove('slide-in-right','slide-in-left');
-      nextEl.classList.add('active');
-    }, 290);
+    prevEl.classList.remove('active','slide-out-left','slide-out-right');
+    prevEl.style.display = '';
+    nextEl.classList.remove('slide-in-right','slide-in-left');
+    nextEl.classList.add('active');
   } else {
     document.querySelectorAll('.page').forEach(p => {
       p.classList.remove('active','slide-in-right','slide-in-left','slide-out-left','slide-out-right');
@@ -229,12 +225,12 @@ function goPage(page) {
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
   if (page !== 'dashboard') window.scrollTo(0,0);
 
-  if(page==='members') { showMembersList(); setTimeout(()=>applyGmMembers(),60); }
-  if(page==='expiry') { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
-  if(page==='calendar') { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
-  if(page==='health')   { setTimeout(()=>{ initHealthPage(); applyGmHealth(); },80); }
-  if(page==='documents') { setTimeout(()=>{ applyGmDocuments(); collapseAllDocSections(); },80); }
-  if(page==='dashboard') { setTimeout(()=>applyGmDashboard(),60); }
+  if(page==='members')   { applyGmMembers(); }
+  if(page==='expiry')    { initExpiry(); animateExpBars(); }
+  if(page==='calendar')  { initCalendar(); applyGmCalendar(); }
+  if(page==='health')    { initHealthPage(); applyGmHealth(); }
+  if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
+  if(page==='dashboard') { applyGmDashboard(); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -3781,9 +3777,7 @@ function auraGoSlide(idx) {
   track.style.transition = 'transform .5s cubic-bezier(.77,0,.18,1)';
   track.style.transform = 'translateX(' + (-idx * vw) + 'px)';
   var newP = document.getElementById(_auraSlides[idx]);
-  if (newP) { newP.classList.add('aura-panel-active'); newP.scrollTop = 0;
-    if (!newP._auraVisited) { newP._auraVisited=true; newP.classList.add('aura-first-enter'); setTimeout(function(){ newP.classList.remove('aura-first-enter'); },700); }
-  }
+  if (newP) { newP.classList.add('aura-panel-active'); newP.scrollTop = 0; }
   // Also reset page scroll so new panel starts at top
   var pg = document.getElementById('page-dashboard');
   if (pg) pg.scrollTop = 0;
