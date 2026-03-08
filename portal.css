@@ -2317,6 +2317,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 ══════════════════════════════════════════════ */
 .upload-hub-wrap {
   padding: 0 16px 40px;
+  margin-top: -12px;
   display: flex;
   flex-direction: column;
   gap: 20px;
