@@ -4294,7 +4294,7 @@ body.dash-active #aura-canvas{ display:block; }
 .tc>*{position:relative;z-index:1;}
 .tc:active{transform:scale(.985);}
 .tc-health{border-color:rgba(0,230,118,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 16px 48px rgba(0,230,118,.07),0 4px 12px rgba(0,0,0,.18);}
-.tc-edu{border-color:rgba(167,139,250,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 16px 48px rgba(167,139,250,.08),0 4px 12px rgba(0,0,0,.18);}
+.tc-edu{border-color:rgba(167,139,250,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 16px 48px rgba(167,139,250,.08),0 4px 12px rgba(0,0,0,.18);overflow:visible;}
 .tc-finance{border-color:rgba(245,158,11,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 16px 48px rgba(245,158,11,.07),0 4px 12px rgba(0,0,0,.18);}
 .tc-family{border-color:rgba(79,127,255,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 16px 48px rgba(79,127,255,.07),0 4px 12px rgba(0,0,0,.18);}
 
