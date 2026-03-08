@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Family Portal">
+<meta name="theme-color" content="#07080f">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%20%22Duggireddy%20Family%20Portal%22%2C%20%22short_name%22%3A%20%22Family%20Portal%22%2C%20%22description%22%3A%20%22Secure%20family%20document%20management%22%2C%20%22start_url%22%3A%20%22.%2F%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22background_color%22%3A%20%22%2307080f%22%2C%20%22theme_color%22%3A%20%22%2307080f%22%2C%20%22orientation%22%3A%20%22portrait%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI%2BCiAgPGRlZnM%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBkMTAyNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwYTBjMWEiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRmN2ZmZiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjYwJSIgc3R5bGU9InN0b3AtY29sb3I6IzdjNWNmYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmMGI0MjkiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2YwYjQyOTtzdG9wLW9wYWNpdHk6MC45Ii8%2BCiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRmN2ZmZjtzdG9wLW9wYWNpdHk6MC43Ii8%2BCiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ2xvdyI%2BCiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjMiIHJlc3VsdD0iYmx1ciIvPgogICAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImJsdXIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U%2BCiAgICA8L2ZpbHRlcj4KICA8L2RlZnM%2BCiAgPCEtLSBCYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDIiIGZpbGw9InVybCgjYmcpIi8%2BCiAgPCEtLSBTdWJ0bGUgZ3JpZCAtLT4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSJ1cmwoI2cxKSIgb3BhY2l0eT0iMC4wNiIvPgogIDwhLS0gT3V0ZXIgcmluZyAtLT4KICA8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI3MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cxKSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjMiLz4KICA8IS0tIElubmVyIHJpbmcgLS0%2BCiAgPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnMikiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjQiLz4KICA8IS0tIENlbnRyYWwgRCBzaGFwZSAtIGJvbGQgbW9kZXJuIGxldHRlcmZvcm0gLS0%2BCiAgPGcgZmlsdGVyPSJ1cmwoI2dsb3cpIj4KICAgIDwhLS0gRCBsZXR0ZXIgLSBsZWZ0IHZlcnRpY2FsIGJhciAtLT4KICAgIDxyZWN0IHg9IjU4IiB5PSI1MiIgd2lkdGg9IjE0IiBoZWlnaHQ9Ijg4IiByeD0iNCIgZmlsbD0idXJsKCNnMSkiLz4KICAgIDwhLS0gRCBsZXR0ZXIgLSB0b3AgYmFyIC0tPgogICAgPHJlY3QgeD0iNTgiIHk9IjUyIiB3aWR0aD0iNDYiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSJ1cmwoI2cxKSIvPgogICAgPCEtLSBEIGxldHRlciAtIGJvdHRvbSBiYXIgLS0%2BCiAgICA8cmVjdCB4PSI1OCIgeT0iMTI2IiB3aWR0aD0iNDYiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSJ1cmwoI2cxKSIvPgogICAgPCEtLSBEIGxldHRlciAtIHJpZ2h0IGN1cnZlIChjaXJjbGUgc2VnbWVudCkgLS0%2BCiAgICA8cGF0aCBkPSJNIDEwMCA1MiBRIDE0MiA1MiAxNDIgOTYgUSAxNDIgMTQwIDEwMCAxNDAiIAogICAgICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cxKSIgc3Ryb2tlLXdpZHRoPSIxNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8%2BCiAgPC9nPgogIDwhLS0gQ29ybmVyIGFjY2VudCBkb3RzIC0tPgogIDxjaXJjbGUgY3g9IjE0OCIgY3k9IjQ0IiByPSI0IiBmaWxsPSIjZjBiNDI5IiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSI0NCIgY3k9IjE0OCIgcj0iMyIgZmlsbD0iIzRmN2ZmZiIgb3BhY2l0eT0iMC41Ii8%2BCiAgPGNpcmNsZSBjeD0iMTUyIiBjeT0iMTUwIiByPSIyIiBmaWxsPSIjN2M1Y2ZjIiBvcGFjaXR5PSIwLjYiLz4KPC9zdmc%2B%22%2C%20%22sizes%22%3A%20%22192x192%22%2C%20%22type%22%3A%20%22image%2Fsvg%2Bxml%22%7D%2C%20%7B%22src%22%3A%20%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI%2BCiAgPGRlZnM%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBkMTAyNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwYTBjMWEiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRmN2ZmZiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3R5bGU9InN0b3AtY29sb3I6IzdjNWNmYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmMGI0MjkiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ%2BCiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2YwYjQyOSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0ZjdmZmYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ%2BCiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3ctYmciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI%2BCiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM0ZjdmZmY7c3RvcC1vcGFjaXR5OjAuMTIiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNGY3ZmZmO3N0b3Atb3BhY2l0eTowIi8%2BCiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ2xvdyI%2BCiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjYiIHJlc3VsdD0iYmx1ciIvPgogICAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImJsdXIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U%2BCiAgICA8L2ZpbHRlcj4KICA8L2RlZnM%2BCiAgPCEtLSBCYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iMTEwIiBmaWxsPSJ1cmwoI2JnKSIvPgogIDwhLS0gR2xvdyAtLT4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMCIgZmlsbD0idXJsKCNnbG93LWJnKSIvPgogIDwhLS0gT3V0ZXIgZGVjb3JhdGl2ZSByaW5nIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTk2IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZzEpIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC4yNSIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTcwIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZzIpIiBzdHJva2Utd2lkdGg9IjAuOCIgb3BhY2l0eT0iMC4yIi8%2BCiAgPCEtLSBEIGxldHRlcm1hcmsgLS0%2BCiAgPGcgZmlsdGVyPSJ1cmwoI2dsb3cpIj4KICAgIDxyZWN0IHg9IjE0OCIgeT0iMTMyIiB3aWR0aD0iMzgiIGhlaWdodD0iMjQ4IiByeD0iMTAiIGZpbGw9InVybCgjZzEpIi8%2BCiAgICA8cmVjdCB4PSIxNDgiIHk9IjEzMiIgd2lkdGg9IjEyOCIgaGVpZ2h0PSIzOCIgcng9IjEwIiBmaWxsPSJ1cmwoI2cxKSIvPgogICAgPHJlY3QgeD0iMTQ4IiB5PSIzNDIiIHdpZHRoPSIxMjgiIGhlaWdodD0iMzgiIHJ4PSIxMCIgZmlsbD0idXJsKCNnMSkiLz4KICAgIDxwYXRoIGQ9Ik0gMjY4IDEzMiBRIDM5MCAxMzIgMzkwIDI1NiBRIDM5MCAzODAgMjY4IDM4MCIKICAgICAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnMSkiIHN0cm9rZS13aWR0aD0iMzgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwvZz4KICA8IS0tIEFjY2VudCBkb3RzIC0tPgogIDxjaXJjbGUgY3g9IjQwMiIgY3k9IjExMCIgcj0iMTAiIGZpbGw9IiNmMGI0MjkiIG9wYWNpdHk9IjAuOCIvPgogIDxjaXJjbGUgY3g9IjExMCIgY3k9IjQwMCIgcj0iOCIgZmlsbD0iIzRmN2ZmZiIgb3BhY2l0eT0iMC42Ii8%2BCiAgPGNpcmNsZSBjeD0iNDA2IiBjeT0iNDA2IiByPSI1IiBmaWxsPSIjN2M1Y2ZjIiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSIxMDgiIGN5PSIxMDgiIHI9IjQiIGZpbGw9IiM0ZjdmZmYiIG9wYWNpdHk9IjAuMyIvPgo8L3N2Zz4%3D%22%2C%20%22sizes%22%3A%20%22512x512%22%2C%20%22type%22%3A%20%22image%2Fsvg%2Bxml%22%2C%20%22purpose%22%3A%20%22any%20maskable%22%7D%5D%7D">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBkMTAyNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwYTBjMWEiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRmN2ZmZiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjYwJSIgc3R5bGU9InN0b3AtY29sb3I6IzdjNWNmYyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmMGI0MjkiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImcyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2YwYjQyOTtzdG9wLW9wYWNpdHk6MC45Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRmN2ZmZjtzdG9wLW9wYWNpdHk6MC43Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ2xvdyI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjMiIHJlc3VsdD0iYmx1ciIvPgogICAgICA8ZmVNZXJnZT48ZmVNZXJnZU5vZGUgaW49ImJsdXIiLz48ZmVNZXJnZU5vZGUgaW49IlNvdXJjZUdyYXBoaWMiLz48L2ZlTWVyZ2U+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPCEtLSBCYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iNDIiIGZpbGw9InVybCgjYmcpIi8+CiAgPCEtLSBTdWJ0bGUgZ3JpZCAtLT4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSJ1cmwoI2cxKSIgb3BhY2l0eT0iMC4wNiIvPgogIDwhLS0gT3V0ZXIgcmluZyAtLT4KICA8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI3MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cxKSIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjMiLz4KICA8IS0tIElubmVyIHJpbmcgLS0+CiAgPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnMikiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjQiLz4KICA8IS0tIENlbnRyYWwgRCBzaGFwZSAtIGJvbGQgbW9kZXJuIGxldHRlcmZvcm0gLS0+CiAgPGcgZmlsdGVyPSJ1cmwoI2dsb3cpIj4KICAgIDwhLS0gRCBsZXR0ZXIgLSBsZWZ0IHZlcnRpY2FsIGJhciAtLT4KICAgIDxyZWN0IHg9IjU4IiB5PSI1MiIgd2lkdGg9IjE0IiBoZWlnaHQ9Ijg4IiByeD0iNCIgZmlsbD0idXJsKCNnMSkiLz4KICAgIDwhLS0gRCBsZXR0ZXIgLSB0b3AgYmFyIC0tPgogICAgPHJlY3QgeD0iNTgiIHk9IjUyIiB3aWR0aD0iNDYiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSJ1cmwoI2cxKSIvPgogICAgPCEtLSBEIGxldHRlciAtIGJvdHRvbSBiYXIgLS0+CiAgICA8cmVjdCB4PSI1OCIgeT0iMTI2IiB3aWR0aD0iNDYiIGhlaWdodD0iMTQiIHJ4PSI0IiBmaWxsPSJ1cmwoI2cxKSIvPgogICAgPCEtLSBEIGxldHRlciAtIHJpZ2h0IGN1cnZlIChjaXJjbGUgc2VnbWVudCkgLS0+CiAgICA8cGF0aCBkPSJNIDEwMCA1MiBRIDE0MiA1MiAxNDIgOTYgUSAxNDIgMTQwIDEwMCAxNDAiIAogICAgICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cxKSIgc3Ryb2tlLXdpZHRoPSIxNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPC9nPgogIDwhLS0gQ29ybmVyIGFjY2VudCBkb3RzIC0tPgogIDxjaXJjbGUgY3g9IjE0OCIgY3k9IjQ0IiByPSI0IiBmaWxsPSIjZjBiNDI5IiBvcGFjaXR5PSIwLjciLz4KICA8Y2lyY2xlIGN4PSI0NCIgY3k9IjE0OCIgcj0iMyIgZmlsbD0iIzRmN2ZmZiIgb3BhY2l0eT0iMC41Ii8+CiAgPGNpcmNsZSBjeD0iMTUyIiBjeT0iMTUwIiByPSIyIiBmaWxsPSIjN2M1Y2ZjIiBvcGFjaXR5PSIwLjYiLz4KPC9zdmc+">
+<title>Duggireddy Family Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+
+<!-- ═══════════════ PULL-TO-REFRESH INDICATOR ═══════════════ -->
+<div id="ptr-indicator">
+  <span class="ptr-ico">↓</span>
+  <span id="ptr-label">Pull to refresh</span>
+</div>
+
+<!-- ═══════════════ NIGHT NUDGE BANNER ═══════════════ -->
+<div id="night-nudge">
+  <div class="nudge-row">
+    <div class="nudge-moon">🌙</div>
+    <div class="nudge-body">
+      <div class="nudge-title" id="nudge-title">Good Night, Duggireddy Family!</div>
+      <div class="nudge-sub" id="nudge-sub">Time to wind down. Put the phone down and rest well.</div>
+      <div class="nudge-tomorrow" id="nudge-tomorrow"></div>
+    </div>
+    <button class="nudge-close" onclick="closeNightNudge()">✕</button>
+  </div>
+</div>
+
+<!-- ═══════════════ GLOBAL OVERLAYS (body-level, never inside transformed elements) ═══════════════ -->
+<div class="veh-sheet" id="veh-sheet">
+  <div class="veh-sheet-bg" onclick="vehCloseSheet()"></div>
+  <div class="veh-sheet-card" id="veh-sheet-card">
+    <div class="veh-sheet-handle"></div>
+    <div id="veh-sheet-body"></div>
+  </div>
+</div>
+<div class="mem-lightbox" id="mem-lightbox" onclick="memCloseLightbox()">
+  <div class="mem-lb-close" onclick="memCloseLightbox()">✕</div>
+  <img id="mem-lb-img" src="" alt="">
+  <div class="mem-lb-caption" id="mem-lb-caption"></div>
+  <div class="mem-lb-del" onclick="memDeletePhoto()">Delete this photo</div>
+</div>
+
+<!-- ═══════════════ FAB BUTTON & MENU ═══════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     AI FAMILY ASSISTANT — FLOATING PANEL
+═══════════════════════════════════════════════════════ -->
+<div id="ai-fab-wrap" style="position:fixed;bottom:calc(var(--nav-h) + 10px);right:16px;z-index:9101;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
+  <div id="ai-fab" onclick="toggleAIPanel()" title="AI Family Assistant" style="position:relative;bottom:auto;right:auto;z-index:auto;">
+    <div id="ai-fab-ring"></div>
+    <div id="ai-fab-icon">✦</div>
+  </div>
+  <div id="ai-fab-label" style="font-size:8px;font-weight:700;color:#a78bfa;font-family:'DM Mono',monospace;letter-spacing:.4px;pointer-events:none;opacity:.8;transition:opacity .2s;">AI</div>
+</div>
+
+<div id="ai-panel" class="ai-panel-closed">
+  <div id="ai-panel-inner">
+
+    <!-- Header -->
+    <div id="ai-panel-header">
+      <div id="ai-panel-header-left">
+        <div id="ai-panel-avatar">✦</div>
+        <div>
+          <div id="ai-panel-title">AI Family Assistant</div>
+          <div id="ai-panel-status"><span id="ai-panel-dot"></span><span id="ai-panel-status-text">Ready</span></div>
+        </div>
+      </div>
+      <div id="ai-panel-header-right">
+        <div id="ai-panel-clear" onclick="aiPanelClear()" title="Clear chat">⟳</div>
+        <div id="ai-panel-close" onclick="toggleAIPanel()">✕</div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="ai-panel-messages">
+      <div class="ai-panel-welcome">
+        <div class="ai-pw-icon">✦</div>
+        <div class="ai-pw-title">How can I help the family today?</div>
+        <div class="ai-pw-sub">Ask about attendance, documents, schedules, or anything else.</div>
+      </div>
+    </div>
+
+    <!-- Context-aware chips -->
+    <div id="ai-panel-chips"></div>
+
+    <!-- Input -->
+    <div id="ai-panel-input-row">
+      <textarea id="ai-panel-input" placeholder="Ask anything…" rows="1"
+        inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="sentences"
+        onkeydown="aiPanelKeyDown(event)"
+        oninput="aiPanelAutoResize(this)"></textarea>
+      <button id="ai-panel-send" onclick="aiPanelSend()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L14 2L10 8L14 14L2 8Z" fill="white"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+<div id="ai-panel-backdrop" onclick="toggleAIPanel()"></div>
+
+<div id="fab-menu" class="hidden">
+  <div class="fab-item" onclick="fabAction('upload')">
+    <div class="fab-item-ico">📡</div> Data Sync Hub
+  </div>
+  <div class="fab-item" onclick="fabAction('event')">
+    <div class="fab-item-ico">📅</div> Add Event
+  </div>
+  <div class="fab-item" onclick="fabAction('search')">
+    <div class="fab-item-ico">🔍</div> Quick Search
+  </div>
+  <div class="fab-item" onclick="fabAction('backup')">
+    <div class="fab-item-ico">💾</div> Backup Now
+  </div>
+</div>
+<div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
+  <div id="fab-btn" onclick="toggleFab()" title="Quick Actions" aria-label="Quick Actions" style="position:relative;bottom:auto;left:auto;z-index:auto;">＋</div>
+  <div style="font-size:8px;font-weight:700;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.4px;pointer-events:none;opacity:.7;">ACTIONS</div>
+</div>
+
+<!-- ═══════════════ COMMAND PALETTE ═══════════════ -->
+<div id="cmd-overlay" onclick="if(event.target===this)closeCommandPalette()">
+  <div id="cmd-palette">
+    <div class="cmd-search-row">
+      <span class="cmd-search-icon">⌕</span>
+      <input type="text" class="cmd-input" id="cmd-input"
+        placeholder="Search pages, members, documents…"
+        oninput="cmdSearch(this.value)"
+        autocomplete="off">
+      <span class="cmd-kbd">ESC</span>
+    </div>
+    <div id="cmd-results"></div>
+    <div class="cmd-footer">
+      <span><span class="cmd-footer-key">↑↓</span> navigate</span>
+      <span><span class="cmd-footer-key">↵</span> select</span>
+      <span><span class="cmd-footer-key">ESC</span> close</span>
+      <span style="margin-left:auto;"><span class="cmd-footer-key">⌘K</span> open</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ LOADER SCREEN ═══════════════ -->
+<div id="loader-screen">
+  <div class="loader-particles" id="loader-particles"></div>
+  <div class="loader-logo">
+    <div class="loader-ring"></div>
+    <div class="loader-ring2"></div>
+    <div class="loader-logo-inner">🏛️</div>
+  </div>
+  <div class="loader-dots">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+  <div class="loader-title">Duggireddy Portal</div>
+  <div class="loader-sub">Family · Secure · Private</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+  <div class="loader-status" id="loader-status">Initialising…</div>
+</div>
+
+<!-- ═══════════════ PIN LOCK SCREEN ═══════════════ -->
+<div id="pin-lock" class="hidden">
+  <div class="lock-logo">🏛️</div>
+  <div class="lock-title">Duggireddy Portal</div>
+  <div class="lock-sub">ENTER PIN TO ACCESS</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-grid">
+    <div class="pin-key pressable" onclick="pinKey('1')"><span>1</span></div>
+    <div class="pin-key pressable" onclick="pinKey('2')"><span>2</span><span class="pin-key-sub">ABC</span></div>
+    <div class="pin-key pressable" onclick="pinKey('3')"><span>3</span><span class="pin-key-sub">DEF</span></div>
+    <div class="pin-key pressable" onclick="pinKey('4')"><span>4</span><span class="pin-key-sub">GHI</span></div>
+    <div class="pin-key pressable" onclick="pinKey('5')"><span>5</span><span class="pin-key-sub">JKL</span></div>
+    <div class="pin-key pressable" onclick="pinKey('6')"><span>6</span><span class="pin-key-sub">MNO</span></div>
+    <div class="pin-key pressable" onclick="pinKey('7')"><span>7</span><span class="pin-key-sub">PQRS</span></div>
+    <div class="pin-key pressable" onclick="pinKey('8')"><span>8</span><span class="pin-key-sub">TUV</span></div>
+    <div class="pin-key pressable" onclick="pinKey('9')"><span>9</span><span class="pin-key-sub">WXYZ</span></div>
+    <div class="pin-key pin-empty"></div>
+    <div class="pin-key pressable" onclick="pinKey('0')"><span>0</span></div>
+    <div class="pin-key pin-del pressable" onclick="pinDel()">⌫</div>
+  </div>
+  <div class="pin-err-msg" id="pin-err"></div>
+  <div class="pin-hint">Default PIN: <strong style="color:var(--gold);font-family:'DM Mono',monospace">1234</strong><br>Change in Settings after unlock</div>
+</div>
+
+<!-- ═══════════════ SIDEBAR NAV (tablet/desktop) ═══════════════ -->
+<div id="sidebar-nav">
+  <div class="snav-section">
+    <div class="snav-label">Navigation</div>
+    <div class="snav-item active" id="snav-dashboard" onclick="goPage('dashboard')">
+      <div class="snav-icon">🏠</div> Dashboard
+    </div>
+    <div class="snav-item" id="snav-members" onclick="goPage('members')">
+      <div class="snav-icon">👨‍👩‍👧‍👦</div> Members
+    </div>
+    <div class="snav-item" id="snav-documents" onclick="goPage('documents')">
+      <div class="snav-icon">📁</div> Documents
+    </div>
+    <div class="snav-item" id="snav-expiry" onclick="goPage('expiry')">
+      <div class="snav-icon">⏰</div> Expiry Tracker
+      <span class="snav-badge">2</span>
+    </div>
+    <div class="snav-item" id="snav-calendar" onclick="goPage('calendar')">
+      <div class="snav-icon">📅</div> Calendar
+    </div>
+    <div class="snav-item" id="snav-health" onclick="goPage('health')">
+      <div class="snav-icon">💊</div> Health<div class="bnav-alert-dot snav-alert-dot" id="health-alert-dot-snav" style="display:none;"></div>
+    </div>
+    <div class="snav-item" id="snav-search" onclick="goSearch()">
+      <div class="snav-icon">🔍</div> Search
+    </div>
+  </div>
+  <div class="snav-section snav-ai-section">
+    <div class="snav-label">AI Features</div>
+    <div class="snav-item" onclick="goPage('dashboard');setTimeout(()=>document.getElementById('ai-briefing-card')?.scrollIntoView({behavior:'smooth'}),400)">
+      <div class="snav-icon">✨</div> Daily Briefing
+    </div>
+    <div class="snav-item" onclick="goPage('dashboard');setTimeout(()=>document.getElementById('aicw-messages')?.closest('.widget-item')?.scrollIntoView({behavior:'smooth'}),400)">
+      <div class="snav-icon">🤖</div> AI Assistant
+    </div>
+    <div class="snav-item" onclick="goPage('dashboard');setTimeout(()=>document.getElementById('aimw-meals-body')?.closest('.widget-item')?.scrollIntoView({behavior:'smooth'}),400)">
+      <div class="snav-icon">🍛</div> Meal Planner
+    </div>
+  </div>
+  <div class="snav-footer">
+    <div class="snav-footer-txt">🔒 PIN Protected<br>Last access: Today<br>Auto-lock: 5 min idle</div>
+    <div onclick="openBackupModal()" style="margin-top:10px;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2);cursor:pointer;">
+      <span style="font-size:16px;">💾</span>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--green);font-family:'Inter',sans-serif;">Backup & Restore</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;" id="snav-backup-ts">Tap to backup data</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<div id="topbar">
+  <div class="tb-brand">
+    <div class="tb-logo">🏛️</div>
+    <div>
+      <div class="tb-title">Duggireddy</div>
+      <div class="tb-sub">Family Portal</div>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-clock" id="clock">00:00:00</div>
+    <!-- Global Member Picker -->
+    <div id="gm-pill" onclick="toggleGmDropdown()" title="Filter by family member">
+      <div class="gm-av" id="gm-av" style="background:linear-gradient(135deg,#374151,#6b7280)">👨‍👩‍👧‍👦</div>
+      <span class="gm-name" id="gm-name">All</span>
+      <span class="gm-arrow">▾</span>
+    </div>
+    <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</div>
+    <div class="tb-search-btn pressable" onclick="openCommandPalette()" title="Command Palette (⌘K)" style="display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:9px;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;" onmouseenter="this.style.borderColor='rgba(79,127,255,.4)';this.style.color='var(--blue2)'" onmouseleave="this.style.borderColor='';this.style.color=''">⌘K</div>
+    <div class="tb-search-btn" onclick="goSearch()" title="Search">⌕</div>
+  </div>
+</div>
+
+<!-- Global Member Dropdown -->
+<div id="gm-dropdown">
+  <div class="gm-dd-hdr">View as member</div>
+  <div class="gm-dd-item active" data-gm="all" onclick="setPortalMember('all')">
+    <div class="gm-av" style="background:linear-gradient(135deg,#374151,#6b7280)">👨‍👩‍👧‍👦</div>
+    <div class="gm-dd-item-info"><div class="gm-dd-item-name">All Family</div><div class="gm-dd-item-role">Full portal view</div></div>
+    <span class="gm-dd-check">✓</span>
+  </div>
+  <div class="gm-dd-item" data-gm="rajasekhar" onclick="setPortalMember('rajasekhar')">
+    <div class="gm-av" style="background:linear-gradient(135deg,#1a3254,#3b6fd4)">RR</div>
+    <div class="gm-dd-item-info"><div class="gm-dd-item-name">Rajasekhar</div><div class="gm-dd-item-role">Head of Family · 48M</div></div>
+    <span class="gm-dd-check" style="display:none">✓</span>
+  </div>
+  <div class="gm-dd-item" data-gm="vasundhara" onclick="setPortalMember('vasundhara')">
+    <div class="gm-av" style="background:linear-gradient(135deg,#5b21b6,#9333ea)">VD</div>
+    <div class="gm-dd-item-info"><div class="gm-dd-item-name">Vasundhara</div><div class="gm-dd-item-role">Spouse · 42F</div></div>
+    <span class="gm-dd-check" style="display:none">✓</span>
+  </div>
+  <div class="gm-dd-item" data-gm="josritha" onclick="setPortalMember('josritha')">
+    <div class="gm-av" style="background:linear-gradient(135deg,#9d174d,#ec4899)">JD</div>
+    <div class="gm-dd-item-info"><div class="gm-dd-item-name">Josritha</div><div class="gm-dd-item-role">Daughter · 19F</div></div>
+    <span class="gm-dd-check" style="display:none">✓</span>
+  </div>
+  <div class="gm-dd-item" data-gm="jeevan" onclick="setPortalMember('jeevan')">
+    <div class="gm-av" style="background:linear-gradient(135deg,#065f46,#0d9488)">JV</div>
+    <div class="gm-dd-item-info"><div class="gm-dd-item-name">Jeevan</div><div class="gm-dd-item-role">Son · 14M</div></div>
+    <span class="gm-dd-check" style="display:none">✓</span>
+  </div>
+</div>
+
+<!-- ═══════════════ CONTENT ═══════════════ -->
+<div id="content">
+
+  <!-- ══════════ DASHBOARD PAGE — AURA OS v3 ══════════ -->
+  <div class="page active" id="page-dashboard">
+
+    <!-- Aurora canvas background -->
+    <canvas id="aura-canvas"></canvas>
+
+    <!-- Keep legacy widget container hidden (other JS still references it) -->
+    <div class="dash-wrap" id="widget-container" style="display:none!important;"></div>
+    <div class="add-widget-wrap" id="add-widget-wrap" style="display:none!important;"></div>
+    <div class="widget-edit-bar" id="widget-edit-bar" style="display:none!important;"></div>
+
+    <!-- Aura OS Dashboard Shell -->
+    <div class="aura-dash" id="aura-dash">
+
+      <!-- CATEGORY RAIL -->
+      <div class="aura-rail" id="aura-rail">
+        <div class="aura-cat aura-active" style="--aura-cat-c:rgba(200,210,255,.55);" onclick="auraGoSlide(0)">
+          <div class="aura-cat-orb">🏠</div>
+          <div class="aura-cat-lbl">Home</div>
+        </div>
+        <div class="aura-cat" style="--aura-cat-c:rgba(0,230,118,.6);" onclick="auraGoSlide(1)">
+          <div class="aura-cat-orb" style="position:relative;">❤️<div class="aura-cat-alert" id="aura-health-badge" style="display:none;"></div></div>
+          <div class="aura-cat-lbl">Health</div>
+        </div>
+        <div class="aura-cat" style="--aura-cat-c:rgba(167,139,250,.7);" onclick="auraGoSlide(2)" id="aura-cat-edu">
+          <div class="aura-cat-orb" style="position:relative;">📚<div class="aura-cat-alert" id="aura-edu-badge" style="display:none;"></div></div>
+          <div class="aura-cat-lbl">Edu</div>
+        </div>
+        <div class="aura-cat" style="--aura-cat-c:rgba(245,158,11,.7);" onclick="auraGoSlide(3)" id="aura-cat-fin">
+          <div class="aura-cat-orb" style="position:relative;">💰<div class="aura-cat-alert" id="aura-fin-badge" style="display:none;"></div></div>
+          <div class="aura-cat-lbl">Finance</div>
+        </div>
+        <div class="aura-cat" style="--aura-cat-c:rgba(79,127,255,.65);" onclick="auraGoSlide(4)">
+          <div class="aura-cat-orb">👨‍👩‍👧‍👦</div>
+          <div class="aura-cat-lbl">Family</div>
+        </div>
+      </div>
+
+      <!-- SWIPEABLE STAGE -->
+      <div class="aura-stage" id="aura-stage">
+        <div class="aura-track" id="aura-track">
+
+          <!-- ▸ PANEL 0: HOME -->
+          <div class="aura-panel" id="aura-p0">
+            <!-- Greeting card with rings -->
+            <div class="tc">
+              <div class="tc-greeting">
+                <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
+                <div class="tc-greet-name" id="aura-greeting">Good Morning,<br>Rajasekhar.</div>
+                <div class="tc-greet-date" id="aura-date"></div>
+              </div>
+            </div>
+            <!-- Today timeline -->
+            <div class="tc">
+              <div class="tc-sec-hd">
+                <div class="tc-sec-title">Today</div>
+                <div class="tc-sec-action" onclick="goPage('calendar')">Calendar →</div>
+              </div>
+              <div id="aura-today-timeline"></div>
+            </div>
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- ▸ PANEL 1: HEALTH -->
+          <div class="aura-panel" id="aura-p1">
+            <div class="tc tc-health">
+              <div class="tc-health-banner">
+                <div class="tchb-eyebrow">Health Pulse</div>
+                <div class="tchb-row">
+                  <div>
+                    <div class="tchb-headline">Family<br>Wellness</div>
+                    <div class="tchb-sub">All 4 members · Real data</div>
+                  </div>
+                  <div class="tchb-badge" id="aura-health-badge-ring">
+                    <div class="tchb-badge-inner">
+                      <div class="tchb-badge-num" id="aura-health-avg">—</div>
+                      <div class="tchb-badge-lbl">AVG</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tc-divider"></div>
+              <div class="tc-mem-scroll" id="aura-health-members"></div>
+            </div>
+            <div class="tc tc-health">
+              <div class="tc-sec-hd" style="padding-top:16px;">
+                <div class="tc-sec-title">Vasundhara · Key Markers</div>
+                <div class="tc-sec-action" onclick="goPage('health')">Full →</div>
+              </div>
+              <div class="tc-vitals-grid" id="aura-health-vitals"></div>
+            </div>
+            <div class="aura-btn aura-btn-health aura-press" onclick="goPage('health')">Full Health Reports →</div>
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- ▸ PANEL 2: EDUCATION -->
+          <div class="aura-panel" id="aura-p2">
+            <div class="tc tc-edu">
+              <div class="tc-att-ring-row" id="aura-att-ring-row"></div>
+              <div class="tc-divider"></div>
+              <div id="aura-wsev"></div>
+              <div class="tc-divider"></div>
+              <div class="tc-subj-deck" id="aura-subj-bars"></div>
+            </div>
+            <div class="tc tc-edu">
+              <div class="tc-sec-hd"><div class="tc-sec-title">Today's Classes</div><div class="tc-sec-action" onclick="goPage('members')">Timetable →</div></div>
+              <div id="aura-today-classes"></div>
+            </div>
+            <div class="tc tc-edu" id="aura-sgpa-card">
+              <div class="tc-sec-hd" style="padding-top:16px;">
+                <div class="tc-sec-title">SGPA Trend · Sems 1–3</div>
+                <div class="tc-sec-action" style="color:#a78bfa;">CGPA 9.24</div>
+              </div>
+              <div id="aura-sgpa-bars" style="display:flex;align-items:flex-end;gap:10px;padding:10px 20px 16px;"></div>
+            </div>
+            <div class="aura-btn aura-btn-edu aura-press" onclick="goPage('members')">Full Academic Report →</div>
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- ▸ PANEL 3: FINANCE -->
+          <div class="aura-panel" id="aura-p3">
+            <div class="tc tc-finance">
+              <div class="tc-fin-hero">
+                <div class="tc-fin-eyebrow" id="aura-fin-bank-label">ICICI · ••6595</div>
+                <div class="tc-fin-amount" id="aura-fin-balance">—</div>
+                <div class="tc-fin-sub" id="aura-fin-sub">Loading…</div>
+                <div class="tc-fin-stats" id="aura-fin-stats"></div>
+              </div>
+              <div class="tc-divider"></div>
+              <div class="tc-bar-section">
+                <div class="tc-bar-title">Monthly Spend Pattern</div>
+                <div class="tc-bars" id="aura-spend-bars"></div>
+              </div>
+              <div class="tc-bsw" id="aura-bank-tabs">
+                <div class="tc-bsw-btn tc-bsw-active">ICICI ✓</div>
+                <div class="tc-bsw-btn">HDFC</div>
+                <div class="tc-bsw-btn">AXIS</div>
+                <div class="tc-bsw-btn" style="color:var(--blue2);border-color:rgba(79,127,255,.25);" onclick="goPage('upload')">📡 Sync</div>
+              </div>
+            </div>
+            <div class="tc tc-finance">
+              <div class="tc-txn-hd">
+                <div class="tc-txn-hd-t">All Transactions</div>
+                <div class="tc-txn-hd-a" id="aura-txn-count-lbl" onclick="goPage('upload')">—</div>
+              </div>
+              <div id="aura-txn-list"></div>
+            </div>
+            <div class="aura-btn aura-btn-fin aura-press" onclick="goPage('upload')">Sync / View All Transactions →</div>
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- ▸ PANEL 4: FAMILY -->
+          <div class="aura-panel" id="aura-p4">
+            <div class="tc tc-family">
+              <div class="tc-fam-header">
+                <div class="tc-fam-title">Duggireddy<br>Family</div>
+                <div class="tc-fam-sub">4 members · Hyderabad, Telangana</div>
+              </div>
+              <div style="padding:0 20px 18px;display:flex;flex-direction:column;gap:8px;" id="aura-family-cards"></div>
+            </div>
+            <div style="height:8px;"></div>
+          </div>
+
+        </div><!-- /aura-track -->
+      </div><!-- /aura-stage -->
+
+    </div><!-- /aura-dash -->
+  </div><!-- /page-dashboard -->
+
+  <!-- ══════════ MEMBERS PAGE ══════════ -->
+  <div class="page" id="page-members">
+    <!-- View toggle: list / carousel -->
+    <!-- Member List -->
+    <div id="members-list-view">
+      <div class="members-list stagger" id="members-cards"></div>
+    </div>
+    <!-- Member Detail -->
+    <div id="members-detail-view" style="display:none;">
+      <div style="padding:12px 14px 0;display:flex;align-items:center;gap:8px;">
+        <div onclick="showMembersList()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--blue2);cursor:pointer;font-weight:600;padding:6px 0;min-height:44px;">← Family</div>
+      </div>
+      <div id="member-hero"></div>
+      <div id="member-related-docs"></div>
+      <div id="member-section-grid"></div>
+      <div id="member-tab-content"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ DOCUMENTS PAGE ══════════ -->
+  <div class="page" id="page-documents">
+    <div class="docs-wrap">
+      <!-- Hero Header -->
+      <div class="docs-hero">
+        <div class="docs-hero-title">📁 Documents Index</div>
+        <div class="docs-hero-sub">Duggireddy Family · All records in one place</div>
+        <div class="docs-hero-stats">
+          <div class="dhs"><span class="dhs-num" id="docs-total-num">36</span> docs</div>
+          <div class="dhs"><span class="dhs-num">8</span> categories</div>
+          <div class="dhs"><span class="dhs-num">4</span> members</div>
+          <div class="dhs" style="color:var(--red);border-color:rgba(255,79,79,.3);"><span class="dhs-num" style="color:var(--red);">2</span> expiring</div>
+        </div>
+      </div>
+      <!-- Sticky Search + Filter Bar (includes reset bar) -->
+      <div class="docs-searchbar-wrap">
+        <div class="docs-search-row">
+          <span class="dsr-icon">🔍</span>
+          <input type="text" class="dsr-input" id="doc-search" placeholder="Search by name, number, person, file…" autocomplete="off" oninput="applyDocFilters()">
+          <span class="dsr-count" id="dsr-count" style="display:none;"></span>
+          <button class="dsr-clear" id="doc-clr" onclick="clearDocSearch()">✕</button>
+        </div>
+        <!-- Type filter chips -->
+        <div class="docs-filter-tabs" id="type-chips"></div>
+        <!-- Person filter chips -->
+        <div class="docs-filter-tabs" id="person-chips"></div>
+        <!-- Reset bar — inside sticky so it stays visible -->
+        <div class="docs-reset-bar" id="docs-reset">
+          <span class="drb-info" id="docs-count-lbl">Filtered view</span>
+          <button class="drb-reset" onclick="resetDocFilters()">✕ Reset all</button>
+        </div>
+      </div>
+      <!-- Doc list body (categories + rows injected by JS) -->
+      <div class="docs-list-container" id="doc-list-body"></div>
+      <div class="docs-empty" id="doc-no-match">
+        <span class="docs-empty-icon">🔍</span>
+        No documents match your search or filters
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ EXPIRY PAGE ══════════ -->
+  <div class="page" id="page-expiry">
+    <div class="expiry-wrap">
+      <div class="expiry-hdr">
+        <div class="expiry-title">Expiry Tracker</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">7 items · Auto-alerts at 7, 30, 60, 90 days</div>
+        <div class="expiry-chips" id="expiry-chips"></div>
+      </div>
+      <!-- View toggle -->
+      <div class="expiry-view-toggle">
+        <div class="evtb active" id="evtb-list" onclick="setExpiryView('list')">☰ List</div>
+        <div class="evtb" id="evtb-timeline" onclick="setExpiryView('timeline')">⟶ Timeline</div>
+      </div>
+      <!-- LIST VIEW -->
+      <div id="expiry-list-pane">
+        <div class="monitor-notice">
+          <span class="monitor-icon">🤖</span>
+          <div><strong style="color:var(--gold)">Auto-Monitoring Active</strong> · check_expiry.py runs every Monday 9 AM · Alerts via Cowork + Gmail</div>
+        </div>
+        <div id="exp-docs-pane" class="eli-items"></div>
+      </div>
+      <!-- TIMELINE VIEW (vertical) -->
+      <div id="timeline-pane">
+        <div class="vtl-list" id="vtl-list"></div>
+        <div class="vtl-legend" id="vtl-legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SEARCH PAGE ══════════ -->
+  <div class="page" id="page-search">
+    <div class="search-wrap">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.4px;margin-bottom:12px;">Search</div>
+      <div class="search-main-bar">
+        <span style="font-size:18px;color:var(--text3)">⌕</span>
+        <input type="text" class="search-main-input" id="search-input" placeholder="Search documents, IDs, policies…" autocomplete="off" oninput="doSearch(this.value)">
+        <button onclick="document.getElementById('search-input').value='';doSearch('');" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:4px;min-height:32px;display:flex;align-items:center;">✕</button>
+      </div>
+      <div id="search-results-wrap">
+        <div class="search-empty">Start typing to search all family documents…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ CALENDAR PAGE ══════════ -->
+  <div class="page" id="page-calendar">
+    <div class="cal-wrap">
+      <div class="cal-page-hdr">
+        <div>
+          <div class="cal-page-title">📅 Family Calendar</div>
+          <div class="cal-page-sub">ALL EVENTS · DUGGIREDDY FAMILY</div>
+        </div>
+        <button class="cal-add-btn" onclick="openCalSheet()">＋ Add Event</button>
+      </div>
+      <!-- Month nav -->
+      <div class="cal-month-nav">
+        <div class="cal-nav-btn" onclick="calNav(-1)">‹</div>
+        <div class="cal-month-label" id="cal-month-label">March 2026</div>
+        <div class="cal-nav-btn" onclick="calNav(1)">›</div>
+      </div>
+      <!-- Grid -->
+      <div class="cal-grid-wrap">
+        <div class="cal-dow-row">
+          <div class="cal-dow">Sun</div><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
+          <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
+        </div>
+        <div class="cal-cells" id="cal-cells"></div>
+      </div>
+      <!-- Member filter chips -->
+      <div class="cal-filter-chips" id="cal-chips"></div>
+      <!-- Event list -->
+      <div class="cal-events-hdr">
+        <div class="cal-events-title" id="cal-events-title">Upcoming Events</div>
+      </div>
+      <div id="cal-events-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ HEALTH DASHBOARD PAGE ══════════ -->
+  <div class="page" id="page-health">
+    <div class="health-wrap">
+
+      <!-- Page header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;">💊 Health Dashboard</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;letter-spacing:.4px;text-transform:uppercase;">Duggireddy Family · Medical Overview</div>
+        </div>
+      </div>
+
+      <!-- Member switcher tabs -->
+      <div class="health-member-tabs" id="health-member-tabs"></div>
+
+      <!-- Health score hero -->
+      <div id="health-hero-wrap"></div>
+
+      <!-- Action buttons row -->
+      <div class="health-add-row">
+        <button class="h-add-btn" onclick="openAddReportSheet()">📋 Add Lab Report</button>
+        <button class="h-add-btn" onclick="openAddApptSheet()">📅 Add Appointment</button>
+      </div>
+
+      <!-- Report source strip -->
+      <div id="health-report-strip"></div>
+
+      <!-- Biomarker category filter -->
+      <div class="health-cat-tabs" id="health-cat-tabs"></div>
+
+      <!-- Biomarker cards -->
+      <div class="health-sec-hdr">
+        <div class="health-sec-title" id="health-bm-title">Biomarkers</div>
+        <div class="health-sec-count" id="health-bm-count"></div>
+      </div>
+      <div class="biomarker-grid" id="biomarker-grid"></div>
+
+      <!-- Appointments section -->
+      <div class="health-sec-hdr" style="margin-top:6px;">
+        <div class="health-sec-title">🗓 Appointments</div>
+        <div class="health-section-action" onclick="openAddApptSheet()">+ Add</div>
+      </div>
+      <div class="appt-list" id="health-appt-list"></div>
+
+      <!-- Report history -->
+      <div class="health-sec-hdr" style="margin-top:6px;">
+        <div class="health-sec-title">🧾 Report History</div>
+        <div class="health-sec-count" id="rpt-history-count"></div>
+      </div>
+      <div class="rpt-history" id="rpt-history-list"></div>
+
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+
+</div><!-- /#content -->
+
+<!-- ═══════════════ ADD EVENT SHEET ═══════════════ -->
+<div class="cal-sheet hidden" id="cal-sheet" onclick="if(event.target===this)closeCalSheet()">
+  <div class="cal-sheet-card">
+    <div class="cal-sheet-handle"></div>
+    <div class="cal-sheet-title" id="cal-sheet-title">Add Event</div>
+    <div class="cal-field">
+      <label>Event Title</label>
+      <input class="cal-input" id="calf-title" type="text" placeholder="e.g. Doctor appointment, Visa renewal…">
+    </div>
+    <div class="cal-field">
+      <label>Date</label>
+      <input class="cal-input" id="calf-date" type="date">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="cal-field">
+        <label>Start Time</label>
+        <input class="cal-input" id="calf-start" type="time">
+      </div>
+      <div class="cal-field">
+        <label>End Time</label>
+        <input class="cal-input" id="calf-end" type="time">
+      </div>
+    </div>
+    <div class="cal-field">
+      <label>Category</label>
+      <select class="cal-input" id="calf-cat">
+        <option value="health">🏥 Health / Medical</option>
+        <option value="travel">✈️ Travel / Visa</option>
+        <option value="education">🎓 Education</option>
+        <option value="finance">💰 Finance / Banking</option>
+        <option value="government">🏛️ Government / Official</option>
+        <option value="family">👨‍👩‍👧‍👦 Family</option>
+        <option value="birthday">🎂 Birthday</option>
+        <option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="cal-field">
+      <label>Color</label>
+      <div class="cal-color-row" id="cal-color-row">
+        <div class="cal-color-swatch active" data-color="#4f7fff" style="background:#4f7fff" onclick="selectCalColor('#4f7fff',this)"></div>
+        <div class="cal-color-swatch" data-color="#f0b429" style="background:#f0b429" onclick="selectCalColor('#f0b429',this)"></div>
+        <div class="cal-color-swatch" data-color="#3ecf8e" style="background:#3ecf8e" onclick="selectCalColor('#3ecf8e',this)"></div>
+        <div class="cal-color-swatch" data-color="#ff4f4f" style="background:#ff4f4f" onclick="selectCalColor('#ff4f4f',this)"></div>
+        <div class="cal-color-swatch" data-color="#a78bfa" style="background:#a78bfa" onclick="selectCalColor('#a78bfa',this)"></div>
+        <div class="cal-color-swatch" data-color="#ff8c42" style="background:#ff8c42" onclick="selectCalColor('#ff8c42',this)"></div>
+        <div class="cal-color-swatch" data-color="#f472b6" style="background:#f472b6" onclick="selectCalColor('#f472b6',this)"></div>
+      </div>
+    </div>
+    <div class="cal-field">
+      <label>Family Members</label>
+      <div class="cal-member-row" id="cal-member-row">
+        <div class="cal-member-chip active" data-member="all" onclick="toggleCalMember(this)">All</div>
+        <div class="cal-member-chip" data-member="Rajasekhar" onclick="toggleCalMember(this)">Rajasekhar</div>
+        <div class="cal-member-chip" data-member="Vasundhara" onclick="toggleCalMember(this)">Vasundhara</div>
+        <div class="cal-member-chip" data-member="Josritha" onclick="toggleCalMember(this)">Josritha</div>
+        <div class="cal-member-chip" data-member="Jeevan" onclick="toggleCalMember(this)">Jeevan</div>
+      </div>
+    </div>
+    <div class="cal-field">
+      <label>Notes (optional)</label>
+      <textarea class="cal-input" id="calf-notes" rows="2" placeholder="Any details, location, reminders…" style="resize:none;"></textarea>
+    </div>
+    <div class="cal-sheet-actions">
+      <button class="cal-delete-btn" id="cal-delete-btn" onclick="confirmDeleteCalEvent()" style="display:none">🗑 Delete</button>
+      <button class="cal-cancel-btn" onclick="closeCalSheet()">Cancel</button>
+      <button class="cal-save-btn" onclick="saveCalEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+<nav id="bottom-nav">
+  <div class="bnav-inner">
+    <div class="bnav-item active pressable" id="bnav-dashboard" onclick="goPage('dashboard')">
+      <span class="bnav-icon">⊞</span><span>Home</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')">
+      <span class="bnav-icon">👥</span><span>Members</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-documents" onclick="goPage('documents')">
+      <span class="bnav-icon">📁</span><span>Docs</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-expiry" onclick="goPage('expiry')">
+      <span class="bnav-icon">⏳</span><span>Expiry</span>
+      <span class="bnav-badge">2</span>
+      <div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')">
+      <span class="bnav-icon">📅</span><span>Calendar</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')">
+      <span class="bnav-icon">💊</span><span>Health</span><div class="bnav-dot"></div><div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-search" onclick="goPage('search')">
+      <span class="bnav-icon">⌕</span><span>Search</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-backup" onclick="openBackupModal()">
+      <span class="bnav-icon">💾</span><span>Backup</span><div class="bnav-dot"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ ADD LAB REPORT SHEET ═══════════════ -->
+<div class="hr-sheet hidden" id="hr-sheet" onclick="if(event.target===this)closeAddReportSheet()">
+  <div class="hr-sheet-card">
+    <div class="hr-handle"></div>
+    <div class="hr-sheet-title">📋 Add Lab Report</div>
+    <div class="hr-sheet-sub">Scan your report or enter values manually</div>
+
+    <!-- Member selector -->
+    <div class="hr-sec" style="border-top:none;padding-top:0;">Member</div>
+    <div class="hr-member-select" id="hr-member-select"></div>
+
+    <!-- ── SCAN ZONE ── -->
+    <div class="scan-zone" id="scan-zone"
+         ondragover="event.preventDefault();this.classList.add('drag-over')"
+         ondragleave="this.classList.remove('drag-over')"
+         ondrop="handleReportDrop(event)">
+      <input type="file" id="scan-file-input" accept="image/*,application/pdf"
+             onchange="handleReportFile(this.files[0])">
+      <div class="scan-zone-icon">📄</div>
+      <div class="scan-zone-title">Tap to upload or photograph report</div>
+      <div class="scan-zone-sub">PDF, JPG, PNG · Apollo, Star, Vijaya, Thyrocare — any format</div>
+    </div>
+
+    <!-- Scan progress -->
+    <div class="scan-progress" id="scan-progress">
+      <div class="scan-spinner"></div>
+      <div class="scan-progress-text" id="scan-progress-text">Reading your report with AI…</div>
+    </div>
+
+    <!-- Scan error -->
+    <div class="scan-err" id="scan-err"></div>
+
+    <!-- Scan success banner -->
+    <div class="scan-result-banner" id="scan-result-banner">
+      <div class="scan-result-icon">✅</div>
+      <div>
+        <div class="scan-result-text" id="scan-result-text">Report scanned successfully!</div>
+        <div class="scan-result-edit">Values filled below — review &amp; confirm before saving</div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="scan-divider"><span class="scan-divider-txt">or enter manually</span></div>
+
+    <!-- Report meta -->
+    <div class="hr-sec">Report Details</div>
+    <div class="hr-grid">
+      <div class="hr-field">
+        <label>Lab / Hospital</label>
+        <input class="hr-input" id="hr-lab" type="text" placeholder="e.g. Apollo Diagnostics">
+      </div>
+      <div class="hr-field">
+        <label>Report Date</label>
+        <input class="hr-input" id="hr-date" type="date">
+      </div>
+      <div class="hr-field">
+        <label>Report Ref No.</label>
+        <input class="hr-input" id="hr-ref" type="text" placeholder="Optional">
+      </div>
+    </div>
+
+    <!-- Vitals -->
+    <div class="hr-sec">Vitals</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Weight (kg)</label><input class="hr-input" id="hrv-weight" type="number" placeholder="e.g. 72"></div>
+      <div class="hr-field"><label>Height (cm)</label><input class="hr-input" id="hrv-height" type="number" placeholder="e.g. 170"></div>
+    </div>
+
+    <!-- Blood markers -->
+    <div class="hr-sec">Blood Sugar</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Glucose mg/dL</label><input class="hr-input" id="hrm-glucose" type="number" placeholder="70–99"></div>
+      <div class="hr-field"><label>HbA1c %</label><input class="hr-input" id="hrm-hba1c" type="number" step="0.1" placeholder="4–5.6"></div>
+    </div>
+
+    <!-- Lipids -->
+    <div class="hr-sec">Lipid Profile</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Total Cholesterol</label><input class="hr-input" id="hrm-cholesterol" type="number" placeholder="< 200"></div>
+      <div class="hr-field"><label>LDL mg/dL</label><input class="hr-input" id="hrm-ldl" type="number" placeholder="< 100"></div>
+      <div class="hr-field"><label>HDL mg/dL</label><input class="hr-input" id="hrm-hdl" type="number" placeholder="> 40"></div>
+      <div class="hr-field"><label>Triglycerides</label><input class="hr-input" id="hrm-triglycerides" type="number" placeholder="< 150"></div>
+    </div>
+
+    <!-- CBC -->
+    <div class="hr-sec">CBC</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Hemoglobin g/dL</label><input class="hr-input" id="hrm-hemoglobin" type="number" step="0.1" placeholder="12–17"></div>
+      <div class="hr-field"><label>WBC ×10³/µL</label><input class="hr-input" id="hrm-wbc" type="number" step="0.1" placeholder="4–11"></div>
+      <div class="hr-field"><label>Platelets ×10³/µL</label><input class="hr-input" id="hrm-platelets" type="number" placeholder="150–400"></div>
+    </div>
+
+    <!-- Organ function -->
+    <div class="hr-sec">Organ Function</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>TSH mIU/L</label><input class="hr-input" id="hrm-tsh" type="number" step="0.01" placeholder="0.4–4.0"></div>
+      <div class="hr-field"><label>Creatinine mg/dL</label><input class="hr-input" id="hrm-creatinine" type="number" step="0.01" placeholder="0.6–1.2"></div>
+      <div class="hr-field"><label>Uric Acid mg/dL</label><input class="hr-input" id="hrm-uricacid" type="number" step="0.1" placeholder="2.4–7.0"></div>
+    </div>
+
+    <!-- Vitamins -->
+    <div class="hr-sec">Vitamins</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Vitamin D ng/mL</label><input class="hr-input" id="hrm-vitd" type="number" step="0.1" placeholder="> 30"></div>
+      <div class="hr-field"><label>Vitamin B12 pg/mL</label><input class="hr-input" id="hrm-vitb12" type="number" placeholder="200–900"></div>
+    </div>
+
+    <!-- Vitals -->
+    <div class="hr-sec">Blood Pressure</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Systolic mmHg</label><input class="hr-input" id="hrm-bp_sys" type="number" placeholder="90–120"></div>
+    </div>
+
+    <!-- Liver Function -->
+    <div class="hr-sec">Liver Function (LFT)</div>
+    <div class="hr-grid">
+      <div class="hr-field"><label>Bilirubin Total mg/dL</label><input class="hr-input" id="hrm-bilirubin" type="number" step="0.01" placeholder="0.3–1.2"></div>
+      <div class="hr-field"><label>ALT / SGPT IU/L</label><input class="hr-input" id="hrm-alt" type="number" placeholder="0–50"></div>
+      <div class="hr-field"><label>AST / SGOT IU/L</label><input class="hr-input" id="hrm-ast" type="number" placeholder="0–50"></div>
+      <div class="hr-field"><label>ALP IU/L</label><input class="hr-input" id="hrm-alp" type="number" placeholder="30–120"></div>
+      <div class="hr-field"><label>GGT U/L</label><input class="hr-input" id="hrm-ggt" type="number" placeholder="0–55"></div>
+    </div>
+
+    <div class="hr-actions">
+      <button class="hr-cancel" onclick="closeAddReportSheet()">Cancel</button>
+      <button class="hr-save" onclick="saveLabReport()">Save Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADD APPOINTMENT SHEET ═══════════════ -->
+<div class="ha-sheet hidden" id="ha-sheet" onclick="if(event.target===this)closeAddApptSheet()">
+  <div class="ha-sheet-card">
+    <div class="hr-handle"></div>
+    <div class="hr-sheet-title">📅 Add Appointment</div>
+    <div class="hr-sheet-sub">Track upcoming doctor visits &amp; tests</div>
+    <div class="hr-member-select" id="ha-member-select" style="margin-bottom:14px;"></div>
+    <div class="hr-grid">
+      <div class="hr-field full"><label>Appointment Title</label><input class="hr-input" id="ha-title" type="text" placeholder="e.g. Cardiology Follow-up"></div>
+      <div class="hr-field"><label>Date</label><input class="hr-input" id="ha-date" type="date"></div>
+      <div class="hr-field"><label>Time</label><input class="hr-input" id="ha-time" type="time"></div>
+      <div class="hr-field full"><label>Doctor / Hospital</label><input class="hr-input" id="ha-loc" type="text" placeholder="e.g. Dr. Sharma, KIMS Hospital"></div>
+      <div class="hr-field full"><label>Notes (optional)</label><input class="hr-input" id="ha-notes" type="text" placeholder="Bring reports, fasting required…"></div>
+    </div>
+    <div class="hr-actions">
+      <button class="hr-cancel" onclick="closeAddApptSheet()">Cancel</button>
+      <button class="hr-save" onclick="saveAppt()">Save Appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BIOMARKER DETAIL SHEET ═══════════════ -->
+<div class="bm-sheet hidden" id="bm-sheet" onclick="if(event.target===this)closeBmSheet()">
+  <div class="bm-sheet-card">
+    <div class="bm-sheet-handle"></div>
+    <div id="bm-sheet-body"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     UPLOAD HUB PAGE
+═══════════════════════════════════════════ -->
+<div class="page" id="page-upload">
+  <div class="upload-hub-wrap">
+
+    <div class="upload-hub-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="upload-hub-icon-wrap">
+          <span style="font-size:26px;">📡</span>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;">Data Sync Hub</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Upload scraped JSON files</div>
+        </div>
+      </div>
+      <div id="upload-hub-last-sync" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:right;line-height:1.6;"></div>
+    </div>
+
+    <!-- ── CATEGORY: ACADEMICS ── -->
+    <div class="upload-hub-section">
+      <div class="upload-hub-section-label">
+        <span class="upload-hub-section-dot" style="background:var(--pink);"></span>
+        JOSRITHA · ACADEMICS
+      </div>
+
+      <!-- Attendance -->
+      <div class="upload-hub-card" id="uhcard-attendance" onclick="uhTrigger('attendance')">
+        <div class="upload-hub-card-left">
+          <div class="upload-hub-card-ico" style="background:rgba(244,114,182,.12);border-color:rgba(244,114,182,.25);">📊</div>
+          <div>
+            <div class="upload-hub-card-title">Attendance</div>
+            <div class="upload-hub-card-sub">Subject-wise present / total counts</div>
+            <div class="upload-hub-card-ts" id="uh-ts-attendance"></div>
+          </div>
+        </div>
+        <div class="upload-hub-card-right">
+          <div class="upload-hub-status-dot" id="uh-dot-attendance"></div>
+          <div class="upload-hub-card-arrow">↑</div>
+        </div>
+        <input type="file" accept=".json" id="uh-file-attendance" style="display:none;" onchange="uhHandleFile('attendance',this)">
+      </div>
+
+      <!-- Timetable -->
+      <div class="upload-hub-card" id="uhcard-timetable" onclick="uhTrigger('timetable')">
+        <div class="upload-hub-card-left">
+          <div class="upload-hub-card-ico" style="background:rgba(167,139,250,.12);border-color:rgba(167,139,250,.25);">🗓️</div>
+          <div>
+            <div class="upload-hub-card-title">Timetable</div>
+            <div class="upload-hub-card-sub">Weekly schedule · period slots · rooms</div>
+            <div class="upload-hub-card-ts" id="uh-ts-timetable"></div>
+          </div>
+        </div>
+        <div class="upload-hub-card-right">
+          <div class="upload-hub-status-dot" id="uh-dot-timetable"></div>
+          <div class="upload-hub-card-arrow">↑</div>
+        </div>
+        <input type="file" accept=".json" id="uh-file-timetable" style="display:none;" onchange="uhHandleFile('timetable',this)">
+      </div>
+    </div>
+
+    <!-- ── CATEGORY: BANK STATEMENTS ── -->
+    <div class="upload-hub-section">
+      <div class="upload-hub-section-label">
+        <span class="upload-hub-section-dot" style="background:var(--gold);"></span>
+        BANK STATEMENTS
+      </div>
+
+      <!-- ICICI -->
+      <div class="upload-hub-card" id="uhcard-bank-icici" onclick="uhTrigger('bank-icici')">
+        <div class="upload-hub-card-left">
+          <div class="upload-hub-card-ico" style="background:rgba(240,180,41,.1);border-color:rgba(240,180,41,.2);">🏦</div>
+          <div>
+            <div class="upload-hub-card-title">ICICI Bank</div>
+            <div class="upload-hub-card-sub">Rajasekhar · A/c …0595 · Detailed statement</div>
+            <div class="upload-hub-card-ts" id="uh-ts-bank-icici"></div>
+          </div>
+        </div>
+        <div class="upload-hub-card-right">
+          <div class="upload-hub-status-dot" id="uh-dot-bank-icici"></div>
+          <div class="upload-hub-card-arrow">↑</div>
+        </div>
+        <input type="file" accept=".json" id="uh-file-bank-icici" style="display:none;" onchange="uhHandleFile('bank-icici',this)">
+      </div>
+
+      <!-- HDFC -->
+      <div class="upload-hub-card" id="uhcard-bank-hdfc" onclick="uhTrigger('bank-hdfc')">
+        <div class="upload-hub-card-left">
+          <div class="upload-hub-card-ico" style="background:rgba(79,127,255,.1);border-color:rgba(79,127,255,.2);">🏦</div>
+          <div>
+            <div class="upload-hub-card-title">HDFC Bank</div>
+            <div class="upload-hub-card-sub">Rajasekhar · A/c …3742 · Detailed statement</div>
+            <div class="upload-hub-card-ts" id="uh-ts-bank-hdfc"></div>
+          </div>
+        </div>
+        <div class="upload-hub-card-right">
+          <div class="upload-hub-status-dot" id="uh-dot-bank-hdfc"></div>
+          <div class="upload-hub-card-arrow">↑</div>
+        </div>
+        <input type="file" accept=".json" id="uh-file-bank-hdfc" style="display:none;" onchange="uhHandleFile('bank-hdfc',this)">
+      </div>
+
+      <!-- AXIS -->
+      <div class="upload-hub-card" id="uhcard-bank-axis" onclick="uhTrigger('bank-axis')">
+        <div class="upload-hub-card-left">
+          <div class="upload-hub-card-ico" style="background:rgba(62,207,142,.1);border-color:rgba(62,207,142,.2);">🏦</div>
+          <div>
+            <div class="upload-hub-card-title">AXIS Bank</div>
+            <div class="upload-hub-card-sub">Rajasekhar · A/c …7901 · Statement</div>
+            <div class="upload-hub-card-ts" id="uh-ts-bank-axis"></div>
+          </div>
+        </div>
+        <div class="upload-hub-card-right">
+          <div class="upload-hub-status-dot" id="uh-dot-bank-axis"></div>
+          <div class="upload-hub-card-arrow">↑</div>
+        </div>
+        <input type="file" accept=".json" id="uh-file-bank-axis" style="display:none;" onchange="uhHandleFile('bank-axis',this)">
+      </div>
+    </div>
+
+    <!-- ── SYNC SUMMARY ── -->
+    <div class="upload-hub-summary" id="upload-hub-summary"></div>
+
+    <!-- ── INSTRUCTIONS ── -->
+    <div class="upload-hub-instructions">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">HOW IT WORKS</div>
+      <div class="upload-hub-step"><span class="upload-hub-step-num">1</span><span>Open college/bank portal in browser</span></div>
+      <div class="upload-hub-step"><span class="upload-hub-step-num">2</span><span>Click the saved bookmark scraper</span></div>
+      <div class="upload-hub-step"><span class="upload-hub-step-num">3</span><span>Hit <b style="color:var(--green);">&#x2B07; DOWNLOAD JSON</b> in the overlay</span></div>
+      <div class="upload-hub-step"><span class="upload-hub-step-num">4</span><span>Come here and tap the matching card</span></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast">✓ Copied to clipboard</div>
+
+<!-- Swipe hint -->
+<div id="swipe-hint"></div>
+
+<!-- Timeline detail sheet -->
+<div class="tl-sheet hidden" id="tl-sheet" onclick="if(event.target===this)closeTlSheet()">
+  <div class="tl-sheet-card">
+    <div class="tl-handle"></div>
+    <div id="tl-sheet-body"></div>
+  </div>
+</div>
+
+<!-- Widget picker sheet -->
+<div class="wp-sheet hidden" id="wp-sheet" onclick="if(event.target===this)closeWidgetPicker()">
+  <div class="wp-card">
+    <div class="wp-title">Add a Widget</div>
+    <div id="wp-list"></div>
+    <div class="wp-cancel" onclick="closeWidgetPicker()">Cancel</div>
+  </div>
+</div>
+
+<!-- Finance full sheet (all transactions + settings) -->
+<div class="fin-sheet" id="fin-sheet" onclick="if(event.target===this)closeFinSheet()">
+  <div class="fin-sheet-bg" onclick="closeFinSheet()"></div>
+  <div class="fin-sheet-card">
+    <div class="fin-sheet-handle"></div>
+    <div id="fin-sheet-body"></div>
+  </div>
+</div>
+
+<script src="portal.js"></script>
+
+<!-- BACKUP MODAL -->
+<div id="backup-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeBackupModal()">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);">💾 Backup & Restore</div>
+      <div onclick="closeBackupModal()" style="font-size:20px;cursor:pointer;color:var(--text3);padding:4px 8px;">✕</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:20px;" id="backup-last-ts">No backup yet</div>
+
+    <!-- AI SETTINGS -->
+    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.22);border-radius:14px;padding:16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--purple);">✨ Groq AI Key</div>
+        <div id="bm-groq-status" style="font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;"></div>
+      </div>
+      <div id="bm-groq-body">
+        <!-- filled by openBackupModal() -->
+      </div>
+    </div>
+
+    <!-- BACKUP -->
+    <div style="background:rgba(62,207,142,.06);border:1px solid rgba(62,207,142,.2);border-radius:14px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px;">⬇️ Download Backup</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;">Saves calendar, health, attendance, AI key &amp; all settings to a JSON file. <strong style="color:var(--green);">Includes your Groq key</strong> — restore after any redeployment.</div>
+      <div onclick="doBackup()" style="background:var(--green);color:#fff;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;padding:11px 20px;border-radius:10px;cursor:pointer;text-align:center;">💾 Download family-portal-backup.json</div>
+    </div>
+
+    <!-- RESTORE -->
+    <div style="background:rgba(79,127,255,.06);border:1px solid rgba(79,127,255,.2);border-radius:14px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--blue2);margin-bottom:4px;">⬆️ Restore from Backup</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;">Restores all data including your Groq AI key. Portal reloads automatically.</div>
+      <label style="background:var(--blue2);color:#fff;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;padding:11px 20px;border-radius:10px;cursor:pointer;text-align:center;display:block;">
+        📂 Choose Backup File
+        <input type="file" accept=".json" style="display:none;" onchange="doRestore(this)">
+      </label>
+    </div>
+
+    <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center;line-height:1.8;">
+      ⚡ Backup before every new deployment<br>
+      🔑 Groq AI key is included in backup<br>
+      📁 File saves to Downloads / Files app<br>
+      🔄 Restore after deployment to recover everything
+    </div>
+  </div>
+</div>
