@@ -3795,37 +3795,23 @@ function auraInitSwipe() {
   var stage = document.getElementById('aura-stage');
   var track = document.getElementById('aura-track');
   if (!stage || !track) return;
-  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false, blocked=false;
+  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false;
   function vw() { return window.innerWidth; }
-
-  // Returns true if the element or any ancestor is a vertically scrollable panel
-  function isInScrollable(el) {
-    while (el && el !== stage) {
-      if (el.scrollHeight > el.clientHeight + 4) {
-        var st = getComputedStyle(el).overflowY;
-        if (st === 'auto' || st === 'scroll') return true;
-      }
-      el = el.parentElement;
-    }
-    return false;
-  }
 
   stage.addEventListener('touchstart', function(e) {
     tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
     t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
-    blocked = isInScrollable(e.target);
-    if (!blocked) { track.style.transition='none'; track.classList.add('aura-live'); }
+    track.style.transition='none'; track.classList.add('aura-live');
   }, {passive:true});
   stage.addEventListener('touchmove', function(e) {
-    if (blocked) return;
     var dx=e.touches[0].clientX-tx0; var dy=e.touches[0].clientY-ty0;
-    if (!intentLocked && (Math.abs(dx)>8 || Math.abs(dy)>8)) {
+    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
       intentLocked=true;
-      intentH = Math.abs(dx) > Math.abs(dy) * 1.5;
+      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
     }
     if (!intentH) return;
     e.preventDefault();
-    if (!dragging && Math.abs(dx)>8) dragging=true;
+    if (!dragging && Math.abs(dx)>6) dragging=true;
     if (dragging) {
       ddx=dx;
       var resist=(_auraCur===0&&dx>0)||(_auraCur===_auraSlides.length-1&&dx<0)?.15:1;
@@ -3833,7 +3819,6 @@ function auraInitSwipe() {
     }
   }, {passive:false});
   stage.addEventListener('touchend', function() {
-    if (blocked) { blocked=false; return; }
     track.classList.remove('aura-live');
     track.style.transition='transform .32s cubic-bezier(0.4,0,0.2,1)';
     if (!dragging) { auraGoSlide(_auraCur); return; }
@@ -3863,12 +3848,12 @@ function auraInitSwipe() {
 
   // Touch press feedback
   document.addEventListener('touchstart', function(e) {
-    var sel = '.tc,.aura-acard,.tc-mpill,.tc-vital,.tc-ring-unit,.aura-cat,.tc-att-btn,.aura-btn,.tc-bsw-btn,.tc-fmc,.tc-txn-row,.tc-tl-row,.tc-fin-stat,.sb-dot-btn';
+    var sel = '.aura-acard,.tc-mpill,.tc-vital,.tc-ring-unit,.aura-cat,.tc-att-btn,.aura-btn,.tc-bsw-btn,.tc-fmc,.tc-txn-row,.tc-tl-row,.tc-fin-stat,.sb-dot-btn';
     var el = e.target.closest(sel);
     if (el) { el._ot=el.style.transform; el.style.transform=(el._ot||'')+'scale(.97)'; el.style.opacity='.8'; }
   }, {passive:true});
   document.addEventListener('touchend', function(e) {
-    var sel = '.tc,.aura-acard,.tc-mpill,.tc-vital,.tc-ring-unit,.aura-cat,.tc-att-btn,.aura-btn,.tc-bsw-btn,.tc-fmc,.tc-txn-row,.tc-tl-row,.tc-fin-stat,.sb-dot-btn';
+    var sel = '.aura-acard,.tc-mpill,.tc-vital,.tc-ring-unit,.aura-cat,.tc-att-btn,.aura-btn,.tc-bsw-btn,.tc-fmc,.tc-txn-row,.tc-tl-row,.tc-fin-stat,.sb-dot-btn';
     var el = e.target.closest(sel);
     if (el) { el.style.transform=el._ot||''; el.style.opacity=''; }
   }, {passive:true});
