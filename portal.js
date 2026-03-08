@@ -3940,16 +3940,15 @@ function auraRenderHome() {
     }
   }
 
-  // GRAVITY RAIL: upcoming events after today
+  // GRAVITY RAIL: overdue + today + all upcoming events (no cap)
   var upcoming = [];
   if (evtRaw) {
     try {
       var evts2 = JSON.parse(evtRaw);
       var GR_ALLOWED = { health:1, travel:1, government:1, family:1, birthday:1, other:1 };
       upcoming = evts2
-        .filter(function(e){ return e.date > todayStr && GR_ALLOWED[e.cat]; })
-        .sort(function(a,b){ return a.date.localeCompare(b.date); })
-        .slice(0, 12);
+        .filter(function(e){ return GR_ALLOWED[e.cat]; })
+        .sort(function(a,b){ return a.date.localeCompare(b.date); });
     } catch(e){}
   }
 
@@ -3964,7 +3963,7 @@ function auraRenderHome() {
   }
   if (grEmpty) grEmpty.style.display = 'none';
 
-  var CAT_COLORS = { health:'255,79,79', finance:'240,180,41', birthday:'244,114,182', government:'251,146,60', education:'167,139,250', other:'79,127,255' };
+  var CAT_COLORS = { health:'255,79,79', finance:'240,180,41', birthday:'244,114,182', government:'251,146,60', education:'167,139,250', other:'79,127,255', travel:'79,127,255', family:'62,207,142' };
   var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
   var maxDays = 60;
   var html2 = '';
@@ -3975,28 +3974,38 @@ function auraRenderHome() {
     var diff = Math.round((d - now) / 86400000);
     var rgb = CAT_COLORS[ev2.cat] || '79,127,255';
 
-    var proximity = Math.max(0, 1 - diff / maxDays);
-    var scale = (0.88 + proximity * 0.12).toFixed(3);
-    var opacity = (0.52 + proximity * 0.48).toFixed(3);
+    var isOverdue = diff < 0;
+    var isToday   = diff === 0;
+    var proximity = (isOverdue || isToday) ? 1 : Math.max(0, 1 - diff / maxDays);
+    var scale   = (0.88 + proximity * 0.12).toFixed(3);
+    var opacity = (isOverdue || isToday) ? '1' : (0.52 + proximity * 0.48).toFixed(3);
 
-    var dayLabel = diff === 1 ? 'Tomorrow' : diff <= 7 ? 'In ' + diff + 'd' : diff <= 30 ? 'In ' + Math.round(diff/7) + 'w' : 'In ' + Math.round(diff/30) + 'mo';
+    var dayLabel = isOverdue
+      ? (diff === -1 ? 'Yesterday' : Math.abs(diff) + 'd overdue')
+      : isToday   ? 'Today'
+      : diff === 1 ? 'Tomorrow'
+      : diff <= 7  ? 'In ' + diff + 'd'
+      : diff <= 30 ? 'In ' + Math.round(diff/7) + 'w'
+      : 'In ' + Math.round(diff/30) + 'mo';
 
-    var cls = diff <= 3 ? 'soon' : diff <= 14 ? 'upcoming' : 'far';
-    var heatCls = diff <= 3 ? 'gr-heat-soon' : '';
+    var cls     = isOverdue ? 'overdue' : (isToday || diff <= 3) ? 'soon' : diff <= 14 ? 'upcoming' : 'far';
+    var heatCls = isOverdue ? 'gr-heat-overdue' : (isToday || diff <= 3) ? 'gr-heat-soon' : '';
 
     var members = ev2.members || [];
     var memberLabel = members.length === 0 ? '' : members[0] === 'all' ? 'Family' : (MEMBER_LABELS[members[0].toLowerCase()] || members[0]);
 
     var shortTitle = (ev2.title||'').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/gu,'').trim() || ev2.title;
 
-    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;" onclick="goPage(\'calendar\')">'
+    var overdueBorder = isOverdue ? 'border-left:2px solid rgba(255,79,79,.6);' : '';
+    var dayColor = isOverdue ? 'color:#ff4f4f;font-weight:700;' : isToday ? 'color:#3ecf8e;font-weight:700;' : '';
+    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;' + overdueBorder + '" onclick="goPage(\'calendar\')">'
       + '<div class="gr-card-node">'
       + '<div class="gr-card-dot gr-dot-' + cls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
       + '</div>'
       + '<div class="gr-card-body">'
       + '<div class="gr-card-head">'
       + '<div class="gr-card-title" style="color:rgba(235,240,255,' + opacity + ');">' + shortTitle + '</div>'
-      + '<div class="gr-card-days gr-days-' + cls + '">' + dayLabel + '</div>'
+      + '<div class="gr-card-days gr-days-' + cls + '" style="' + dayColor + '">' + dayLabel + '</div>'
       + '</div>'
       + '<div class="gr-card-meta">'
       + (memberLabel ? '<span class="gr-card-member">' + memberLabel + '</span>' : '')
