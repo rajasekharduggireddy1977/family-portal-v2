@@ -2069,7 +2069,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .skel-row { display: flex; align-items: center; gap: 12px; }
 .skel-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 
-/* PAGE TRANSITION ANIMATIONS — defined above near .page.active */
+
 
 /* ══════════════════════════════════════════════
    BANK TRANSACTIONS WIDGET
@@ -3489,9 +3489,7 @@ input:focus, button:focus-visible {
   width:100%;
   box-sizing:border-box;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(0,0,0,.15);
-  animation:sicCardIn .4s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes sicCardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .sic-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
 .sic-info{flex:1;min-width:0;}
 .sic-name{font-size:13px;font-weight:800;color:rgba(235,240,255,.95);line-height:1.3;margin-bottom:5px;}
@@ -3502,8 +3500,8 @@ input:focus, button:focus-visible {
 .sic-insight{font-size:11px;color:rgba(200,210,255,.7);line-height:1.5;}
 .sic-bar-wrap{margin-bottom:10px;}
 .sic-bar-track{display:flex;height:5px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.08);gap:1px;}
-.sic-bar-fill{border-radius:4px 0 0 4px;transition:width .7s ease;}
-.sic-bar-absent{background:rgba(255,79,79,.5);transition:width .7s ease;}
+.sic-bar-fill{border-radius:4px 0 0 4px;}
+.sic-bar-absent{background:rgba(255,79,79,.5);}
 .sic-bar-labels{display:flex;gap:12px;margin-top:5px;}
 .sic-bar-labels span{font-size:10px;font-family:'DM Mono',monospace;color:rgba(200,210,255,.65);}
 .sic-day-row{display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1px solid rgba(255,255,255,.06);}
