@@ -1,3 +1,4 @@
+
 // ═══════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════
@@ -217,7 +218,7 @@ function goPage(page) {
   if(page==='health')   { setTimeout(()=>{ initHealthPage(); applyGmHealth(); },80); }
   if(page==='documents') { setTimeout(()=>{ applyGmDocuments(); collapseAllDocSections(); },80); }
   if(page==='dashboard') { setTimeout(()=>applyGmDashboard(),60); }
-  if(page==='upload')    { setTimeout(function(){ if(typeof uhRefreshUI==='function') uhRefreshUI(); },80); }
+
 }
 
 // ═══════════════════════════════════════════════════
@@ -7132,6 +7133,24 @@ function closeBackupModal() {
   window.scrollTo(0, scrollY);
 }
 
+function openSyncModal() {
+  if (typeof uhRefreshUI === 'function') uhRefreshUI();
+  var modal = document.getElementById('sync-modal');
+  modal.style.display = 'flex';
+  var scrollY = window.scrollY || window.pageYOffset;
+  document.body.dataset.scrollY = scrollY;
+  document.body.style.top = '-' + scrollY + 'px';
+  document.body.classList.add('modal-open');
+}
+
+function closeSyncModal() {
+  document.getElementById('sync-modal').style.display = 'none';
+  var scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, scrollY);
+}
+
 function doBackup() {
   const data = { _version: 1, _ts: new Date().toISOString(), keys: {} };
   BACKUP_KEYS.forEach(k => {
@@ -7753,7 +7772,7 @@ function fabAction(action) {
   haptic('light');
   toggleFab();
   if (action === 'upload') {
-    goPage('upload');
+    openSyncModal();
   } else if (action === 'event') {
     goPage('calendar');
     setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200);
@@ -7910,7 +7929,64 @@ document.addEventListener('keydown', e => {
   if (items[cmdSelectedIdx]) items[cmdSelectedIdx].scrollIntoView({ block: 'nearest' });
 });
 
+// ═══════════════════════════════════════════════════════
+// UI IMPROVEMENT 5 — PULL TO REFRESH
+// ═══════════════════════════════════════════════════════
+(function initPullToRefresh() {
+  let startY = 0, pulling = false, triggered = false;
+  const indicator = document.getElementById('ptr-indicator');
+  const label = document.getElementById('ptr-label');
+  const THRESHOLD = 80;
 
+  document.addEventListener('touchstart', e => {
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+      triggered = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 20 && window.scrollY === 0) {
+      const progress = Math.min(dy / THRESHOLD, 1);
+      indicator.classList.add('ptr-show');
+      if (progress >= 1) {
+        indicator.classList.add('ptr-ready');
+        label.textContent = 'Release to refresh';
+        triggered = true;
+      } else {
+        indicator.classList.remove('ptr-ready');
+        label.textContent = 'Pull to refresh';
+        triggered = false;
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+    if (triggered) {
+      indicator.classList.add('ptr-refreshing');
+      indicator.classList.remove('ptr-ready');
+      label.textContent = 'Refreshing…';
+      haptic('medium');
+      setTimeout(() => {
+        // Re-init the current page
+        if (currentPage === 'dashboard') initDashboard();
+        if (currentPage === 'expiry') { initExpiry(); animateExpBars(); }
+        if (currentPage === 'calendar') initCalendar();
+        if (currentPage === 'health') initHealthPage();
+        indicator.classList.remove('ptr-show', 'ptr-refreshing');
+        label.textContent = 'Pull to refresh';
+        showToast('✅ Refreshed');
+      }, 900);
+    } else {
+      indicator.classList.remove('ptr-show', 'ptr-ready');
+    }
+  }, { passive: true });
+})();
 
 // ═══════════════════════════════════════════════════════
 // UI IMPROVEMENT 6 — RIPPLE ON PRESSABLE ELEMENTS
@@ -8925,3 +9001,4 @@ function buildBankTxnsWidget() {
 function initUploadHub() {
   uhRefreshUI();
 }
+
