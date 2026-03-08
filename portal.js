@@ -410,25 +410,8 @@ const MEMBER_COLORS = {
   Josritha:'#a78bfa', Jeevan:'#3ecf8e', all:'#8b93a8'
 };
 
-// Seed events (stored in localStorage key 'fp_cal_events')
-// SEED_VER: v2 — added insurance/property tracking events for Rajasekhar
-const SEED_VER = 'v2';
-const SEED_EVENTS = [
-  { id:'e1', title:"Rajasekhar Passport Renewal",          date:"2026-04-15", start:"10:00", end:"12:00", cat:"government", color:"#ff8c42", members:["Rajasekhar"], notes:"Bring 2 photos + old passport" },
-  { id:'e2', title:"Josritha Semester Exams Begin",        date:"2026-04-20", start:"09:00", end:"",      cat:"education",  color:"#a78bfa", members:["Josritha"],   notes:"KLH Campus" },
-  { id:'e3', title:"Family Health Check-up",               date:"2026-03-18", start:"08:30", end:"11:00", cat:"health",     color:"#ff4f4f", members:["Rajasekhar","Vasundhara"], notes:"Star Hospitals, Hyderabad" },
-  { id:'e4', title:"Jeevan Birthday 🎂",                   date:"2026-08-22", start:"",      end:"",      cat:"birthday",   color:"#f472b6", members:["all"],        notes:"Plan family celebration" },
-  { id:'e5', title:"Vasundhara Visa Appointment",          date:"2026-05-10", start:"14:00", end:"15:30", cat:"travel",     color:"#4f7fff", members:["Vasundhara"], notes:"US Consulate, Hyderabad" },
-  { id:'e6', title:"Income Tax Filing Deadline",           date:"2026-07-31", start:"",      end:"",      cat:"finance",    color:"#f0b429", members:["Rajasekhar"], notes:"Submit via CA" },
-  // ── Insurance & Property tracking events — Rajasekhar (default owner) ──
-  { id:'tr_prop_flat403',  title:"🏘️ Property Tax – Flat 403",            date:"2026-02-20", start:"", end:"", cat:"finance", color:"#ff4f4f", members:["Rajasekhar"], notes:"Assessment 1035037996 · Mangamuru Donka, Ongole · Pay at cdma.ap.gov.in" },
-  { id:'tr_prop_shopg5',   title:"🏬 Property Tax – Shop G5",             date:"2026-02-20", start:"", end:"", cat:"finance", color:"#ff4f4f", members:["Rajasekhar"], notes:"Assessment 1035038052 · Silver Spring Apts, Ongole · Pay at cdma.ap.gov.in" },
-  { id:'tr_car_ins',       title:"🚗 Car Insurance Renewal",              date:"2026-06-28", start:"", end:"", cat:"finance", color:"#f0b429", members:["Rajasekhar"], notes:"Hyundai i10 · AP27AK7873 · Policy 3001/103498197/10/000 · ICICI Lombard" },
-  { id:'tr_health_fam',    title:"👨‍👩‍👧‍👦 Family Health Insurance Renewal",  date:"2026-08-04", start:"", end:"", cat:"health",  color:"#4f7fff", members:["Rajasekhar"], notes:"ICICI Lombard Family Floater · Policy 4193i/APRN/400529214/00/000 · ₹25,812" },
-  { id:'tr_health_ind',    title:"🏥 Individual Health Insurance Renewal", date:"2026-08-06", start:"", end:"", cat:"health",  color:"#4f7fff", members:["Rajasekhar"], notes:"ICICI Lombard · Rajasekhar · Policy 4128i/HSNR/92094505/10/000 · ₹21,502" },
-  { id:'tr_dl',            title:"🪪 Driving Licence Expiry",             date:"2027-01-20", start:"", end:"", cat:"government", color:"#ff8c42", members:["Rajasekhar"], notes:"DLFAP62729122008 · Renew at Sarathi portal" },
-  { id:'tr_bike_ins',      title:"🛵 Bike Insurance Renewal",             date:"2028-02-24", start:"", end:"", cat:"finance", color:"#3ecf8e", members:["Rajasekhar"], notes:"Honda Activa 125 · TS08HJ8438 · Policy 3005/430080806/00/000 · ICICI Lombard" },
-];
+// Events loaded 100% from backup.json (auto-restore on first load) or localStorage.
+// No seed/default events — backup.json is the single source of truth.
 
 let calCurrentDate = new Date();
 let calSelectedDate = null;
@@ -437,41 +420,14 @@ let calSelectedColor = '#4f7fff';
 let calEditId = null;
 
 function getCalEvents() {
-  let events;
   try {
     const stored = localStorage.getItem('fp_cal_events');
-    events = stored ? JSON.parse(stored) : null;
-  } catch(e) { events = null; }
+    return stored ? JSON.parse(stored) : [];
+  } catch(e) { return []; }
+}
 
-  if (!events) {
-    // First run — seed with correct data
-    localStorage.setItem('fp_cal_events', JSON.stringify(SEED_EVENTS));
-    localStorage.setItem('fp_cal_seed_ver', SEED_VER);
-    return JSON.parse(JSON.stringify(SEED_EVENTS));
-  }
-
-  // Seed version migration — inject new tracking events if not yet present
-  const storedSeedVer = localStorage.getItem('fp_cal_seed_ver');
-  if (storedSeedVer !== SEED_VER) {
-    const existingIds = new Set(events.map(e => e.id));
-    const newSeedEvents = SEED_EVENTS.filter(e => !existingIds.has(e.id));
-    if (newSeedEvents.length) events = [...events, ...newSeedEvents];
-    localStorage.setItem('fp_cal_events', JSON.stringify(events));
-    localStorage.setItem('fp_cal_seed_ver', SEED_VER);
-  }
-
-  // Migrate any stored events that still carry old wrong member names
-  const nameMap = { 'Sreedevi':'Vasundhara', 'Joshita':'Jeevan', 'Joshitha':'Jeevan' };
-  let migrated = false;
-  events = events.map(ev => {
-    const fixedMembers = ev.members.map(m => {
-      if (nameMap[m]) { migrated = true; return nameMap[m]; }
-      return m;
-    });
-    return { ...ev, members: fixedMembers };
-  });
-  if (migrated) localStorage.setItem('fp_cal_events', JSON.stringify(events));
-  return events;
+function saveCalEvents(events) {
+  localStorage.setItem('fp_cal_events', JSON.stringify(events));
 }
 
 function saveCalEvents(events) {
@@ -7219,7 +7175,7 @@ function checkPinSession() {
 // BACKUP & RESTORE
 // ═══════════════════════════════════════
 const BACKUP_KEYS = [
-  'fp_cal_events','fp_cal_seed_ver',
+  'fp_cal_events',
   'fp_health_v3','fp_health_appts_v3','fp_health_reports_v3',
   'fp_attendance_synced','fp_attendance_synced_ts',
   'fp_timetable_synced','fp_timetable_synced_ts',
