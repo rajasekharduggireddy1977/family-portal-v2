@@ -4178,10 +4178,14 @@ function auraRenderEducation() {
   var ttDataSIC  = ttRawSIC  ? (function(){ try{ return JSON.parse(ttRawSIC);  }catch(e){ return null; } })() : null;
   var barsEl = document.getElementById('aura-subj-bars');
   if (barsEl) {
-    if (attDataSIC.length === 0) {
-      barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
-    } else {
-      barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
+    var _sicKey = (attRawSIC||'') + '|' + (ttRawSIC||'');
+    if (barsEl.dataset.sicKey !== _sicKey) {
+      barsEl.dataset.sicKey = _sicKey;
+      if (attDataSIC.length === 0) {
+        barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
+      } else {
+        barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
+      }
     }
   }
 
@@ -6945,9 +6949,7 @@ function init() {
   initDocuments();
   initExpiry();
   buildSearchIdx();
-  // Apply saved member context after full init
   updateGmPill();
-  applyMemberContextToCurrentPage();
 }
 
 init();
