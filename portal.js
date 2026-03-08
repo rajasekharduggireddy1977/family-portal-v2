@@ -2393,7 +2393,7 @@ function buildJosrithaAcadWidget() {
     dayNav = buildJacNav(window._jacData);
     slotSection = buildJacSlots(window._jacData);
   } else {
-    // No timetable — show WOW subject intelligence cards
+    // No timetable — show subject intelligence cards
     slotSection = buildSubjectIntelCards(attData, null);
   }
 
@@ -2466,7 +2466,7 @@ function buildJosrithaAcadWidget() {
     + dayNav
     + slotSection
     + hmHtml
-    + (ttData ? buildSubjectIntelCards(attData, ttData) : '')
+    + buildSubjectIntelCards(attData, ttData)
     + footer
     + '</div>';
 }
@@ -2500,12 +2500,12 @@ function buildSubjectIntelCards(attData, ttData) {
     + '<div class="sic-section-title">SUBJECT INTELLIGENCE</div>';
 
   sorted.forEach(function(a, idx) {
-    var pct = Math.round(a.present / a.total * 100);
-    var col = pct >= 75 ? '#3ecf8e' : pct >= 70 ? '#fbbf24' : '#ff4f4f';
+    var pct    = Math.round(a.present / a.total * 100);
+    var col    = pct >= 75 ? '#3ecf8e' : pct >= 70 ? '#fbbf24' : '#ff4f4f';
     var colRgb = pct >= 75 ? '62,207,142' : pct >= 70 ? '251,191,36' : '255,79,79';
-    var lbl = pct >= 75 ? 'GOOD' : pct >= 70 ? 'AT RISK' : 'CRITICAL';
+    var lbl    = pct >= 75 ? 'GOOD' : pct >= 70 ? 'AT RISK' : 'CRITICAL';
     var typeCol = TYPE_COLOR[a.type] || '#4f7fff';
-    var key = a.code + '|' + a.type;
+    var key    = a.code + '|' + a.type;
     var absent = a.total - a.present;
 
     // Actionable insight
@@ -2529,7 +2529,7 @@ function buildSubjectIntelCards(attData, ttData) {
       + '<text x="24" y="28" text-anchor="middle" font-size="10" font-weight="800" fill="' + col + '" font-family="DM Mono,monospace">' + pct + '%</text>'
       + '</svg>';
 
-    // Weekly pattern dots Mon–Sat
+    // Weekly day pattern dots Mon–Sat
     var days = subjDayMap[key] || [];
     var dotRow = '<div class="sic-day-row">';
     for (var di = 0; di < 6; di++) {
@@ -2549,7 +2549,7 @@ function buildSubjectIntelCards(attData, ttData) {
     }
     dotRow += '</div>';
 
-    // Segmented bar
+    // Segmented progress bar
     var pctP = (a.present / a.total * 100).toFixed(1);
     var pctA = (absent / a.total * 100).toFixed(1);
     var bar = '<div class="sic-bar-wrap">'
@@ -2565,7 +2565,6 @@ function buildSubjectIntelCards(attData, ttData) {
       + '</div>';
 
     html += '<div class="sic-card" style="animation-delay:' + (idx * 55) + 'ms;border-color:rgba(' + colRgb + ',.25)">'
-      // Header row
       + '<div class="sic-top">'
       + ring
       + '<div class="sic-info">'
@@ -2578,9 +2577,7 @@ function buildSubjectIntelCards(attData, ttData) {
       + '<div class="sic-insight">' + insight + '</div>'
       + '</div>'
       + '</div>'
-      // Bar
       + bar
-      // Day pattern
       + (days.length || !ttData ? dotRow : '')
       + '</div>';
   });
