@@ -4167,23 +4167,19 @@ function auraRenderEducation() {
     } catch(e){}
   }
 
-  // Subject bars — all subjects sorted worst first
-  var barsHtml = '';
-  if (subjects.length === 0) {
-    barsHtml = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
-  }
-  var showSubjs = subjects;
-  for (var s=0; s<showSubjs.length; s++) {
-    var sb = showSubjs[s];
-    var c = sb.pct < 75 ? 'linear-gradient(90deg,var(--red),#ff8080)' : sb.pct < 80 ? 'linear-gradient(90deg,var(--orange,#fb923c),#fbbf24)' : 'linear-gradient(90deg,var(--green),#86efac)';
-    var tc2 = sb.pct < 75 ? 'var(--red)' : sb.pct < 80 ? 'var(--orange,#fb923c)' : 'var(--green)';
-    barsHtml += '<div class="tc-sd-row">'
-      + '<div class="tc-sd-top"><div class="tc-sd-name">'+sb.name+'</div><div class="tc-sd-pct" style="color:'+tc2+'">'+sb.pct+'%</div></div>'
-      + '<div class="tc-sd-track"><div class="tc-sd-fill" style="width:'+sb.pct+'%;background:'+c+';"></div><div class="tc-sd-marker"></div></div>'
-      + '</div>';
-  }
+  // Subject Intelligence Cards — replaces old bar list
+  var attRawSIC = localStorage.getItem('fp_attendance_synced');
+  var ttRawSIC  = localStorage.getItem('fp_timetable_synced');
+  var attDataSIC = attRawSIC ? (function(){ try{ return JSON.parse(attRawSIC); }catch(e){ return []; } })() : [];
+  var ttDataSIC  = ttRawSIC  ? (function(){ try{ return JSON.parse(ttRawSIC);  }catch(e){ return null; } })() : null;
   var barsEl = document.getElementById('aura-subj-bars');
-  if (barsEl) barsEl.innerHTML = barsHtml;
+  if (barsEl) {
+    if (attDataSIC.length === 0) {
+      barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
+    } else {
+      barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
+    }
+  }
 
   // Overall ring
   var overallPct = totalCls>0 ? Math.round(totalPres/totalCls*100) : 70;
