@@ -6965,15 +6965,17 @@ function init() {
 // To update baseline: Download Backup → rename to family-portal-backup.json → commit to GitHub.
 // ═══════════════════════════════════════
 (function autoRestoreOnFirstLoad() {
-  // Only trigger if localStorage has no portal data at all
-  if (localStorage.getItem('fp_cal_events') !== null) {
+  // Trigger if either cal_events OR attendance is missing (covers partial restores)
+  var hasEvents     = localStorage.getItem('fp_cal_events') !== null;
+  var hasAttendance = localStorage.getItem('fp_attendance_synced') !== null;
+  if (hasEvents && hasAttendance) {
     init();
     return;
   }
   // Show "restoring" status in loader if still visible
   var statusEl = document.getElementById('loader-status');
   if (statusEl) statusEl.textContent = 'Restoring from backup\u2026';
-  fetch('./family-portal-backup.json?_=' + Date.now())
+  fetch('./family-portal-backup.json?_=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } })
     .then(function(res) {
       if (!res.ok) throw new Error('No backup file');
       return res.json();
