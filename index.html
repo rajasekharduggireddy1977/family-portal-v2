@@ -346,7 +346,7 @@
 
           <!-- ▸ PANEL 0: HOME -->
           <div class="aura-panel" id="aura-p0">
-            <!-- Greeting card with rings -->
+            <!-- Greeting card -->
             <div class="tc">
               <div class="tc-greeting">
                 <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
@@ -354,13 +354,30 @@
                 <div class="tc-greet-date" id="aura-date"></div>
               </div>
             </div>
-            <!-- Today timeline -->
+            <!-- TODAY block — calendar events for exact today only -->
             <div class="tc">
               <div class="tc-sec-hd">
                 <div class="tc-sec-title">Today</div>
                 <div class="tc-sec-action" onclick="goPage('calendar')">Calendar →</div>
               </div>
               <div id="aura-today-timeline"></div>
+            </div>
+            <!-- GRAVITY RAIL — upcoming events alerting system -->
+            <div class="tc tc-grav-rail-wrap" id="aura-grav-rail-tc">
+              <div class="tc-sec-hd">
+                <div class="tc-sec-title">Upcoming</div>
+                <div class="tc-sec-action" onclick="goPage('calendar')">All →</div>
+              </div>
+              <div class="gr-now-bar">
+                <div class="gr-now-label">NOW</div>
+                <div class="gr-now-line"></div>
+                <div class="gr-now-clock" id="gr-now-clock"></div>
+              </div>
+              <div class="gr-rail-wrap" id="gr-rail-wrap">
+                <div class="gr-rail-track"></div>
+                <div class="gr-cards" id="gr-cards"></div>
+              </div>
+              <div class="gr-empty" id="gr-empty" style="display:none;">✅ All clear — no upcoming events</div>
             </div>
             <div style="height:8px;"></div>
           </div>

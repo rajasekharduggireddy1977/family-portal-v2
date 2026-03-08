@@ -3933,86 +3933,135 @@ function auraRenderAlerts() {
 
 /* ── Home Panel ── */
 function auraRenderHome() {
-  // Today timeline from calendar + timetable
-  var DAYS7 = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
-  var todayDay = DAYS7[new Date().getDay()];
   var todayStr = new Date().toISOString().slice(0,10);
-  var rows = [];
+  var now = new Date();
 
-  // Calendar events today
+  // TODAY block: exact today calendar events only (no timetable subjects)
   var evtRaw = localStorage.getItem('fp_cal_events');
+  var todayRows = [];
   if (evtRaw) {
     try {
       var evts = JSON.parse(evtRaw);
-      var todayEvts = evts.filter(function(e){ return e.date === todayStr; });
+      var todayEvts = evts.filter(function(e){ return e.date === todayStr; })
+        .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
       for (var i=0; i<todayEvts.length; i++) {
-        rows.push({ ts: todayEvts[i].start || 'Today', name: todayEvts[i].title, meta: todayEvts[i].notes||'', color: 'var(--red)', tag:'TODAY', tagStyle:'background:rgba(255,59,59,.12);color:var(--red);border:1px solid rgba(255,59,59,.3);' });
+        var ev = todayEvts[i];
+        var catColors = { health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6', government:'var(--orange,#fb923c)', education:'#a78bfa', other:'var(--blue2)' };
+        var col = catColors[ev.cat] || 'var(--blue2)';
+        todayRows.push({ ts: ev.start || '\u2014', name: ev.title, meta: ev.notes||'', color: col });
       }
     } catch(e){}
   }
-  // Timetable classes today — same key as academics
-  var ttRaw = localStorage.getItem('fp_timetable_synced');
-  try {
-    var tt2 = ttRaw ? JSON.parse(ttRaw) : [];
-    if (tt2.length > 0) {
-      var todayClasses = tt2.filter(function(c){ return c.day === todayDay; });
-      var ttDisplayDay = todayDay;
-      if (todayClasses.length === 0) {
-        var wdays2 = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
-        for (var wd2=0; wd2<wdays2.length; wd2++) {
-          var nd2 = wdays2[wd2];
-          var nc2 = tt2.filter(function(c){return c.day===nd2;});
-          if (nc2.length > 0) { todayClasses = nc2; ttDisplayDay = nd2; break; }
-        }
+
+  var todayEl = document.getElementById('aura-today-timeline');
+  if (todayEl) {
+    if (todayRows.length === 0) {
+      todayEl.innerHTML = '<div style="padding:10px 20px 14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">Nothing scheduled today</div>';
+    } else {
+      var html = '';
+      for (var r=0; r<todayRows.length; r++) {
+        var row = todayRows[r];
+        var isLast = r === todayRows.length-1;
+        html += '<div class="tc-tl-row">'
+          + '<div class="tc-tl-ts">' + row.ts + '</div>'
+          + '<div class="tc-tl-col">'
+          + '<div class="tc-tl-dot" style="background:' + row.color + ';box-shadow:0 0 6px ' + row.color + ';"></div>'
+          + (!isLast ? '<div class="tc-tl-wire"></div>' : '')
+          + '</div>'
+          + '<div class="tc-tl-body">'
+          + '<div class="tc-tl-name">' + row.name + '</div>'
+          + (row.meta ? '<div class="tc-tl-meta">' + row.meta.slice(0,50) + '</div>' : '')
+          + '</div></div>';
       }
-      var now2 = new Date(); var nowMin = now2.getHours()*60+now2.getMinutes();
-      for (var j=0; j<Math.min(todayClasses.length,3); j++) {
-        var c2 = todayClasses[j];
-        var timeParts = (c2.time||'').split('-');
-        var startStr = timeParts[0]||'';
-        var sp = startStr.split(':'); var classMin = parseInt(sp[0]||0)*60+parseInt(sp[1]||0);
-        var isNow = ttDisplayDay===todayDay && nowMin >= classMin && nowMin < classMin+60;
-        var label = ttDisplayDay !== todayDay ? ttDisplayDay.charAt(0)+ttDisplayDay.slice(1,3).toLowerCase() : startStr;
-        rows.push({ ts: label, name: (c2.subject||'').split(' ').slice(0,4).join(' '), meta: 'Room ' + (c2.room||'—') + ' · Josritha', color: isNow ? '#a78bfa':'var(--gold)', tag: isNow?'NOW':'', tagStyle:'background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.3);' });
-      }
+      todayEl.innerHTML = html;
     }
-  } catch(e){}
-  // Upcoming events (next 3 days)
+  }
+
+  // GRAVITY RAIL: upcoming events (after today, up to 60 days out)
+  var upcoming = [];
   if (evtRaw) {
     try {
       var evts2 = JSON.parse(evtRaw);
-      var soon = evts2.filter(function(e){ return e.date > todayStr; }).sort(function(a,b){ return a.date.localeCompare(b.date); }).slice(0,3);
-      for (var k=0; k<soon.length; k++) {
-        var ev = soon[k];
-        var d = new Date(ev.date); var diff = Math.round((d - new Date(todayStr))/(86400000));
-        var diffLabel = diff===1?'Tomorrow':(diff<=7?'In '+diff+' days':ev.date);
-        rows.push({ ts: diffLabel, name: ev.title.replace(/^[🏘️🚗👨‍👩‍👧‍👦🏬🪪🛵🏥⚠️🚨]*\s*/u,''), meta: ev.notes ? ev.notes.slice(0,40) : '', color: 'rgba(140,158,220,.4)', tag:'', tagStyle:'' });
-      }
+      upcoming = evts2
+        .filter(function(e){ return e.date > todayStr; })
+        .sort(function(a,b){ return a.date.localeCompare(b.date); })
+        .slice(0, 12);
     } catch(e){}
   }
 
-  if (rows.length === 0) {
-    rows.push({ ts:'Today', name:'No events scheduled', meta:'Enjoy your day!', color:'rgba(140,158,220,.4)', tag:'', tagStyle:'' });
-  }
+  var grCards = document.getElementById('gr-cards');
+  var grEmpty = document.getElementById('gr-empty');
+  if (!grCards) return;
 
-  var html = '';
-  for (var r=0; r<rows.length; r++) {
-    var row = rows[r];
-    var isLast = r === rows.length-1;
-    html += '<div class="tc-tl-row">'
-      + '<div class="tc-tl-ts">' + row.ts + '</div>'
-      + '<div class="tc-tl-col">'
-      + '<div class="tc-tl-dot" style="background:' + row.color + ';' + (row.tag==='TODAY'||row.tag==='NOW'?'box-shadow:0 0 8px '+row.color+';animation:auraPulse 1.4s infinite;':'') + '"></div>'
-      + (!isLast ? '<div class="tc-tl-wire"></div>' : '')
-      + '</div>'
-      + '<div class="tc-tl-body">'
-      + '<div class="tc-tl-name">' + row.name + '</div>'
-      + (row.meta ? '<div class="tc-tl-meta">' + row.meta + '</div>' : '')
-      + (row.tag ? '<div class="tc-tl-tag" style="' + row.tagStyle + '">' + row.tag + '</div>' : '')
-      + '</div></div>';
+  if (upcoming.length === 0) {
+    grCards.innerHTML = '';
+    if (grEmpty) grEmpty.style.display = '';
+    return;
   }
-  var el = document.getElementById('aura-today-timeline');
-  if (el) el.innerHTML = html;
+  if (grEmpty) grEmpty.style.display = 'none';
+
+  var CAT_COLORS = { health:'255,79,79', finance:'240,180,41', birthday:'244,114,182', government:'251,146,60', education:'167,139,250', other:'79,127,255' };
+  var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+  var maxDays = 60;
+  var html2 = '';
+
+  for (var k=0; k<upcoming.length; k++) {
+    var ev2 = upcoming[k];
+    var d = new Date(ev2.date + 'T12:00:00');
+    var diff = Math.round((d - now) / 86400000);
+    var rgb = CAT_COLORS[ev2.cat] || '79,127,255';
+
+    // Proximity scale: closer = larger + brighter
+    var proximity = Math.max(0, 1 - diff / maxDays);
+    var scale = (0.88 + proximity * 0.12).toFixed(3);
+    var opacity = (0.52 + proximity * 0.48).toFixed(3);
+
+    // Day label
+    var dayLabel = diff === 1 ? 'Tomorrow' : diff <= 7 ? 'In ' + diff + 'd' : diff <= 30 ? 'In ' + Math.round(diff/7) + 'w' : 'In ' + Math.round(diff/30) + 'mo';
+
+    // Classification
+    var cls = diff <= 3 ? 'soon' : diff <= 14 ? 'upcoming' : 'far';
+    var dotCls = 'gr-dot-' + cls;
+    var daysCls = 'gr-days-' + cls;
+    var heatCls = diff <= 3 ? 'gr-heat-soon' : '';
+
+    // Member
+    var members = ev2.members || [];
+    var memberLabel = members.length === 0 ? '' : members[0] === 'all' ? 'Family' : (MEMBER_LABELS[members[0].toLowerCase()] || members[0]);
+
+    // Strip emoji from title for cleaner display
+    var shortTitle = (ev2.title||'').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/gu,'').trim() || ev2.title;
+
+    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;" onclick="goPage(\'calendar\')">'
+      + '<div class="gr-card-node">'
+      + '<div class="gr-card-dot ' + dotCls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
+      + '</div>'
+      + '<div class="gr-card-body">'
+      + '<div class="gr-card-head">'
+      + '<div class="gr-card-title" style="color:rgba(235,240,255,' + opacity + ');">' + shortTitle + '</div>'
+      + '<div class="gr-card-days ' + daysCls + '">' + dayLabel + '</div>'
+      + '</div>'
+      + '<div class="gr-card-meta">'
+      + (memberLabel ? '<span class="gr-card-member">' + memberLabel + '</span>' : '')
+      + (memberLabel && ev2.cat ? '<span class="gr-card-cat">\u00b7</span>' : '')
+      + (ev2.cat ? '<span class="gr-card-cat">' + ev2.cat + '</span>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+  grCards.innerHTML = html2;
+
+  // Live clock on NOW bar
+  function updateGrClock() {
+    var cl = document.getElementById('gr-now-clock');
+    if (!cl) return;
+    var n = new Date();
+    cl.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  }
+  updateGrClock();
+  if (!window._grClockTick) {
+    window._grClockTick = setInterval(updateGrClock, 30000);
+  }
 }
 
 /* ── Health Panel ── */
