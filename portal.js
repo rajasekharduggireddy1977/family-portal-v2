@@ -186,39 +186,55 @@ let currentExpTab = 'docs';
 function goPage(page) {
   if(currentPage === page && page !== 'members') return;
 
-  // ── Reset bottom nav + dismiss keyboard before page transition ──
   const _nav = document.getElementById('bottom-nav');
   if (_nav) { _nav.style.transition = ''; _nav.style.transform = ''; _nav.style.bottom = ''; }
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
   }
 
+  // ── Directional slide transition ──
+  const prevPage = currentPage;
+  const prevIdx = PAGE_ORDER.indexOf(prevPage);
+  const nextIdx = PAGE_ORDER.indexOf(page);
+  const goingForward = nextIdx > prevIdx;
+  const prevEl = document.getElementById('page-' + prevPage);
+  const nextEl = document.getElementById('page-' + page);
+  const doAnimate = prevEl && nextEl && prevIdx >= 0 && nextIdx >= 0 && prevPage !== page;
+
+  if (doAnimate) {
+    prevEl.classList.remove('active');
+    prevEl.classList.add(goingForward ? 'slide-out-left' : 'slide-out-right');
+    nextEl.classList.add(goingForward ? 'slide-in-right' : 'slide-in-left');
+    nextEl.style.display = 'block';
+    setTimeout(function() {
+      prevEl.classList.remove('slide-out-left','slide-out-right');
+      prevEl.style.display = '';
+      nextEl.classList.remove('slide-in-right','slide-in-left');
+      nextEl.classList.add('active');
+    }, 290);
+  } else {
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active','slide-in-right','slide-in-left','slide-out-left','slide-out-right');
+    });
+    if(nextEl) nextEl.classList.add('active');
+  }
+
   currentPage = page;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const pageEl = document.getElementById('page-'+page);
   const navEl = document.getElementById('bnav-'+page);
-  if(pageEl) pageEl.classList.add('active');
   if(navEl) navEl.classList.add('active');
   syncSidebarNav(page);
 
-  // Show aurora canvas ONLY on dashboard; hide on all other pages
   var canvas = document.getElementById('aura-canvas');
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
-
-  // Scroll non-dashboard pages to top; dashboard is fixed so skip
   if (page !== 'dashboard') window.scrollTo(0,0);
 
-  if(page==='members') {
-    showMembersList();
-    setTimeout(()=>applyGmMembers(),60);
-  }
+  if(page==='members') { showMembersList(); setTimeout(()=>applyGmMembers(),60); }
   if(page==='expiry') { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
   if(page==='calendar') { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
   if(page==='health')   { setTimeout(()=>{ initHealthPage(); applyGmHealth(); },80); }
   if(page==='documents') { setTimeout(()=>{ applyGmDocuments(); collapseAllDocSections(); },80); }
   if(page==='dashboard') { setTimeout(()=>applyGmDashboard(),60); }
-
 }
 
 // ═══════════════════════════════════════════════════
@@ -2377,24 +2393,8 @@ function buildJosrithaAcadWidget() {
     dayNav = buildJacNav(window._jacData);
     slotSection = buildJacSlots(window._jacData);
   } else {
-    // No timetable — show att list in compact form
-    slotSection = '<div class="jac-slots">';
-    attData.slice(0,5).forEach(function(a) {
-      var pct = Math.round(a.present / a.total * 100);
-      var col = pct >= 75 ? 'var(--green)' : pct >= 70 ? '#fbbf24' : 'var(--red)';
-      var bg  = pct >= 75 ? 'rgba(62,207,142,.12)' : pct >= 70 ? 'rgba(245,158,11,.12)' : 'rgba(255,79,79,.12)';
-      var barCol = col;
-      slotSection += '<div class="jac-slot">'
-        + '<div class="jac-slot-bar" style="background:' + barCol + ';"></div>'
-        + '<div class="jac-slot-inner">'
-        + '<div class="jac-slot-body">'
-        + '<div class="jac-slot-name">' + a.subject + '</div>'
-        + '<div class="jac-slot-meta">' + a.code + ' \u00b7 ' + a.type + '</div>'
-        + '</div>'
-        + '<div class="jac-slot-pct" style="background:' + bg + ';color:' + col + ';">' + pct + '%</div>'
-        + '</div></div>';
-    });
-    slotSection += '</div>';
+    // No timetable — show WOW subject intelligence cards
+    slotSection = buildSubjectIntelCards(attData, null);
   }
 
   // ── Severity heatmap ──────────────────────────────────────────────
@@ -2466,8 +2466,127 @@ function buildJosrithaAcadWidget() {
     + dayNav
     + slotSection
     + hmHtml
+    + (ttData ? buildSubjectIntelCards(attData, ttData) : '')
     + footer
     + '</div>';
+}
+
+function buildSubjectIntelCards(attData, ttData) {
+  var DAY_SHORT = ['MON','TUE','WED','THU','FRI','SAT'];
+  var DAY_FULL  = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  var TYPE_COLOR = {Lecture:'#4f7fff',Lab:'#a78bfa',Tutorial:'#3ecf8e',Seminar:'#f0b429'};
+
+  // Build subject → days map from timetable
+  var subjDayMap = {};
+  if (ttData) {
+    ttData.forEach(function(sl) {
+      var key = sl.att_key || (sl.code + '|' + sl.type);
+      var di = DAY_FULL.indexOf(sl.day);
+      if (di >= 0) {
+        if (!subjDayMap[key]) subjDayMap[key] = [];
+        if (subjDayMap[key].indexOf(di) === -1) subjDayMap[key].push(di);
+      }
+    });
+  }
+
+  var todayDi = new Date().getDay() - 1; // 0=Mon..5=Sat, -1=Sun
+
+  // Sort: critical → at-risk → good
+  var sorted = attData.slice().sort(function(a,b) {
+    return Math.round(a.present/a.total*100) - Math.round(b.present/b.total*100);
+  });
+
+  var html = '<div class="sic-section">'
+    + '<div class="sic-section-title">SUBJECT INTELLIGENCE</div>';
+
+  sorted.forEach(function(a, idx) {
+    var pct = Math.round(a.present / a.total * 100);
+    var col = pct >= 75 ? '#3ecf8e' : pct >= 70 ? '#fbbf24' : '#ff4f4f';
+    var colRgb = pct >= 75 ? '62,207,142' : pct >= 70 ? '251,191,36' : '255,79,79';
+    var lbl = pct >= 75 ? 'GOOD' : pct >= 70 ? 'AT RISK' : 'CRITICAL';
+    var typeCol = TYPE_COLOR[a.type] || '#4f7fff';
+    var key = a.code + '|' + a.type;
+    var absent = a.total - a.present;
+
+    // Actionable insight
+    var insight;
+    if (pct < 75) {
+      var need = Math.max(0, Math.ceil(0.75 * (a.total + 1)) - a.present);
+      insight = '\u26a1 Attend next <b style="color:' + col + '">' + need + '</b> class' + (need !== 1 ? 'es' : '');
+    } else {
+      var canSkip = Math.max(0, Math.floor(a.total * 0.25) - absent);
+      insight = '\u2705 Can skip <b style="color:' + col + '">' + canSkip + '</b> more safely';
+    }
+
+    // SVG ring (48x48, r=20, circ=125.7)
+    var circ = 125.7;
+    var dash = Math.round(pct / 100 * circ * 10) / 10;
+    var ring = '<svg width="48" height="48" viewBox="0 0 48 48" style="flex-shrink:0">'
+      + '<circle cx="24" cy="24" r="20" fill="none" stroke="rgba(' + colRgb + ',.18)" stroke-width="3.5"/>'
+      + '<circle cx="24" cy="24" r="20" fill="none" stroke="' + col + '" stroke-width="3.5"'
+      + ' stroke-linecap="round" stroke-dasharray="' + dash + ' ' + circ + '" transform="rotate(-90 24 24)"'
+      + ' style="transition:stroke-dasharray .7s ease"/>'
+      + '<text x="24" y="28" text-anchor="middle" font-size="10" font-weight="800" fill="' + col + '" font-family="DM Mono,monospace">' + pct + '%</text>'
+      + '</svg>';
+
+    // Weekly pattern dots Mon–Sat
+    var days = subjDayMap[key] || [];
+    var dotRow = '<div class="sic-day-row">';
+    for (var di = 0; di < 6; di++) {
+      var hasClass = days.indexOf(di) !== -1;
+      var isToday  = di === todayDi;
+      if (!hasClass) {
+        dotRow += '<div class="sic-day-cell sic-day-off">'
+          + '<span class="sic-day-lbl">' + DAY_SHORT[di] + '</span>'
+          + '<span class="sic-day-dot sic-dot-off"></span>'
+          + '</div>';
+      } else {
+        dotRow += '<div class="sic-day-cell' + (isToday ? ' sic-day-today' : '') + '">'
+          + '<span class="sic-day-lbl" style="color:' + (isToday ? col : '') + '">' + DAY_SHORT[di] + '</span>'
+          + '<span class="sic-day-dot" style="background:' + col + ';box-shadow:0 0 6px rgba(' + colRgb + ',.55)' + (isToday ? ';outline:2px solid ' + col + ';outline-offset:2px' : '') + '"></span>'
+          + '</div>';
+      }
+    }
+    dotRow += '</div>';
+
+    // Segmented bar
+    var pctP = (a.present / a.total * 100).toFixed(1);
+    var pctA = (absent / a.total * 100).toFixed(1);
+    var bar = '<div class="sic-bar-wrap">'
+      + '<div class="sic-bar-track">'
+      + '<div class="sic-bar-fill" style="width:' + pctP + '%;background:' + col + '"></div>'
+      + '<div class="sic-bar-absent" style="width:' + pctA + '%"></div>'
+      + '</div>'
+      + '<div class="sic-bar-labels">'
+      + '<span style="color:' + col + '">' + a.present + ' present</span>'
+      + '<span style="color:rgba(255,79,79,.8)">' + absent + ' absent</span>'
+      + '<span style="color:var(--text3)">' + a.total + ' total</span>'
+      + '</div>'
+      + '</div>';
+
+    html += '<div class="sic-card" style="animation-delay:' + (idx * 55) + 'ms;border-color:rgba(' + colRgb + ',.25)">'
+      // Header row
+      + '<div class="sic-top">'
+      + ring
+      + '<div class="sic-info">'
+      + '<div class="sic-name">' + a.subject + '</div>'
+      + '<div class="sic-tags">'
+      + '<span class="sic-code">' + a.code + '</span>'
+      + '<span class="sic-type" style="color:' + typeCol + ';background:rgba(' + colRgb + ',.08)">' + a.type + '</span>'
+      + '<span class="sic-status" style="color:' + col + ';background:rgba(' + colRgb + ',.15)">' + lbl + '</span>'
+      + '</div>'
+      + '<div class="sic-insight">' + insight + '</div>'
+      + '</div>'
+      + '</div>'
+      // Bar
+      + bar
+      // Day pattern
+      + (days.length || !ttData ? dotRow : '')
+      + '</div>';
+  });
+
+  html += '</div>';
+  return html;
 }
 
 function buildJacNav(d) {

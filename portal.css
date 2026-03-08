@@ -311,13 +311,38 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 /* Dashboard is position:fixed so it's out of normal flow.
    Ensure it never adds scroll height to #content. */
 #page-dashboard.active ~ * { /* siblings after dashboard are unaffected */ }
-.page{display:none;}
+.page{
+  display:none;
+  will-change:transform,opacity;
+}
 .page.active{
   display:block;
-  animation:pageEnter .3s ease both;
   overscroll-behavior:none;
   -webkit-overflow-scrolling:touch;
+  animation:pageEnter .28s cubic-bezier(0.4,0,0.2,1) both;
 }
+.page.slide-in-right{
+  display:block;
+  animation:slideInRight .28s cubic-bezier(0.4,0,0.2,1) both;
+}
+.page.slide-in-left{
+  display:block;
+  animation:slideInLeft .28s cubic-bezier(0.4,0,0.2,1) both;
+}
+.page.slide-out-left{
+  display:block;
+  animation:slideOutLeft .28s cubic-bezier(0.4,0,0.2,1) both;
+  pointer-events:none;
+}
+.page.slide-out-right{
+  display:block;
+  animation:slideOutRight .28s cubic-bezier(0.4,0,0.2,1) both;
+  pointer-events:none;
+}
+@keyframes slideInRight{from{opacity:0;transform:translateX(48px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-48px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutLeft{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-48px)}}
+@keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(48px)}}
 /* Mobile: breathing room between topbar and page content on every page */
 @media (max-width:767px){
   .page.active > *:first-child{ margin-top:4px; }
@@ -3493,7 +3518,41 @@ input:focus, button:focus-visible {
 .jac-footer-sync{font-size:10px;font-weight:700;color:var(--purple);cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.18);transition:all .12s;}
 .jac-footer-sync:active{background:rgba(167,139,250,.18);}
 
-/* no-data state */
+/* ── Subject Intelligence Cards ── */
+.sic-section{padding:12px 14px 4px;}
+.sic-section-title{font-size:9px;font-weight:800;letter-spacing:1px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:10px;text-transform:uppercase;}
+.sic-card{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
+  animation:sicCardIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes sicCardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sic-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.sic-info{flex:1;min-width:0;}
+.sic-name{font-size:12px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:4px;}
+.sic-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.sic-code{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);}
+.sic-type{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;}
+.sic-status{font-size:9px;font-weight:800;padding:1px 7px;border-radius:20px;letter-spacing:.3px;}
+.sic-insight{font-size:10px;color:var(--text3);line-height:1.4;}
+.sic-bar-wrap{margin-bottom:9px;}
+.sic-bar-track{display:flex;height:4px;border-radius:4px;overflow:hidden;background:var(--border2);gap:1px;}
+.sic-bar-fill{border-radius:4px 0 0 4px;transition:width .7s ease;}
+.sic-bar-absent{background:rgba(255,79,79,.45);transition:width .7s ease;}
+.sic-bar-labels{display:flex;gap:10px;margin-top:4px;}
+.sic-bar-labels span{font-size:9px;font-family:'DM Mono',monospace;}
+.sic-day-row{display:flex;gap:0;justify-content:space-between;padding:8px 0 2px;}
+.sic-day-cell{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.sic-day-lbl{font-size:8px;font-family:'DM Mono',monospace;color:var(--text3);font-weight:600;}
+.sic-day-dot{width:9px;height:9px;border-radius:50%;}
+.sic-dot-off{background:var(--border2);}
+.sic-day-off{opacity:.3;}
+.sic-day-today .sic-day-lbl{font-weight:800;}
+
+
 .jac-nodata{padding:28px 16px;text-align:center;}
 .jac-nodata-icon{font-size:32px;opacity:.45;margin-bottom:10px;}
 .jac-nodata-txt{font-size:12px;color:var(--text3);line-height:1.6;}
