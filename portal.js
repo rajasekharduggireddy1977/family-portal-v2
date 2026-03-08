@@ -3795,32 +3795,36 @@ function auraInitSwipe() {
   var stage = document.getElementById('aura-stage');
   var track = document.getElementById('aura-track');
   if (!stage || !track) return;
-  var tx0=0, ty0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false;
+  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false;
   function vw() { return window.innerWidth; }
 
   stage.addEventListener('touchstart', function(e) {
-    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY; dragging=false; ddx=0; intentLocked=false; intentH=false;
+    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
+    t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
     track.style.transition='none'; track.classList.add('aura-live');
   }, {passive:true});
   stage.addEventListener('touchmove', function(e) {
     var dx=e.touches[0].clientX-tx0; var dy=e.touches[0].clientY-ty0;
-    if (!intentLocked && (Math.abs(dx)>8 || Math.abs(dy)>8)) {
+    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
       intentLocked=true;
-      intentH = Math.abs(dx) > Math.abs(dy);
+      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
     }
-    if (!intentH) return; // vertical — native scroll handles it
-    e.preventDefault(); // horizontal — we handle it
-    if (!dragging && Math.abs(dx)>10) dragging=true;
+    if (!intentH) return;
+    e.preventDefault();
+    if (!dragging && Math.abs(dx)>6) dragging=true;
     if (dragging) {
       ddx=dx;
-      var resist=(_auraCur===0&&dx>0)||(_auraCur===_auraSlides.length-1&&dx<0)?.2:1;
+      var resist=(_auraCur===0&&dx>0)||(_auraCur===_auraSlides.length-1&&dx<0)?.15:1;
       track.style.transform='translateX('+((-_auraCur*vw())+dx*resist)+'px)';
     }
   }, {passive:false});
   stage.addEventListener('touchend', function() {
     track.classList.remove('aura-live');
+    track.style.transition='transform .32s cubic-bezier(0.4,0,0.2,1)';
     if (!dragging) { auraGoSlide(_auraCur); return; }
-    var th = vw() * .28;
+    var elapsed = Date.now() - t0;
+    var velocity = Math.abs(ddx) / elapsed; // px/ms
+    var th = velocity > 0.3 ? vw() * .12 : vw() * .22; // fast flick = lower threshold
     if (ddx < -th && _auraCur < _auraSlides.length-1) auraGoSlide(_auraCur+1);
     else if (ddx > th && _auraCur > 0) auraGoSlide(_auraCur-1);
     else auraGoSlide(_auraCur);
@@ -3835,10 +3839,10 @@ function auraInitSwipe() {
   });
   window.addEventListener('mouseup', function(e) {
     if (!mouseDown) return; mouseDown=false;
-    track.style.transition='transform .5s cubic-bezier(.77,0,.18,1)';
+    track.style.transition='transform .32s cubic-bezier(0.4,0,0.2,1)';
     var d=e.clientX-mx0;
-    if (d<-80&&_auraCur<_auraSlides.length-1) auraGoSlide(_auraCur+1);
-    else if (d>80&&_auraCur>0) auraGoSlide(_auraCur-1);
+    if (d<-60&&_auraCur<_auraSlides.length-1) auraGoSlide(_auraCur+1);
+    else if (d>60&&_auraCur>0) auraGoSlide(_auraCur-1);
     else auraGoSlide(_auraCur);
   });
 
