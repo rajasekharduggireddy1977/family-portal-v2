@@ -229,11 +229,11 @@ function goPage(page) {
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
   if (page !== 'dashboard') window.scrollTo(0,0);
 
-  if(page==='members') { showMembersList(); setTimeout(()=>applyGmMembers(),60); }
-  if(page==='expiry') { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
-  if(page==='calendar') { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
-  if(page==='health')   { setTimeout(()=>{ initHealthPage(); applyGmHealth(); },80); }
-  if(page==='documents') { setTimeout(()=>{ applyGmDocuments(); collapseAllDocSections(); },80); }
+  if(page==='members')   { setTimeout(()=>applyGmMembers(),60); }
+  if(page==='expiry')    { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
+  if(page==='calendar')  { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
+  if(page==='health')    { setTimeout(()=>applyGmHealth(),80); }
+  if(page==='documents') { setTimeout(()=>applyGmDocuments(),80); }
   if(page==='dashboard') { setTimeout(()=>applyGmDashboard(),60); }
 }
 
@@ -4178,14 +4178,10 @@ function auraRenderEducation() {
   var ttDataSIC  = ttRawSIC  ? (function(){ try{ return JSON.parse(ttRawSIC);  }catch(e){ return null; } })() : null;
   var barsEl = document.getElementById('aura-subj-bars');
   if (barsEl) {
-    var _sicKey = (attRawSIC||'') + '|' + (ttRawSIC||'');
-    if (barsEl.dataset.sicKey !== _sicKey) {
-      barsEl.dataset.sicKey = _sicKey;
-      if (attDataSIC.length === 0) {
-        barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
-      } else {
-        barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
-      }
+    if (attDataSIC.length === 0) {
+      barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
+    } else {
+      barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
     }
   }
 
@@ -6949,7 +6945,9 @@ function init() {
   initDocuments();
   initExpiry();
   buildSearchIdx();
+  // Apply saved member context after full init
   updateGmPill();
+  applyMemberContextToCurrentPage();
 }
 
 init();
