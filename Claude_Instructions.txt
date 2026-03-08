@@ -1,0 +1,26 @@
+## Next Session Handoff Instructions
+
+Paste this at the start of your next chat with Claude:
+
+---
+
+**"I'm continuing development on Duggireddy Family Portal — a 3-file web app on GitHub Pages. Always ask me to upload the latest files from GitHub before making any changes. Files: `index.html`, `portal.css`, `portal.js`.**
+
+**Last completed:** Subject Intelligence Cards (SIC) working in Education dashboard panel via `auraRenderEducation()` → `buildSubjectIntelCards()`. Scroll flicker fixed by removing `backdrop-filter` from `.sic-card`. Swipe between dashboard panels improved with velocity detection.
+
+**Key facts:**
+- GitHub repo: `rajasekharduggireddy1977/family-portal-v2`
+- Dashboard panels rendered by: `auraRenderEducation()`, `auraRenderHealth()`, `auraRenderFinance()`, `auraRenderHome()`
+- SIC CSS classes all start with `.sic-`
+- Never touch Weekly Severity heatmap (`.jac-sev`)
+- `WIDGET_VERSION = 'v9'` in portal.js
+- User never edits code manually — Claude makes all changes
+- Always output only changed files, never all 3 unless necessary"**
+
+---
+
+**Tips to save tokens:**
+- Upload files **only when needed** — if changing JS only, don't upload CSS
+- Describe bugs with a screenshot + one sentence, not long explanations
+- Say **"CSS only"** or **"JS only"** so Claude doesn't read unnecessary files
+- If Claude asks clarifying questions, answer in one line
