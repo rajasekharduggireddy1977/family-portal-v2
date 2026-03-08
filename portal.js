@@ -3822,9 +3822,9 @@ function auraInitSwipe() {
     track.classList.remove('aura-live');
     track.style.transition='transform .32s cubic-bezier(0.4,0,0.2,1)';
     if (!dragging) { auraGoSlide(_auraCur); return; }
-    var elapsed = Date.now() - t0;
-    var velocity = Math.abs(ddx) / elapsed; // px/ms
-    var th = velocity > 0.3 ? vw() * .12 : vw() * .22; // fast flick = lower threshold
+    var elapsed = Math.max(1, Date.now() - t0);
+    var velocity = Math.abs(ddx) / elapsed;
+    var th = velocity > 0.3 ? vw() * .12 : vw() * .22;
     if (ddx < -th && _auraCur < _auraSlides.length-1) auraGoSlide(_auraCur+1);
     else if (ddx > th && _auraCur > 0) auraGoSlide(_auraCur-1);
     else auraGoSlide(_auraCur);
