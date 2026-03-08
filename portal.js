@@ -6993,7 +6993,41 @@ function init() {
   applyMemberContextToCurrentPage();
 }
 
-init();
+// ═══════════════════════════════════════
+// AUTO-RESTORE FROM backup.json (first load only)
+// Runs ONCE when localStorage is empty (fresh deployment).
+// After restore, localStorage takes over — backup.json never loaded again.
+// To update baseline: Download Backup → rename to family-portal-backup.json → commit to GitHub.
+// ═══════════════════════════════════════
+(function autoRestoreOnFirstLoad() {
+  // Only trigger if localStorage has no portal data at all
+  if (localStorage.getItem('fp_cal_events') !== null) {
+    init();
+    return;
+  }
+  // Show "restoring" status in loader if still visible
+  var statusEl = document.getElementById('loader-status');
+  if (statusEl) statusEl.textContent = 'Restoring from backup\u2026';
+  fetch('./family-portal-backup.json?_=' + Date.now())
+    .then(function(res) {
+      if (!res.ok) throw new Error('No backup file');
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data.keys || typeof data.keys !== 'object') throw new Error('Invalid backup');
+      Object.entries(data.keys).forEach(function(entry) {
+        localStorage.setItem(entry[0], entry[1]);
+      });
+      localStorage.setItem('fp_auto_restored_ts', new Date().toISOString());
+      if (statusEl) statusEl.textContent = 'Data restored \u2713 Loading\u2026';
+      setTimeout(function() { location.reload(); }, 600);
+    })
+    .catch(function() {
+      // No backup.json or invalid — boot normally with seed data
+      if (statusEl) statusEl.textContent = 'Initialising\u2026';
+      init();
+    });
+})();
 
 
 // ═══════════════════════════════════════
