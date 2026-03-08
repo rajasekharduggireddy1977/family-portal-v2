@@ -4477,230 +4477,32 @@ body.dash-active #aura-canvas{ display:block; }
 /* ═══════════════════════════════════════════════════════
    GRAVITY RAIL — Upcoming Events Alerting System
 ═══════════════════════════════════════════════════════ */
-
-.tc-grav-rail-wrap { padding-bottom: 4px; overflow: visible; }
-
-/* NOW bar — live cursor across top */
-.gr-now-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 20px;
-  margin-bottom: 14px;
-}
-.gr-now-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  color: var(--gold);
-  flex-shrink: 0;
-  background: rgba(240,180,41,.1);
-  border: 1px solid rgba(240,180,41,.25);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.gr-now-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(240,180,41,.5), rgba(240,180,41,.08), transparent);
-}
-.gr-now-clock {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(240,180,41,.55);
-  flex-shrink: 0;
-  min-width: 36px;
-  text-align: right;
-}
-
-/* Rail track */
-.gr-rail-wrap {
-  position: relative;
-  padding-left: 20px;
-}
-.gr-rail-track {
-  position: absolute;
-  left: 27px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg,
-    rgba(240,180,41,.35) 0%,
-    rgba(167,139,250,.2) 40%,
-    rgba(79,127,255,.1) 70%,
-    transparent 100%
-  );
-}
-
-/* Individual event cards */
-.gr-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.gr-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 0;
-  padding: 0 16px 0 0;
-  position: relative;
-  transform-origin: left center;
-  transition: transform .18s cubic-bezier(.4,0,.2,1), opacity .18s ease;
-  cursor: pointer;
-}
-.gr-card:active { opacity: .75; }
-
-/* Left node — dot on the rail */
-.gr-card-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  width: 16px;
-  padding-top: 14px;
-  position: relative;
-  z-index: 1;
-}
-.gr-card-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  position: relative;
-}
-.gr-card-dot.gr-dot-overdue {
-  background: var(--red);
-  box-shadow: 0 0 0 2px rgba(255,79,79,.18), 0 0 10px rgba(255,79,79,.5);
-  animation: grPulse 1.6s ease-in-out infinite;
-}
-.gr-card-dot.gr-dot-soon {
-  background: var(--gold);
-  box-shadow: 0 0 0 2px rgba(240,180,41,.15), 0 0 8px rgba(240,180,41,.35);
-}
-.gr-card-dot.gr-dot-upcoming {
-  background: var(--blue2);
-  box-shadow: 0 0 0 2px rgba(79,127,255,.1);
-}
-.gr-card-dot.gr-dot-far {
-  background: rgba(167,139,250,.4);
-}
-.gr-card-connector {
-  width: 1px;
-  flex: 1;
-  min-height: 12px;
-  background: inherit;
-  opacity: .15;
-}
-
-/* Card body */
-.gr-card-body {
-  flex: 1;
-  min-width: 0;
-  margin-left: 12px;
-  padding: 10px 0 10px;
-  border-bottom: 1px solid rgba(255,255,255,.045);
-}
-.gr-card:last-child .gr-card-body { border-bottom: none; }
-
-.gr-card-head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 3px;
-}
-.gr-card-title {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.gr-card-days {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 20px;
-  flex-shrink: 0;
-  letter-spacing: .3px;
-}
-.gr-card-days.gr-days-overdue {
-  background: rgba(255,79,79,.12);
-  color: var(--red);
-  border: 1px solid rgba(255,79,79,.28);
-}
-.gr-card-days.gr-days-soon {
-  background: rgba(240,180,41,.1);
-  color: var(--gold);
-  border: 1px solid rgba(240,180,41,.25);
-}
-.gr-card-days.gr-days-upcoming {
-  background: rgba(79,127,255,.08);
-  color: var(--blue2);
-  border: 1px solid rgba(79,127,255,.2);
-}
-.gr-card-days.gr-days-far {
-  background: rgba(167,139,250,.07);
-  color: rgba(167,139,250,.6);
-  border: 1px solid rgba(167,139,250,.15);
-}
-
-.gr-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.gr-card-member {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: rgba(140,158,220,.45);
-  letter-spacing: .3px;
-}
-.gr-card-cat {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  color: rgba(140,158,220,.3);
-}
-
-/* Heat glow — overdue cards bleed red from left */
-.gr-card.gr-heat-overdue::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--red), rgba(255,79,79,.3));
-  opacity: .7;
-}
-.gr-card.gr-heat-soon::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--gold), rgba(240,180,41,.2));
-  opacity: .5;
-}
-
-/* Proximity scaling — JS applies inline scale/opacity based on days away */
-
-/* Pulse animation for overdue dots */
-@keyframes grPulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(255,79,79,.18), 0 0 10px rgba(255,79,79,.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(255,79,79,.08), 0 0 18px rgba(255,79,79,.7); }
-}
-
-/* Empty state */
-.gr-empty {
-  padding: 16px 20px 8px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: rgba(140,158,220,.4);
-  text-align: center;
-}
+.tc-grav-rail-wrap{padding-bottom:4px;overflow:visible;}
+.gr-now-bar{display:flex;align-items:center;gap:8px;padding:0 20px;margin-bottom:14px;}
+.gr-now-label{font-family:'DM Mono',monospace;font-size:8px;font-weight:800;letter-spacing:1.2px;color:var(--gold);flex-shrink:0;background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.25);padding:2px 6px;border-radius:4px;}
+.gr-now-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(240,180,41,.5),rgba(240,180,41,.08),transparent);}
+.gr-now-clock{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:rgba(240,180,41,.55);flex-shrink:0;min-width:36px;text-align:right;}
+.gr-rail-wrap{position:relative;padding-left:20px;}
+.gr-rail-track{position:absolute;left:27px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,rgba(240,180,41,.35) 0%,rgba(167,139,250,.2) 40%,rgba(79,127,255,.1) 70%,transparent 100%);}
+.gr-cards{display:flex;flex-direction:column;gap:0;}
+.gr-card{display:flex;align-items:flex-start;gap:0;padding:0 16px 0 0;position:relative;transform-origin:left center;cursor:pointer;}
+.gr-card:active{opacity:.75;}
+.gr-card-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:16px;padding-top:14px;position:relative;z-index:1;}
+.gr-card-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.gr-card-dot.gr-dot-soon{background:var(--gold);box-shadow:0 0 0 2px rgba(240,180,41,.15),0 0 8px rgba(240,180,41,.35);}
+.gr-card-dot.gr-dot-upcoming{background:var(--blue2);box-shadow:0 0 0 2px rgba(79,127,255,.1);}
+.gr-card-dot.gr-dot-far{background:rgba(167,139,250,.4);}
+.gr-card-body{flex:1;min-width:0;margin-left:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.045);}
+.gr-card:last-child .gr-card-body{border-bottom:none;}
+.gr-card-head{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.gr-card-title{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gr-card-days{font-family:'DM Mono',monospace;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;flex-shrink:0;letter-spacing:.3px;}
+.gr-card-days.gr-days-soon{background:rgba(240,180,41,.1);color:var(--gold);border:1px solid rgba(240,180,41,.25);}
+.gr-card-days.gr-days-upcoming{background:rgba(79,127,255,.08);color:var(--blue2);border:1px solid rgba(79,127,255,.2);}
+.gr-card-days.gr-days-far{background:rgba(167,139,250,.07);color:rgba(167,139,250,.6);border:1px solid rgba(167,139,250,.15);}
+.gr-card-meta{display:flex;align-items:center;gap:6px;}
+.gr-card-member{font-family:'DM Mono',monospace;font-size:9px;color:rgba(140,158,220,.45);letter-spacing:.3px;}
+.gr-card-cat{font-family:'DM Mono',monospace;font-size:9px;color:rgba(140,158,220,.3);}
+.gr-card.gr-heat-soon::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;border-radius:2px;background:linear-gradient(180deg,var(--gold),rgba(240,180,41,.2));opacity:.5;}
+@keyframes grPulse{0%,100%{box-shadow:0 0 0 2px rgba(255,79,79,.18),0 0 10px rgba(255,79,79,.5);}50%{box-shadow:0 0 0 4px rgba(255,79,79,.08),0 0 18px rgba(255,79,79,.7);}}
+.gr-empty{padding:16px 20px 8px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(140,158,220,.4);text-align:center;}

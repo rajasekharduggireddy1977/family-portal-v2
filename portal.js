@@ -673,6 +673,8 @@ function deleteCalEvent(id) {
   const calMiniBody = document.getElementById('cal-mini-body');
   if (calMiniBody) calMiniBody.innerHTML = buildCalMiniWidget();
   showToast('🗑 Event deleted');
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
 }
 
 function editCalEvent(id) {
@@ -723,8 +725,10 @@ function saveCalEvent() {
   renderCalGrid();
   renderCalEvents(calSelectedDate);
   showToast(calEditId ? '✏️ Event updated' : '📅 Event added');
-  // Refresh dashboard cal widget
+  // Refresh dashboard cal widget and home panel immediately
   buildCalMiniWidget && buildCalMiniWidget();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
 }
 
 function selectCalColor(color, el) {
@@ -3933,8 +3937,11 @@ function auraRenderAlerts() {
 
 /* ── Home Panel ── */
 function auraRenderHome() {
-  var todayStr = new Date().toISOString().slice(0,10);
   var now = new Date();
+  // Local date string — correct for IST and all timezones (not UTC)
+  var todayStr = now.getFullYear() + '-'
+    + String(now.getMonth()+1).padStart(2,'0') + '-'
+    + String(now.getDate()).padStart(2,'0');
 
   // TODAY block: exact today calendar events only (no timetable subjects)
   var evtRaw = localStorage.getItem('fp_cal_events');
@@ -3977,7 +3984,7 @@ function auraRenderHome() {
     }
   }
 
-  // GRAVITY RAIL: upcoming events (after today, up to 60 days out)
+  // GRAVITY RAIL: upcoming events after today
   var upcoming = [];
   if (evtRaw) {
     try {
@@ -4011,35 +4018,28 @@ function auraRenderHome() {
     var diff = Math.round((d - now) / 86400000);
     var rgb = CAT_COLORS[ev2.cat] || '79,127,255';
 
-    // Proximity scale: closer = larger + brighter
     var proximity = Math.max(0, 1 - diff / maxDays);
     var scale = (0.88 + proximity * 0.12).toFixed(3);
     var opacity = (0.52 + proximity * 0.48).toFixed(3);
 
-    // Day label
     var dayLabel = diff === 1 ? 'Tomorrow' : diff <= 7 ? 'In ' + diff + 'd' : diff <= 30 ? 'In ' + Math.round(diff/7) + 'w' : 'In ' + Math.round(diff/30) + 'mo';
 
-    // Classification
     var cls = diff <= 3 ? 'soon' : diff <= 14 ? 'upcoming' : 'far';
-    var dotCls = 'gr-dot-' + cls;
-    var daysCls = 'gr-days-' + cls;
     var heatCls = diff <= 3 ? 'gr-heat-soon' : '';
 
-    // Member
     var members = ev2.members || [];
     var memberLabel = members.length === 0 ? '' : members[0] === 'all' ? 'Family' : (MEMBER_LABELS[members[0].toLowerCase()] || members[0]);
 
-    // Strip emoji from title for cleaner display
     var shortTitle = (ev2.title||'').replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/gu,'').trim() || ev2.title;
 
     html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;" onclick="goPage(\'calendar\')">'
       + '<div class="gr-card-node">'
-      + '<div class="gr-card-dot ' + dotCls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
+      + '<div class="gr-card-dot gr-dot-' + cls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
       + '</div>'
       + '<div class="gr-card-body">'
       + '<div class="gr-card-head">'
       + '<div class="gr-card-title" style="color:rgba(235,240,255,' + opacity + ');">' + shortTitle + '</div>'
-      + '<div class="gr-card-days ' + daysCls + '">' + dayLabel + '</div>'
+      + '<div class="gr-card-days gr-days-' + cls + '">' + dayLabel + '</div>'
       + '</div>'
       + '<div class="gr-card-meta">'
       + (memberLabel ? '<span class="gr-card-member">' + memberLabel + '</span>' : '')
@@ -4051,7 +4051,7 @@ function auraRenderHome() {
   }
   grCards.innerHTML = html2;
 
-  // Live clock on NOW bar
+  // Live clock
   function updateGrClock() {
     var cl = document.getElementById('gr-now-clock');
     if (!cl) return;
@@ -4064,7 +4064,6 @@ function auraRenderHome() {
   }
 }
 
-/* ── Health Panel ── */
 function auraRenderHealth() {
   var healthRaw = localStorage.getItem('fp_health_v3');
   var members = [
