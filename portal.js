@@ -3795,23 +3795,37 @@ function auraInitSwipe() {
   var stage = document.getElementById('aura-stage');
   var track = document.getElementById('aura-track');
   if (!stage || !track) return;
-  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false;
+  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, mouseDown=false, mx0=0, intentLocked=false, intentH=false, blocked=false;
   function vw() { return window.innerWidth; }
+
+  // Returns true if the element or any ancestor is a vertically scrollable panel
+  function isInScrollable(el) {
+    while (el && el !== stage) {
+      if (el.scrollHeight > el.clientHeight + 4) {
+        var st = getComputedStyle(el).overflowY;
+        if (st === 'auto' || st === 'scroll') return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
 
   stage.addEventListener('touchstart', function(e) {
     tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
     t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
-    track.style.transition='none'; track.classList.add('aura-live');
+    blocked = isInScrollable(e.target);
+    if (!blocked) { track.style.transition='none'; track.classList.add('aura-live'); }
   }, {passive:true});
   stage.addEventListener('touchmove', function(e) {
+    if (blocked) return;
     var dx=e.touches[0].clientX-tx0; var dy=e.touches[0].clientY-ty0;
-    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
+    if (!intentLocked && (Math.abs(dx)>8 || Math.abs(dy)>8)) {
       intentLocked=true;
-      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
+      intentH = Math.abs(dx) > Math.abs(dy) * 1.5;
     }
     if (!intentH) return;
     e.preventDefault();
-    if (!dragging && Math.abs(dx)>6) dragging=true;
+    if (!dragging && Math.abs(dx)>8) dragging=true;
     if (dragging) {
       ddx=dx;
       var resist=(_auraCur===0&&dx>0)||(_auraCur===_auraSlides.length-1&&dx<0)?.15:1;
@@ -3819,6 +3833,7 @@ function auraInitSwipe() {
     }
   }, {passive:false});
   stage.addEventListener('touchend', function() {
+    if (blocked) { blocked=false; return; }
     track.classList.remove('aura-live');
     track.style.transition='transform .32s cubic-bezier(0.4,0,0.2,1)';
     if (!dragging) { auraGoSlide(_auraCur); return; }
@@ -4171,21 +4186,17 @@ function auraRenderEducation() {
     } catch(e){}
   }
 
-  // Subject Intelligence Cards — render once, update in-place like Finance/Health panels
+  // Subject Intelligence Cards — replaces old bar list
   var attRawSIC = localStorage.getItem('fp_attendance_synced');
   var ttRawSIC  = localStorage.getItem('fp_timetable_synced');
   var attDataSIC = attRawSIC ? (function(){ try{ return JSON.parse(attRawSIC); }catch(e){ return []; } })() : [];
   var ttDataSIC  = ttRawSIC  ? (function(){ try{ return JSON.parse(ttRawSIC);  }catch(e){ return null; } })() : null;
   var barsEl = document.getElementById('aura-subj-bars');
   if (barsEl) {
-    var _sicKey = (attRawSIC||'') + '|' + (ttRawSIC||'');
-    if (barsEl.dataset.sicKey !== _sicKey) {
-      barsEl.dataset.sicKey = _sicKey;
-      if (attDataSIC.length === 0) {
-        barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
-      } else {
-        barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
-      }
+    if (attDataSIC.length === 0) {
+      barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
+    } else {
+      barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
     }
   }
 
@@ -4195,13 +4206,18 @@ function auraRenderEducation() {
   var ringOffset = Math.round(ringCirc * (1 - overallPct/100));
   var ringColor = overallPct<75?'var(--red)':overallPct<80?'var(--orange,#fb923c)':'var(--green)';
   var critCount = subjects.filter(function(s2){return s2.pct<75;}).length;
-  // Update ring slots — targeted updates like Finance/Health (no innerHTML rebuild)
-  var ringPathEl = document.getElementById('aura-att-ring-path');
-  if (ringPathEl) { ringPathEl.setAttribute('stroke', ringColor); ringPathEl.setAttribute('stroke-dashoffset', String(ringOffset)); }
-  var pctEl = document.getElementById('aura-att-pct');
-  if (pctEl) { pctEl.textContent = overallPct + '%'; pctEl.style.color = ringColor; }
-  var descEl = document.getElementById('aura-att-desc');
-  if (descEl) descEl.innerHTML = critCount>0 ? '<strong style="color:var(--red)">'+critCount+' subject'+(critCount>1?'s':'')+' below 75%</strong><br>Minimum 75% required.' : 'On track. Keep attending!';
+  var rowEl = document.getElementById('aura-att-ring-row');
+  if (rowEl) rowEl.innerHTML = '<div class="tc-att-ring">'
+    + '<svg class="tc-att-svg" viewBox="0 0 86 86"><circle class="tc-att-bg" cx="43" cy="43" r="37"/>'
+    + '<circle class="tc-att-path" cx="43" cy="43" r="37" stroke="'+ringColor+'" stroke-dasharray="'+ringCirc+'" stroke-dashoffset="'+ringOffset+'"/>'
+    + '</svg>'
+    + '<div class="tc-att-center"><div class="tc-att-num" style="color:'+ringColor+'">'+overallPct+'%</div><div class="tc-att-lbl">OVERALL</div></div>'
+    + '</div>'
+    + '<div class="tc-att-info">'
+    + '<div class="tc-att-title">Josritha</div>'
+    + '<div class="tc-att-desc">' + (critCount>0 ? '<strong style="color:var(--red)">'+critCount+' subject'+(critCount>1?'s':'')+' below 75%</strong><br>Minimum 75% required.' : 'On track. Keep attending!') + '</div>'
+    + '<div class="tc-att-btns"><div class="tc-att-btn tc-att-primary" onclick="goPage(\'members\')">Timetable</div><div class="tc-att-btn tc-att-sec" onclick="goPage(\'upload\')">Upload</div></div>'
+    + '</div>';
 
   // ── Weekly Severity heatmap — same logic as Members → Academics ──
   var ttRawW = localStorage.getItem('fp_timetable_synced');
@@ -4272,7 +4288,7 @@ function auraRenderEducation() {
   hmHtml += '</div></div>';
 
   var wsevEl = document.getElementById('aura-wsev');
-  if (wsevEl && wsevEl.dataset.ttKey !== (ttRawW||'')) { wsevEl.dataset.ttKey = (ttRawW||''); wsevEl.innerHTML = hmHtml; }
+  if (wsevEl) wsevEl.innerHTML = hmHtml;
 
   // Today's classes — reads same key as academics page
   var DAYS7 = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
@@ -4322,8 +4338,7 @@ function auraRenderEducation() {
   } catch(e){}
   if (!classHtml) classHtml = '<div style="padding:12px 20px 14px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);">No timetable — upload via Sync Hub</div>';
   var classEl = document.getElementById('aura-today-classes');
-  var _classDayKey = todayDay + '|' + (ttRaw||'').length;
-  if (classEl && classEl.dataset.dayKey !== _classDayKey) { classEl.dataset.dayKey = _classDayKey; classEl.innerHTML = classHtml; }
+  if (classEl) classEl.innerHTML = classHtml;
 
   // SGPA Semester Trend
   var sgpaSems = [
@@ -4341,7 +4356,7 @@ function auraRenderEducation() {
       + '</div>';
   }
   var sgpaEl = document.getElementById('aura-sgpa-bars');
-  if (sgpaEl && !sgpaEl.dataset.rendered) { sgpaEl.dataset.rendered = '1'; sgpaEl.innerHTML = sgpaHtml; }
+  if (sgpaEl) sgpaEl.innerHTML = sgpaHtml;
 }
 
 /* ── Finance Panel ── */
