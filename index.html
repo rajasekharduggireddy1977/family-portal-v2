@@ -399,16 +399,34 @@
 
           <!-- ▸ PANEL 2: EDUCATION -->
           <div class="aura-panel" id="aura-p2">
+            <!-- Attendance ring + info — skeleton pre-built, JS updates values only -->
             <div class="tc tc-edu">
-              <div class="tc-att-ring-row" id="aura-att-ring-row"></div>
+              <div class="tc-att-ring-row" id="aura-att-ring-row">
+                <div class="tc-att-ring">
+                  <svg class="tc-att-svg" viewBox="0 0 86 86">
+                    <circle class="tc-att-bg" cx="43" cy="43" r="37"/>
+                    <circle class="tc-att-path" id="aura-att-ring-path" cx="43" cy="43" r="37" stroke="var(--green)" stroke-dasharray="232" stroke-dashoffset="70"/>
+                  </svg>
+                  <div class="tc-att-center"><div class="tc-att-num" id="aura-att-pct" style="color:var(--green)">—</div><div class="tc-att-lbl">OVERALL</div></div>
+                </div>
+                <div class="tc-att-info">
+                  <div class="tc-att-title">Josritha</div>
+                  <div class="tc-att-desc" id="aura-att-desc">Loading…</div>
+                  <div class="tc-att-btns"><div class="tc-att-btn tc-att-primary" onclick="goPage('members')">Timetable</div><div class="tc-att-btn tc-att-sec" onclick="goPage('upload')">Upload</div></div>
+                </div>
+              </div>
               <div class="tc-divider"></div>
+              <!-- Weekly severity — updated by JS -->
               <div id="aura-wsev"></div>
+              <!-- Subject cards — render once, guarded by data-key -->
               <div class="tc-subj-deck" id="aura-subj-bars"></div>
             </div>
+            <!-- Today's classes -->
             <div class="tc tc-edu">
               <div class="tc-sec-hd"><div class="tc-sec-title">Today's Classes</div><div class="tc-sec-action" onclick="goPage('members')">Timetable →</div></div>
               <div id="aura-today-classes"></div>
             </div>
+            <!-- SGPA — static data, render once -->
             <div class="tc tc-edu" id="aura-sgpa-card">
               <div class="tc-sec-hd" style="padding-top:16px;">
                 <div class="tc-sec-title">SGPA Trend · Sems 1–3</div>

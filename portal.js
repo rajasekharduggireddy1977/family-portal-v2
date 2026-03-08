@@ -229,11 +229,11 @@ function goPage(page) {
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
   if (page !== 'dashboard') window.scrollTo(0,0);
 
-  if(page==='members')   { setTimeout(()=>applyGmMembers(),60); }
-  if(page==='expiry')    { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
-  if(page==='calendar')  { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
-  if(page==='health')    { setTimeout(()=>applyGmHealth(),80); }
-  if(page==='documents') { setTimeout(()=>applyGmDocuments(),80); }
+  if(page==='members') { showMembersList(); setTimeout(()=>applyGmMembers(),60); }
+  if(page==='expiry') { setTimeout(()=>{ initExpiry(); animateExpBars(); },80); }
+  if(page==='calendar') { setTimeout(()=>{ initCalendar(); applyGmCalendar(); },80); }
+  if(page==='health')   { setTimeout(()=>{ initHealthPage(); applyGmHealth(); },80); }
+  if(page==='documents') { setTimeout(()=>{ applyGmDocuments(); collapseAllDocSections(); },80); }
   if(page==='dashboard') { setTimeout(()=>applyGmDashboard(),60); }
 }
 
@@ -4171,17 +4171,21 @@ function auraRenderEducation() {
     } catch(e){}
   }
 
-  // Subject Intelligence Cards — replaces old bar list
+  // Subject Intelligence Cards — render once, update in-place like Finance/Health panels
   var attRawSIC = localStorage.getItem('fp_attendance_synced');
   var ttRawSIC  = localStorage.getItem('fp_timetable_synced');
   var attDataSIC = attRawSIC ? (function(){ try{ return JSON.parse(attRawSIC); }catch(e){ return []; } })() : [];
   var ttDataSIC  = ttRawSIC  ? (function(){ try{ return JSON.parse(ttRawSIC);  }catch(e){ return null; } })() : null;
   var barsEl = document.getElementById('aura-subj-bars');
   if (barsEl) {
-    if (attDataSIC.length === 0) {
-      barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
-    } else {
-      barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
+    var _sicKey = (attRawSIC||'') + '|' + (ttRawSIC||'');
+    if (barsEl.dataset.sicKey !== _sicKey) {
+      barsEl.dataset.sicKey = _sicKey;
+      if (attDataSIC.length === 0) {
+        barsEl.innerHTML = '<div style="padding:14px 20px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);text-align:center;">No attendance data — upload via Sync Hub</div>';
+      } else {
+        barsEl.innerHTML = buildSubjectIntelCards(attDataSIC, ttDataSIC);
+      }
     }
   }
 
@@ -4191,18 +4195,13 @@ function auraRenderEducation() {
   var ringOffset = Math.round(ringCirc * (1 - overallPct/100));
   var ringColor = overallPct<75?'var(--red)':overallPct<80?'var(--orange,#fb923c)':'var(--green)';
   var critCount = subjects.filter(function(s2){return s2.pct<75;}).length;
-  var rowEl = document.getElementById('aura-att-ring-row');
-  if (rowEl) rowEl.innerHTML = '<div class="tc-att-ring">'
-    + '<svg class="tc-att-svg" viewBox="0 0 86 86"><circle class="tc-att-bg" cx="43" cy="43" r="37"/>'
-    + '<circle class="tc-att-path" cx="43" cy="43" r="37" stroke="'+ringColor+'" stroke-dasharray="'+ringCirc+'" stroke-dashoffset="'+ringOffset+'"/>'
-    + '</svg>'
-    + '<div class="tc-att-center"><div class="tc-att-num" style="color:'+ringColor+'">'+overallPct+'%</div><div class="tc-att-lbl">OVERALL</div></div>'
-    + '</div>'
-    + '<div class="tc-att-info">'
-    + '<div class="tc-att-title">Josritha</div>'
-    + '<div class="tc-att-desc">' + (critCount>0 ? '<strong style="color:var(--red)">'+critCount+' subject'+(critCount>1?'s':'')+' below 75%</strong><br>Minimum 75% required.' : 'On track. Keep attending!') + '</div>'
-    + '<div class="tc-att-btns"><div class="tc-att-btn tc-att-primary" onclick="goPage(\'members\')">Timetable</div><div class="tc-att-btn tc-att-sec" onclick="goPage(\'upload\')">Upload</div></div>'
-    + '</div>';
+  // Update ring slots — targeted updates like Finance/Health (no innerHTML rebuild)
+  var ringPathEl = document.getElementById('aura-att-ring-path');
+  if (ringPathEl) { ringPathEl.setAttribute('stroke', ringColor); ringPathEl.setAttribute('stroke-dashoffset', String(ringOffset)); }
+  var pctEl = document.getElementById('aura-att-pct');
+  if (pctEl) { pctEl.textContent = overallPct + '%'; pctEl.style.color = ringColor; }
+  var descEl = document.getElementById('aura-att-desc');
+  if (descEl) descEl.innerHTML = critCount>0 ? '<strong style="color:var(--red)">'+critCount+' subject'+(critCount>1?'s':'')+' below 75%</strong><br>Minimum 75% required.' : 'On track. Keep attending!';
 
   // ── Weekly Severity heatmap — same logic as Members → Academics ──
   var ttRawW = localStorage.getItem('fp_timetable_synced');
@@ -4273,7 +4272,7 @@ function auraRenderEducation() {
   hmHtml += '</div></div>';
 
   var wsevEl = document.getElementById('aura-wsev');
-  if (wsevEl) wsevEl.innerHTML = hmHtml;
+  if (wsevEl && wsevEl.dataset.ttKey !== (ttRawW||'')) { wsevEl.dataset.ttKey = (ttRawW||''); wsevEl.innerHTML = hmHtml; }
 
   // Today's classes — reads same key as academics page
   var DAYS7 = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
@@ -4323,7 +4322,8 @@ function auraRenderEducation() {
   } catch(e){}
   if (!classHtml) classHtml = '<div style="padding:12px 20px 14px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:rgba(200,210,240,.4);">No timetable — upload via Sync Hub</div>';
   var classEl = document.getElementById('aura-today-classes');
-  if (classEl) classEl.innerHTML = classHtml;
+  var _classDayKey = todayDay + '|' + (ttRaw||'').length;
+  if (classEl && classEl.dataset.dayKey !== _classDayKey) { classEl.dataset.dayKey = _classDayKey; classEl.innerHTML = classHtml; }
 
   // SGPA Semester Trend
   var sgpaSems = [
@@ -4341,7 +4341,7 @@ function auraRenderEducation() {
       + '</div>';
   }
   var sgpaEl = document.getElementById('aura-sgpa-bars');
-  if (sgpaEl) sgpaEl.innerHTML = sgpaHtml;
+  if (sgpaEl && !sgpaEl.dataset.rendered) { sgpaEl.dataset.rendered = '1'; sgpaEl.innerHTML = sgpaHtml; }
 }
 
 /* ── Finance Panel ── */
