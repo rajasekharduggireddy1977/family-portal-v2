@@ -251,6 +251,9 @@ function moveBnavSelector(activeEl){
 function goPage(page) {
   if(currentPage === page && page !== 'members') return;
 
+  // Close more menu whenever navigating
+  closeMoreMenuIfOpen();
+
   const _nav = document.getElementById('bottom-nav');
   if (_nav) { _nav.style.transition = ''; _nav.style.transform = ''; _nav.style.bottom = ''; }
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
@@ -287,7 +290,9 @@ function goPage(page) {
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const navEl = document.getElementById('bnav-'+page);
+  const _morePages = ['documents','expiry','calendar'];
+  const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
+  const navEl = document.getElementById(_navId);
   if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }
   syncSidebarNav(page);
 
@@ -8016,6 +8021,40 @@ function fabAction(action) {
     openBackupModal();
   }
 }
+
+// ── BNAV MORE MENU ──────────────────────────────────────
+let moreMenuOpen = false;
+
+function toggleMoreMenu() {
+  haptic('light');
+  moreMenuOpen = !moreMenuOpen;
+  const menu = document.getElementById('bnav-more-menu');
+  const btn  = document.getElementById('bnav-more');
+  if (menu) menu.classList.toggle('hidden', !moreMenuOpen);
+  if (btn) {
+    btn.classList.toggle('active', moreMenuOpen);
+    if (moreMenuOpen) moveBnavSelector(btn);
+  }
+  // Close FAB if open
+  if (moreMenuOpen && fabOpen) toggleFab();
+}
+
+function moreMenuAction(page) {
+  moreMenuOpen = false;
+  const menu = document.getElementById('bnav-more-menu');
+  if (menu) menu.classList.add('hidden');
+  goPage(page);
+}
+
+function closeMoreMenuIfOpen() {
+  if (!moreMenuOpen) return;
+  moreMenuOpen = false;
+  const menu = document.getElementById('bnav-more-menu');
+  if (menu) menu.classList.add('hidden');
+  const btn = document.getElementById('bnav-more');
+  if (btn) btn.classList.remove('active');
+}
+// ────────────────────────────────────────────────────────
 
 // Update FAB visibility per page — hide on search/dashboard
 function updateFabVisibility(page) {

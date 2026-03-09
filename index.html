@@ -691,11 +691,6 @@
         <div class="budget-panel" id="bgt-p0">
           <div class="bgt-hero" id="bgt-hero-m"></div>
           <div class="bgt-sec-row">
-            <div class="bgt-sec-lbl">💼 Income</div>
-            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
-          </div>
-          <div class="bgt-inc-list" id="bgt-inc-list"></div>
-          <div class="bgt-sec-row">
             <div class="bgt-sec-lbl">📅 Monthly Expenses</div>
             <button class="bgt-add-btn" onclick="bgtAdd('monthly')">＋ Add</button>
           </div>
@@ -704,6 +699,11 @@
             <span class="bgt-total-lbl">Monthly Total</span>
             <span class="bgt-total-val gold" id="bgt-m-total"></span>
           </div>
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">💼 Income</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
+          </div>
+          <div class="bgt-inc-list" id="bgt-inc-list"></div>
         </div>
         <!-- Panel 1: Yearly -->
         <div class="budget-panel" id="bgt-p1">
@@ -829,22 +829,16 @@
     <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')">
       <span class="bnav-icon">👨‍👩‍👧‍👦</span><span>Members</span>
     </div>
-    <div class="bnav-item pressable" id="bnav-documents" onclick="goPage('documents')">
-      <span class="bnav-icon">📁</span><span>Docs</span>
-    </div>
-    <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')">
-      <span class="bnav-icon">📅</span><span>Calendar</span>
-    </div>
-    <div class="bnav-item pressable" id="bnav-expiry" onclick="goPage('expiry')">
-      <span class="bnav-icon">⏳</span><span>Expiry</span>
-      <span class="bnav-badge">2</span>
-    </div>
     <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')">
       <span class="bnav-icon">❤️</span><span>Health</span>
       <div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
     </div>
     <div class="bnav-item pressable" id="bnav-budget" onclick="goPage('budget')">
       <span class="bnav-icon">💰</span><span>Budget</span>
+    </div>
+    <div class="bnav-item pressable" id="bnav-more" onclick="toggleMoreMenu()">
+      <span class="bnav-icon">⋯</span><span>More</span>
+      <span class="bnav-badge" id="bnav-more-badge">2</span>
     </div>
   </div>
 </nav>
@@ -868,6 +862,23 @@
     <div class="pulse-cat" style="--pc:rgba(79,127,255,.7);" onclick="auraGoSlide(4);pulseActivate(this)">
       <span class="pulse-icon">👨‍👩‍👧‍👦</span><span class="pulse-lbl">Family</span>
     </div>
+  </div>
+</div>
+
+<!-- ═══ BNAV MORE MENU — pops up above '...' nav item ═══ -->
+<div id="bnav-more-menu" class="hidden">
+  <div class="more-menu-item" onclick="moreMenuAction('documents')">
+    <div class="more-menu-ico">📁</div>
+    <span>Docs</span>
+  </div>
+  <div class="more-menu-item" onclick="moreMenuAction('expiry')">
+    <div class="more-menu-ico">⏳</div>
+    <span>Expiry</span>
+    <span class="more-menu-badge">2</span>
+  </div>
+  <div class="more-menu-item" onclick="moreMenuAction('calendar')">
+    <div class="more-menu-ico">📅</div>
+    <span>Calendar</span>
   </div>
 </div>
 

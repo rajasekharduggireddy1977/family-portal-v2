@@ -4704,3 +4704,139 @@ body.dash-active #aura-canvas{ display:block; }
 .bgt-sheet-btn{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
 .bgt-sheet-btn.cancel{background:var(--surface3);color:var(--text2);}
 .bgt-sheet-btn.save{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;}
+
+/* ══════════════════════════════════════════════════════
+   IPHNE 15 PLUS POLISH — ALL FIXES (March 2026)
+══════════════════════════════════════════════════════ */
+
+/* ── 1. FAB MENU ITEMS — solid readable background ── */
+.fab-item {
+  background: rgba(8,11,26,0.97) !important;
+  border: 1px solid rgba(79,127,255,0.28) !important;
+  color: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 6px 24px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.fab-item:hover { background: rgba(20,28,56,0.98) !important; }
+[data-theme="light"] .fab-item {
+  background: rgba(255,255,255,0.97) !important;
+  border: 1px solid rgba(79,127,255,0.3) !important;
+  color: rgba(17,24,39,0.92) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+/* ── 2. BNAV MORE MENU ── */
+#bnav-more-menu {
+  position: fixed;
+  right: 10px;
+  bottom: calc(var(--nav-h) + 10px);
+  z-index: 9060;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: opacity .2s ease, transform .22s cubic-bezier(.34,1.4,.64,1);
+}
+#bnav-more-menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.94);
+}
+.more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 18px 12px 12px;
+  border-radius: 16px;
+  background: rgba(8,11,28,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.92);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 48px;
+  min-width: 140px;
+  box-shadow: 0 6px 28px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  transition: background .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.more-menu-item:active {
+  transform: scale(0.96);
+  background: rgba(79,127,255,.18);
+}
+.more-menu-ico {
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(79,127,255,.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.more-menu-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 20px;
+  font-family: 'DM Mono', monospace;
+}
+[data-theme="light"] .more-menu-item {
+  background: rgba(255,255,255,0.97);
+  border: 1px solid rgba(0,0,0,0.1);
+  color: rgba(17,24,39,0.92);
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+}
+
+/* ── 3. HOME PANEL — iPhone 15 Plus compact (430×932) ── */
+/* Reduce TC card bottom margin for tighter stacking */
+#aura-p0 .tc { margin-bottom: 6px; }
+/* Compact greeting card */
+.tc-greeting { padding: 8px 16px 8px !important; }
+.tc-greet-name { font-size: 17px !important; }
+.tc-greet-eyebrow { margin-bottom: 2px !important; }
+/* Compact section header */
+.tc-sec-hd { padding: 8px 16px 3px !important; }
+.tc-sec-title { font-size: 13px !important; }
+/* Compact today timeline rows */
+.tc-tl-row { padding: 7px 14px !important; }
+.tc-tl-name { font-size: 12px !important; }
+.tc-tl-meta { font-size: 9px !important; margin-top: 1px !important; }
+/* Compact gravity rail */
+.gr-now-bar { padding: 0 14px 6px !important; }
+.gr-rail-wrap { padding: 0 14px 10px !important; }
+/* Limit Today section to max 3 rows to prevent over-tall panel */
+#aura-today-timeline .tc-tl-row:nth-child(n+4) { display: none; }
+
+/* ── 4. HORIZONTAL LINE FIX ── */
+/* Remove top shimmer line from TC cards (the ::before line "above Upcoming") */
+.tc::before { display: none !important; }
+/* Remove bottom border of pulse rail inner (line "below Overview bar") */
+.pulse-rail-inner { border-bottom: none !important; }
+/* Also remove bottom border of budget rail inner for consistency */
+.bgt-rail-inner { border-bottom: none !important; }
+
+/* ── 5. BUDGET YEARLY — compact blocks to reduce scrolling ── */
+.bgt-cell.bgt-yr { min-height: 56px !important; }
+.bgt-cell.bgt-yr .bgt-cell-name { font-size: 10.5px !important; line-height: 1.25 !important; }
+.bgt-grid { gap: 5px !important; }
+.bgt-hero { margin-bottom: 8px !important; }
+.bgh-item { padding: 8px 6px 7px !important; }
+.bgt-total-row { padding: 6px 10px !important; margin-bottom: 6px !important; }
+.bgt-sec-row { padding: 4px 2px !important; margin-bottom: 3px !important; }
+#bgt-p1 .bgt-total-row { margin-bottom: 4px !important; }
+
+/* ── 6. BOTTOM NAV — clean 5-item visual ── */
+/* Ensure consistent icon size and label clarity with 5 items */
+.bnav-icon { font-size: 21px !important; }
+#bottom-nav .bnav-item { font-size: 9px !important; letter-spacing: 0.3px !important; }
+/* '...' more icon — style as ellipsis */
+#bnav-more .bnav-icon { font-size: 22px !important; letter-spacing: -1px; font-weight: 700; }
+/* When on overlay pages (docs/expiry/cal), '...' shows active styling */
+#bnav-more.active .bnav-icon { filter: drop-shadow(0 0 6px rgba(180,210,255,0.7)) !important; }
