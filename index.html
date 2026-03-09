@@ -54,12 +54,12 @@
 <!-- ═══════════════════════════════════════════════════════
      AI FAMILY ASSISTANT — FLOATING PANEL
 ═══════════════════════════════════════════════════════ -->
-<div id="ai-fab-wrap" style="position:fixed;bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 10px);right:16px;z-index:9101;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
-  <div id="ai-fab" onclick="toggleAIPanel()" title="AI Family Assistant" style="position:relative;bottom:auto;right:auto;z-index:auto;">
+<!-- AI FAB hidden — AI access merged into left FAB menu -->
+<div id="ai-fab-wrap" style="display:none!important;">
+  <div id="ai-fab" style="position:relative;bottom:auto;right:auto;z-index:auto;">
     <div id="ai-fab-ring"></div>
     <div id="ai-fab-icon">✦</div>
   </div>
-  <div id="ai-fab-label" style="font-size:8px;font-weight:700;color:#a78bfa;font-family:'DM Mono',monospace;letter-spacing:.4px;pointer-events:none;opacity:.8;transition:opacity .2s;">AI</div>
 </div>
 
 <div id="ai-panel" class="ai-panel-closed">
@@ -108,8 +108,8 @@
 <div id="ai-panel-backdrop" onclick="toggleAIPanel()"></div>
 
 <div id="fab-menu" class="hidden">
-  <div class="fab-item" onclick="fabAction('upload')">
-    <div class="fab-item-ico">📡</div> Data Sync Hub
+  <div class="fab-item" onclick="fabAction('ai')">
+    <div class="fab-item-ico">✦</div> AI Assistant
   </div>
   <div class="fab-item" onclick="fabAction('event')">
     <div class="fab-item-ico">📅</div> Add Event
@@ -117,13 +117,15 @@
   <div class="fab-item" onclick="fabAction('search')">
     <div class="fab-item-ico">🔍</div> Quick Search
   </div>
+  <div class="fab-item" onclick="fabAction('upload')">
+    <div class="fab-item-ico">📡</div> Data Sync Hub
+  </div>
   <div class="fab-item" onclick="fabAction('backup')">
     <div class="fab-item-ico">💾</div> Backup Now
   </div>
 </div>
 <div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
   <div id="fab-btn" onclick="toggleFab()" title="Quick Actions" aria-label="Quick Actions" style="position:relative;bottom:auto;left:auto;z-index:auto;">＋</div>
-  <div style="font-size:8px;font-weight:700;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.4px;pointer-events:none;opacity:.7;">ACTIONS</div>
 </div>
 
 <!-- ═══════════════ COMMAND PALETTE ═══════════════ -->
@@ -325,9 +327,13 @@
             <!-- Greeting card -->
             <div class="tc">
               <div class="tc-greeting">
-                <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
-                <div class="tc-greet-name" id="aura-greeting">Good Morning,<br>Rajasekhar.</div>
-                <div class="tc-greet-date" id="aura-date"></div>
+                <div class="tc-greet-left">
+                  <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
+                  <div class="tc-greet-name" id="aura-greeting">Good Morning, Rajasekhar.</div>
+                </div>
+                <div class="tc-greet-clock-wrap">
+                  <div class="tc-greet-date" id="aura-date"></div>
+                </div>
               </div>
             </div>
             <!-- TODAY block — exact today calendar events only -->
