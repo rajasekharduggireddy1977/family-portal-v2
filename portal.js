@@ -203,6 +203,12 @@ function setPulseRailVisible(show){
   if(show){r.classList.remove('pulse-hidden');}
   else{r.classList.add('pulse-hidden');}
 }
+function setBudgetRailVisible(show){
+  const r=document.getElementById('budget-rail');
+  if(!r)return;
+  if(show){r.classList.remove('bgt-hidden');setTimeout(bgtMoveSel,80);}
+  else{r.classList.add('bgt-hidden');}
+}
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
     // Init bottom nav selector
@@ -259,6 +265,7 @@ function goPage(page) {
 
   currentPage = page;
   setPulseRailVisible(page === 'dashboard');
+  setBudgetRailVisible(page === 'budget');
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const navEl = document.getElementById('bnav-'+page);
   if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }
@@ -9223,87 +9230,203 @@ function bgtInr(n) {
   return '\u20b9' + Math.abs(n).toLocaleString('en-IN');
 }
 
+// ── Budget Rail & Panel Switching ──
+let _bgtPanel = 0;
+
+function bgtGoPanel(idx) {
+  _bgtPanel = idx;
+  const track = document.getElementById('budget-track');
+  if (track) track.style.transform = 'translateX(' + (-idx * 100) + 'vw)';
+  document.querySelectorAll('.bgt-cat').forEach(function(c, i) {
+    c.classList.toggle('bgt-active', i === idx);
+  });
+  bgtMoveSel();
+  setTimeout(bgtAnimateBars, 50);
+}
+
+function bgtMoveSel() {
+  const sel = document.getElementById('bgt-selector');
+  const activeEl = document.getElementById('bgt-cat-' + _bgtPanel);
+  const inner = activeEl && activeEl.closest('.bgt-rail-inner');
+  if (!sel || !activeEl || !inner) return;
+  const iR = inner.getBoundingClientRect(), eR = activeEl.getBoundingClientRect();
+  sel.style.left = (eR.left - iR.left) + 'px';
+  sel.style.width = eR.width + 'px';
+}
+
+function bgtFmt(n) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 100000) return sign + '\u20b9' + (abs / 100000).toFixed(2).replace(/\.?0+$/, '') + 'L';
+  if (abs >= 1000)   return sign + '\u20b9' + (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return sign + '\u20b9' + abs;
+}
+
+function bgtAnimateBars() {
+  document.querySelectorAll('[data-bw]').forEach(function(el) {
+    el.style.width = el.getAttribute('data-bw') + '%';
+  });
+}
+
+let _bgtSwipeReady = false;
+function bgtInitSwipe() {
+  if (_bgtSwipeReady) return;
+  _bgtSwipeReady = true;
+  var stage = document.getElementById('budget-stage');
+  var track = document.getElementById('budget-track');
+  if (!stage || !track) return;
+  var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, intentLocked=false, intentH=false;
+  function vw() { return window.innerWidth; }
+  stage.addEventListener('touchstart', function(e) {
+    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
+    t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
+    track.classList.add('bgt-live');
+  }, {passive:true});
+  stage.addEventListener('touchmove', function(e) {
+    var dx=e.touches[0].clientX-tx0, dy=e.touches[0].clientY-ty0;
+    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
+      intentLocked=true;
+      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
+    }
+    if (!intentH) return;
+    e.preventDefault();
+    if (!dragging && Math.abs(dx)>6) dragging=true;
+    if (dragging) {
+      ddx=dx;
+      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===2&&dx<0)?.15:1;
+      track.style.transform='translateX('+((-_bgtPanel*vw())+dx*resist)+'px)';
+    }
+  }, {passive:false});
+  stage.addEventListener('touchend', function() {
+    track.classList.remove('bgt-live');
+    if (!dragging) { bgtGoPanel(_bgtPanel); return; }
+    var elapsed=Math.max(1, Date.now()-t0);
+    var velocity=Math.abs(ddx)/elapsed;
+    var th=velocity>0.3 ? vw()*.12 : vw()*.22;
+    if (ddx<-th && _bgtPanel<2) bgtGoPanel(_bgtPanel+1);
+    else if (ddx>th && _bgtPanel>0) bgtGoPanel(_bgtPanel-1);
+    else bgtGoPanel(_bgtPanel);
+    dragging=false;
+  }, {passive:true});
+}
+
 function initBudget() {
   const d = bgtGetData();
   const c = bgtCalc(d);
+  renderBgtMonthly(d, c);
+  renderBgtYearly(d, c);
+  renderBgtSummary(d, c);
+  bgtInitSwipe();
+  // Move selector and animate bars after render
+  setTimeout(function() {
+    bgtMoveSel();
+    bgtAnimateBars();
+  }, 80);
+}
 
-  // Summary chips
-  const chips = document.getElementById('budget-chips');
-  if (chips) {
-    chips.innerHTML =
-      '<div class="bgt-chip"><div class="bgt-chip-label">Monthly Income</div><div class="bgt-chip-val gold">' + bgtInr(c.iTotal) + '</div></div>' +
-      '<div class="bgt-chip"><div class="bgt-chip-label">Monthly Saving</div><div class="bgt-chip-val ' + (c.monthlySaving>=0?'pos':'neg') + '">' + (c.monthlySaving<0?'\u2212':'') + bgtInr(c.monthlySaving) + '</div></div>' +
-      '<div class="bgt-chip"><div class="bgt-chip-label">Yearly Saving</div><div class="bgt-chip-val ' + (c.yearlySaving>=0?'pos':'neg') + '">' + (c.yearlySaving<0?'\u2212':'') + bgtInr(c.yearlySaving) + '</div></div>';
-  }
-
-  // Total monthly banner
-  const banner = document.getElementById('budget-monthly-banner');
-  if (banner) {
-    banner.innerHTML =
-      '<div class="bgt-monthly-banner">' +
-        '<div><div class="bgt-mb-lbl">Total Monthly Expenditure</div><div class="bgt-mb-sub">Monthly Items + Yearly Avg (\u00f712)</div></div>' +
-        '<div class="bgt-mb-val">' + bgtInr(c.totalMonthly) + '</div>' +
-      '</div>';
-  }
-
-  // Saving detail cards
-  const scards = document.getElementById('budget-saving-cards');
-  if (scards) {
-    const mSavSign = c.monthlySaving < 0 ? '\u2212' : '';
-    const ySavSign = c.yearlySaving  < 0 ? '\u2212' : '';
-    scards.innerHTML =
-      '<div class="bgt-scard blue-c">' +
-        '<div class="bgt-scard-lbl blue">\ud83d\udcc8 Monthly Saving</div>' +
-        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Income</span><span class="bgt-scard-row-val" style="color:var(--green)">' + bgtInr(c.iTotal) + '</span></div>' +
-        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Expenditure</span><span class="bgt-scard-row-val" style="color:var(--orange)">' + bgtInr(c.mTotal) + '</span></div>' +
-        '<hr class="bgt-scard-divider">' +
-        '<div class="bgt-scard-total"><span class="bgt-scard-total-lbl">Saving</span><span class="bgt-scard-total-val ' + (c.monthlySaving>=0?'pos':'neg') + '">' + mSavSign + bgtInr(c.monthlySaving) + '</span></div>' +
+function renderBgtMonthly(d, c) {
+  // Hero strip
+  const mPct = c.iTotal > 0 ? Math.min(100, Math.round(c.mTotal / c.iTotal * 100)) : 0;
+  const sPct = c.iTotal > 0 ? Math.max(0, Math.min(100, Math.round(c.monthlySaving / c.iTotal * 100))) : 0;
+  const heroM = document.getElementById('bgt-hero-m');
+  if (heroM) {
+    heroM.innerHTML =
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Income</div>' +
+        '<div class="bgh-val gold">' + bgtFmt(c.iTotal) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
       '</div>' +
-      '<div class="bgt-scard teal-c">' +
-        '<div class="bgt-scard-lbl teal">\ud83c\udfaf Yearly Saving</div>' +
-        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Saving \u00d7 12</span><span class="bgt-scard-row-val" style="color:var(--green)">' + bgtInr(c.monthlySaving*12) + '</span></div>' +
-        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Yearly Expenses</span><span class="bgt-scard-row-val" style="color:var(--red)">' + bgtInr(c.yTotal) + '</span></div>' +
-        '<hr class="bgt-scard-divider">' +
-        '<div class="bgt-scard-total"><span class="bgt-scard-total-lbl">Saving</span><span class="bgt-scard-total-val ' + (c.yearlySaving>=0?'pos':'neg') + '">' + ySavSign + bgtInr(c.yearlySaving) + '</span></div>' +
+      '<div class="bgh-sep"></div>' +
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Spent</div>' +
+        '<div class="bgh-val red">' + bgtFmt(c.mTotal) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + mPct + '"></div></div>' +
+      '</div>' +
+      '<div class="bgh-sep"></div>' +
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Saving</div>' +
+        '<div class="bgh-val ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.monthlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + sPct + '"></div></div>' +
       '</div>';
   }
-
-  // Monthly section
-  const ms = document.getElementById('budget-monthly-section');
-  if (ms) {
-    let rows = d.monthly.map(function(r,i) {
-      return '<div class="bgt-row">' +
-        '<div class="bgt-row-name">' + r.item + '</div>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:4px;">' +
-          '<div class="bgt-row-amt">' + bgtInr(r.amount) + '</div>' +
-          (r.balance > 0 ? '<div class="bgt-row-bal pos">' + bgtInr(r.balance) + '</div>' : '<div class="bgt-row-bal zero">\u2014</div>') +
-        '</div>' +
+  // Income list
+  const incList = document.getElementById('bgt-inc-list');
+  if (incList) {
+    incList.innerHTML = d.income.map(function(r, i) {
+      return '<div class="bgt-inc-row">' +
+        '<div class="bgt-inc-name">' + r.source + '</div>' +
+        '<div class="bgt-inc-amt">' + bgtFmt(r.amount) + '</div>' +
         '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'monthly\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'monthly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
         '</div>' +
       '</div>';
     }).join('');
-    ms.innerHTML =
-      '<div class="bgt-section">' +
-        '<div class="bgt-sec-hdr gold-h">' +
-          '<div class="bgt-sec-title gold">\ud83d\udcb0 Monthly Expenditure</div>' +
-          '<button class="bgt-add-btn" onclick="bgtAdd(\'monthly\')">\uff0b Add</button>' +
+  }
+  // Monthly 2-col grid
+  const mgrid = document.getElementById('bgt-m-grid');
+  if (mgrid) {
+    mgrid.innerHTML = d.monthly.map(function(r, i) {
+      const barW = c.mTotal > 0 ? Math.min(100, Math.round(r.amount / c.mTotal * 100)) : 0;
+      return '<div class="bgt-cell">' +
+        '<div class="bgt-cell-name">' + r.item + '</div>' +
+        '<div class="bgt-cell-bottom">' +
+          '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
+          '<div class="bgt-cell-acts">' +
+            '<button class="bgt-act" onclick="bgtEdit(\'monthly\',' + i + ')">\u270f\ufe0f</button>' +
+            '<button class="bgt-act" onclick="bgtDelete(\'monthly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="bgt-rows">' + rows + '</div>' +
-        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val gold">' + bgtInr(c.mTotal) + '</span></div>' +
+        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
+      '</div>';
+    }).join('');
+  }
+  // Monthly total
+  const mt = document.getElementById('bgt-m-total');
+  if (mt) mt.textContent = bgtFmt(c.mTotal);
+}
+
+function renderBgtYearly(d, c) {
+  // Hero strip (annual perspective)
+  const annualIncome = c.iTotal * 12;
+  const ySpentPct = annualIncome > 0 ? Math.min(100, Math.round(c.yTotal / annualIncome * 100)) : 0;
+  const ySavPct   = annualIncome > 0 ? Math.max(0, Math.min(100, Math.round(c.yearlySaving / annualIncome * 100))) : 0;
+  const heroY = document.getElementById('bgt-hero-y');
+  if (heroY) {
+    heroY.innerHTML =
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Annual</div>' +
+        '<div class="bgh-val gold">' + bgtFmt(annualIncome) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
+      '</div>' +
+      '<div class="bgh-sep"></div>' +
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Yearly Exp</div>' +
+        '<div class="bgh-val red">' + bgtFmt(c.yTotal) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + ySpentPct + '"></div></div>' +
+      '</div>' +
+      '<div class="bgh-sep"></div>' +
+      '<div class="bgh-item">' +
+        '<div class="bgh-lbl">Net Save</div>' +
+        '<div class="bgh-val ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
+        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.yearlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + ySavPct + '"></div></div>' +
       '</div>';
   }
-
-  // Yearly section
-  const ys = document.getElementById('budget-yearly-section');
-  if (ys) {
-    let rows = d.yearly.map(function(r,i) {
-      return '<div class="bgt-row">' +
-        '<div class="bgt-row-name" style="flex:1.2">' + r.item + (r.next ? '<br><span class="bgt-row-next">' + r.next + '</span>' : '') + '</div>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:4px;">' +
-          '<div class="bgt-row-amt">' + bgtInr(r.amount) + '</div>' +
-          (r.balance > 0 ? '<div class="bgt-row-bal pos">' + bgtInr(r.balance) + '</div>' : '<div class="bgt-row-bal zero">\u2014</div>') +
+  // Yearly list
+  const ylist = document.getElementById('bgt-y-list');
+  if (ylist) {
+    ylist.innerHTML = d.yearly.map(function(r, i) {
+      const dotColor = r.balance > 0 ? 'var(--orange)' : 'rgba(255,255,255,.12)';
+      const mavg = Math.round(r.amount / 12);
+      return '<div class="bgt-yrow">' +
+        '<div class="bgt-yrow-dot" style="background:' + dotColor + '"></div>' +
+        '<div class="bgt-yrow-left">' +
+          '<div class="bgt-yrow-name">' + r.item + '</div>' +
+          (r.next ? '<div class="bgt-yrow-next">Due: ' + r.next + '</div>' : '') +
+        '</div>' +
+        '<div class="bgt-yrow-right">' +
+          '<div class="bgt-yrow-amt">' + bgtFmt(r.amount) + '</div>' +
+          '<div class="bgt-yrow-mavg">~' + bgtFmt(mavg) + '/mo</div>' +
         '</div>' +
         '<div class="bgt-row-acts">' +
           '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
@@ -9311,40 +9434,53 @@ function initBudget() {
         '</div>' +
       '</div>';
     }).join('');
-    ys.innerHTML =
-      '<div class="bgt-section">' +
-        '<div class="bgt-sec-hdr red-h">' +
-          '<div class="bgt-sec-title red">\ud83d\udcc5 Yearly Expenditure</div>' +
-          '<button class="bgt-add-btn" onclick="bgtAdd(\'yearly\')">\uff0b Add</button>' +
+  }
+  // Totals
+  const yt = document.getElementById('bgt-y-total');
+  if (yt) yt.textContent = bgtFmt(c.yTotal);
+  const ya = document.getElementById('bgt-y-avg');
+  if (ya) ya.textContent = bgtFmt(c.yAvg) + '/mo';
+}
+
+function renderBgtSummary(d, c) {
+  // Summary banner — 2 big saving numbers
+  const banner = document.getElementById('bgt-sum-banner');
+  if (banner) {
+    banner.innerHTML =
+      '<div class="bgt-sum-pair">' +
+        '<div class="bgt-sum-item">' +
+          '<div class="bgt-sum-lbl">Monthly Save</div>' +
+          '<div class="bgt-sum-big ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
+          '<div class="bgt-sum-sub">Income \u2212 Monthly Exp</div>' +
         '</div>' +
-        '<div class="bgt-rows">' + rows + '</div>' +
-        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val red">' + bgtInr(c.yTotal) + '</span></div>' +
-        '<div class="bgt-yavg">Monthly Avg (\u00f712) \u00a0\u2192\u00a0 <strong>' + bgtInr(c.yAvg) + '</strong></div>' +
+        '<div class="bgt-sum-sep"></div>' +
+        '<div class="bgt-sum-item">' +
+          '<div class="bgt-sum-lbl">Yearly Save</div>' +
+          '<div class="bgt-sum-big ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
+          '<div class="bgt-sum-sub">Save\u00d712 \u2212 Yearly Exp</div>' +
+        '</div>' +
       '</div>';
   }
-
-  // Income section
-  const isel = document.getElementById('budget-income-section');
-  if (isel) {
-    let rows = d.income.map(function(r,i) {
-      return '<div class="bgt-row">' +
-        '<div class="bgt-row-name">' + r.source + '</div>' +
-        '<div class="bgt-row-amt" style="color:var(--green);margin-right:4px;">' + bgtInr(r.amount) + '</div>' +
-        '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+  // Top expense breakdown bars
+  const bd = document.getElementById('bgt-breakdown');
+  if (bd) {
+    const allItems = [];
+    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount}); });
+    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, yr: true}); });
+    allItems.sort(function(a, b) { return b.amt - a.amt; });
+    const top = allItems.slice(0, 8);
+    const maxAmt = top[0] ? top[0].amt : 1;
+    bd.innerHTML = top.map(function(item) {
+      const pct = Math.round(item.amt / maxAmt * 100);
+      const tag = item.yr ? ' <span style="font-size:9px;opacity:.4">(yr)</span>' : '';
+      return '<div class="bgt-bd-item">' +
+        '<div class="bgt-bd-row">' +
+          '<div class="bgt-bd-name">' + item.name + tag + '</div>' +
+          '<div class="bgt-bd-amt">' + bgtFmt(item.amt) + '</div>' +
         '</div>' +
+        '<div class="bgt-bd-bar"><div class="bgt-bd-fill" data-bw="' + pct + '"></div></div>' +
       '</div>';
     }).join('');
-    isel.innerHTML =
-      '<div class="bgt-section">' +
-        '<div class="bgt-sec-hdr green-h">' +
-          '<div class="bgt-sec-title green">\ud83d\udcbc Income</div>' +
-          '<button class="bgt-add-btn" onclick="bgtAdd(\'income\')">\uff0b Add</button>' +
-        '</div>' +
-        '<div class="bgt-rows">' + rows + '</div>' +
-        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val green">' + bgtInr(c.iTotal) + '</span></div>' +
-      '</div>';
   }
 }
 

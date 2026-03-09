@@ -683,26 +683,52 @@
     </div>
   </div>
 
-  <!-- ══════════ BUDGET TRACKER PAGE ══════════ -->
+  <!-- ══════════ BUDGET TRACKER PAGE — 3-PANEL ══════════ -->
   <div class="page" id="page-budget">
-    <div class="budget-wrap">
-      <div class="budget-hdr">
-        <div class="budget-title">💰 Budget Tracker</div>
-        <div class="budget-sub">Duggireddy Family · Income &amp; Expenditure</div>
+    <div id="budget-stage">
+      <div id="budget-track">
+        <!-- Panel 0: Monthly -->
+        <div class="budget-panel" id="bgt-p0">
+          <div class="bgt-hero" id="bgt-hero-m"></div>
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">💼 Income</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
+          </div>
+          <div class="bgt-inc-list" id="bgt-inc-list"></div>
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">📅 Monthly Expenses</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('monthly')">＋ Add</button>
+          </div>
+          <div class="bgt-grid" id="bgt-m-grid"></div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Monthly Total</span>
+            <span class="bgt-total-val gold" id="bgt-m-total"></span>
+          </div>
+        </div>
+        <!-- Panel 1: Yearly -->
+        <div class="budget-panel" id="bgt-p1">
+          <div class="bgt-hero" id="bgt-hero-y"></div>
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">📆 Yearly Expenses</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('yearly')">＋ Add</button>
+          </div>
+          <div class="bgt-ylist" id="bgt-y-list"></div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Yearly Total</span>
+            <span class="bgt-total-val red" id="bgt-y-total"></span>
+          </div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Monthly Avg (÷12)</span>
+            <span class="bgt-total-val gold" id="bgt-y-avg"></span>
+          </div>
+        </div>
+        <!-- Panel 2: Summary -->
+        <div class="budget-panel" id="bgt-p2">
+          <div class="bgt-sum-banner" id="bgt-sum-banner"></div>
+          <div class="bgt-bd-hdr">Top Expenses Breakdown</div>
+          <div id="bgt-breakdown"></div>
+        </div>
       </div>
-      <!-- Summary chips -->
-      <div class="budget-chips" id="budget-chips"></div>
-      <!-- Total monthly banner -->
-      <div id="budget-monthly-banner"></div>
-      <!-- Saving detail cards -->
-      <div class="bgt-saving-cards" id="budget-saving-cards"></div>
-      <!-- Monthly Expenditure section -->
-      <div id="budget-monthly-section"></div>
-      <!-- Yearly Expenditure section -->
-      <div id="budget-yearly-section"></div>
-      <!-- Income section -->
-      <div id="budget-income-section"></div>
-      <div style="height:12px;"></div>
     </div>
   </div>
 
@@ -841,6 +867,22 @@
     </div>
     <div class="pulse-cat" style="--pc:rgba(79,127,255,.7);" onclick="auraGoSlide(4);pulseActivate(this)">
       <span class="pulse-icon">👨‍👩‍👧‍👦</span><span class="pulse-lbl">Family</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BUDGET RAIL — fixed above bottom nav, budget page only ═══ -->
+<div id="budget-rail" class="bgt-hidden">
+  <div class="bgt-rail-inner">
+    <div class="bgt-selector" id="bgt-selector"></div>
+    <div class="bgt-cat bgt-active" id="bgt-cat-0" onclick="bgtGoPanel(0)">
+      <span class="bgt-cat-icon">📅</span><span class="bgt-cat-lbl">Monthly</span>
+    </div>
+    <div class="bgt-cat" id="bgt-cat-1" onclick="bgtGoPanel(1)">
+      <span class="bgt-cat-icon">📆</span><span class="bgt-cat-lbl">Yearly</span>
+    </div>
+    <div class="bgt-cat" id="bgt-cat-2" onclick="bgtGoPanel(2)">
+      <span class="bgt-cat-icon">📊</span><span class="bgt-cat-lbl">Summary</span>
     </div>
   </div>
 </div>
