@@ -200,14 +200,31 @@ function movePulseSelector(el){
 function setPulseRailVisible(show){
   const r=document.getElementById('pulse-rail');
   if(!r)return;
-  if(show){r.classList.remove('pulse-hidden');}
-  else{r.classList.add('pulse-hidden');}
+  if(show){
+    r.style.transition='';
+    r.classList.remove('pulse-hidden');
+  }else{
+    // Instant hide to avoid overlap when switching to another page with its own rail
+    r.style.transition='none';
+    r.classList.add('pulse-hidden');
+    setTimeout(function(){r.style.transition='';},50);
+  }
 }
 function setBudgetRailVisible(show){
   const r=document.getElementById('budget-rail');
   if(!r)return;
-  if(show){r.classList.remove('bgt-hidden');setTimeout(bgtMoveSel,80);}
-  else{r.classList.add('bgt-hidden');}
+  if(show){
+    // Tiny delay so pulse rail has finished hiding
+    setTimeout(function(){
+      r.style.transition='';
+      r.classList.remove('bgt-hidden');
+      setTimeout(bgtMoveSel,80);
+    },30);
+  }else{
+    r.style.transition='none';
+    r.classList.add('bgt-hidden');
+    setTimeout(function(){r.style.transition='';},50);
+  }
 }
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
@@ -266,6 +283,9 @@ function goPage(page) {
   currentPage = page;
   setPulseRailVisible(page === 'dashboard');
   setBudgetRailVisible(page === 'budget');
+  // Hide FAB on budget page (budget has its own + Add buttons)
+  const _fabW = document.getElementById('fab-btn-wrap');
+  if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const navEl = document.getElementById('bnav-'+page);
   if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }
@@ -7176,55 +7196,50 @@ function checkPinSession() {
   const nav = document.getElementById('bottom-nav');
   if (!nav) return;
 
+  function _pinBars(offsetY) {
+    // offsetY > 0 means keyboard is open and bars need to shift up
+    const ty = offsetY > 50 ? -offsetY : 0;
+    const tfm = ty ? 'translateZ(0) translateY(' + ty + 'px)' : '';
+    const rails = [
+      document.getElementById('pulse-rail'),
+      document.getElementById('budget-rail')
+    ];
+    nav.style.transition = 'none';
+    nav.style.transform = tfm || 'translateZ(0)';
+    rails.forEach(function(r) {
+      if (!r) return;
+      r.style.transition = 'none';
+      r.style.transform = ty ? 'translateY(' + ty + 'px)' : '';
+    });
+    if (!ty) {
+      requestAnimationFrame(function() {
+        nav.style.transform = '';
+        nav.style.transition = '';
+        rails.forEach(function(r) { if (r) { r.style.transform = ''; r.style.transition = ''; } });
+      });
+    }
+  }
+
   // ── visualViewport API (Chrome Android, iOS 13+) ──
   if (window.visualViewport) {
     let _lastVPHeight = window.visualViewport.height;
-    let _pinTimer = null;
 
     window.visualViewport.addEventListener('resize', () => {
       const newH = window.visualViewport.height;
-      const delta = newH - _lastVPHeight;
       _lastVPHeight = newH;
-
-      // Keyboard dismissed OR browser chrome hide = viewport grew (> 40px)
-      if (delta > 40) {
-        // Pin the nav during the reflow frame
-        nav.style.transition = 'none';
-        nav.style.transform = 'translateZ(0) translateY(0)';
-        // Lock scroll position to prevent jump
-        const sy = window.scrollY;
-        requestAnimationFrame(() => {
-          window.scrollTo(0, sy);
-          requestAnimationFrame(() => {
-            nav.style.transform = '';
-            nav.style.transition = '';
-          });
-        });
-      }
-
-      // Keyboard open = viewport shrank — offset nav up so it stays above keyboard
-      if (delta < -100) {
-        // Nothing needed — fixed positioning handles this
-      }
+      // How far the keyboard has pushed the viewport up
+      const offsetY = Math.round(window.innerHeight - newH - (window.visualViewport.offsetTop || 0));
+      _pinBars(offsetY);
     });
   }
 
-  // ── Fallback: blur on any text input (search, health inputs, etc.) ──
+  // ── Fallback: blur on any text input ──
   document.addEventListener('blur', function(e) {
     if (!e.target || !e.target.matches('input, textarea')) return;
-    // Small delay so viewport resize event fires first
-    setTimeout(() => {
-      const sy = window.scrollY;
-      nav.style.transition = 'none';
-      requestAnimationFrame(() => {
-        window.scrollTo(0, sy);
-        nav.style.transform = 'translateZ(0)';
-        requestAnimationFrame(() => {
-          nav.style.transform = '';
-          nav.style.transition = '';
-        });
-      });
-    }, 50);
+    setTimeout(function() {
+      _pinBars(0);
+      window.scrollTo(0, window.scrollY);
+    }, 80);
   }, true);
 
   // ── Search page: blur input when user taps outside ──
@@ -9412,28 +9427,32 @@ function renderBgtYearly(d, c) {
         '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.yearlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + ySavPct + '"></div></div>' +
       '</div>';
   }
-  // Yearly list
+  // Yearly 2-col grid
   const ylist = document.getElementById('bgt-y-list');
   if (ylist) {
-    ylist.innerHTML = d.yearly.map(function(r, i) {
-      const dotColor = r.balance > 0 ? 'var(--orange)' : 'rgba(255,255,255,.12)';
+    const cells = d.yearly.map(function(r, i) {
+      const barW = c.yTotal > 0 ? Math.min(100, Math.round(r.amount / c.yTotal * 100)) : 0;
       const mavg = Math.round(r.amount / 12);
-      return '<div class="bgt-yrow">' +
-        '<div class="bgt-yrow-dot" style="background:' + dotColor + '"></div>' +
-        '<div class="bgt-yrow-left">' +
-          '<div class="bgt-yrow-name">' + r.item + '</div>' +
-          (r.next ? '<div class="bgt-yrow-next">Due: ' + r.next + '</div>' : '') +
+      const dot = r.balance > 0 ? '<div class="bgt-ycell-dot"></div>' : '';
+      const due = r.next ? '<div class="bgt-ycell-due">' + r.next + '</div>' : '';
+      return '<div class="bgt-cell bgt-yr">' +
+        dot +
+        '<div class="bgt-cell-name">' + r.item + '</div>' +
+        due +
+        '<div class="bgt-cell-bottom">' +
+          '<div>' +
+            '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
+            '<div class="bgt-ycell-mavg">~' + bgtFmt(mavg) + '/mo</div>' +
+          '</div>' +
+          '<div class="bgt-cell-acts">' +
+            '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
+            '<button class="bgt-act" onclick="bgtDelete(\'yearly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="bgt-yrow-right">' +
-          '<div class="bgt-yrow-amt">' + bgtFmt(r.amount) + '</div>' +
-          '<div class="bgt-yrow-mavg">~' + bgtFmt(mavg) + '/mo</div>' +
-        '</div>' +
-        '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'yearly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-        '</div>' +
+        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
       '</div>';
     }).join('');
+    ylist.innerHTML = '<div class="bgt-grid">' + cells + '</div>';
   }
   // Totals
   const yt = document.getElementById('bgt-y-total');
@@ -9488,13 +9507,27 @@ function renderBgtSummary(d, c) {
 
 let _bgtState = null;
 
+function _bgtOpenSheet() {
+  const sheet = document.getElementById('bgt-sheet');
+  const card  = document.querySelector('.bgt-sheet-card');
+  sheet.classList.remove('hidden');
+  // Scroll input into view when keyboard opens (Android Chrome fix)
+  if (card) {
+    card.addEventListener('focusin', function(e) {
+      if (e.target.tagName === 'INPUT' && e.target.type !== 'hidden') {
+        setTimeout(function() { e.target.scrollIntoView({behavior:'smooth', block:'center'}); }, 350);
+      }
+    }, {once: false});
+  }
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+}
+
 function bgtAdd(type) {
   _bgtState = {type, idx: -1};
   const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source'};
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
-  document.getElementById('bgt-sheet').classList.remove('hidden');
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+  _bgtOpenSheet();
 }
 
 function bgtEdit(type, idx) {
@@ -9504,8 +9537,7 @@ function bgtEdit(type, idx) {
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   const row = type==='income' ? d.income[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
-  document.getElementById('bgt-sheet').classList.remove('hidden');
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+  _bgtOpenSheet();
 }
 
 function bgtDelete(type, idx) {
@@ -9552,17 +9584,17 @@ function bgtCloseSheet() {
 function _bgtFields(type, row) {
   if (type === 'monthly') {
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Term Insurance" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
-           '<div class="bgt-field"><label>Next Due</label><input id="bgt-f4" type="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
   }
   return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
-         '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+         '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
          '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
 }

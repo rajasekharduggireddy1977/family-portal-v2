@@ -4584,12 +4584,30 @@ body.dash-active #aura-canvas{ display:block; }
 .bgt-cat.bgt-active .bgt-cat-icon{filter:drop-shadow(0 0 5px rgba(240,180,41,.8));}
 .bgt-cat-lbl{font-family:'DM Mono',monospace;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:inherit;transition:color .2s;white-space:nowrap;}
 
-/* ── Page & Stage ── */
-#page-budget{overflow:hidden;display:flex;flex-direction:column;}
+/* ── Page & Stage (fixed layout like dashboard) ── */
+#page-budget{
+  position:fixed !important;
+  top:calc(var(--topbar-h) + var(--sat)) !important;
+  left:0 !important; right:0 !important;
+  bottom:var(--nav-h) !important;
+  overflow:hidden !important;
+  display:none !important;
+  flex-direction:column;
+  z-index:2;
+  background:var(--bg);
+}
+#page-budget.active{display:flex !important;}
+#page-budget.slide-in-right,#page-budget.slide-in-left{display:flex !important;}
 #budget-stage{flex:1;position:relative;overflow-x:hidden;overflow-y:hidden;min-height:0;}
 #budget-track{display:flex;height:100%;transition:transform .42s cubic-bezier(.4,0,.2,1);will-change:transform;}
 #budget-track.bgt-live{transition:none;}
-.budget-panel{flex-shrink:0;width:100vw;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:10px 14px calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 14px);}
+.budget-panel{
+  flex-shrink:0;width:100vw;height:100%;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  /* Page is fixed at bottom:var(--nav-h), so only account for budget-rail above it */
+  padding:10px 14px calc(var(--pulse-h) + var(--pulse-gap) + 16px);
+}
 .budget-panel::-webkit-scrollbar{display:none;}
 
 /* ── Hero Strip (3 vals across) ── */
@@ -4629,17 +4647,12 @@ body.dash-active #aura-canvas{ display:block; }
 .bgt-cell-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,.05);}
 .bgt-cell-fill{height:100%;background:var(--gold);width:0;transition:width .8s cubic-bezier(.4,0,.2,1);}
 
-/* ── Yearly rows ── */
-.bgt-ylist{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
-.bgt-yrow{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);}
-.bgt-yrow:last-child{border-bottom:none;}
-.bgt-yrow-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.bgt-yrow-left{flex:1;min-width:0;}
-.bgt-yrow-name{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text2);}
-.bgt-yrow-next{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-top:1px;}
-.bgt-yrow-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-right:2px;}
-.bgt-yrow-amt{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);}
-.bgt-yrow-mavg{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);}
+/* ── Yearly 2-col grid (uses .bgt-grid + .bgt-cell) ── */
+.bgt-cell.bgt-yr{min-height:72px;}
+.bgt-cell.bgt-yr .bgt-cell-name{white-space:normal;font-size:11px;line-height:1.3;padding-right:10px;}
+.bgt-ycell-mavg{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-top:1px;}
+.bgt-ycell-due{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;color:var(--orange);background:rgba(255,140,0,.12);border:1px solid rgba(255,140,0,.2);border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;}
+.bgt-ycell-dot{position:absolute;top:6px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--orange);}
 
 /* ── Total row ── */
 .bgt-total-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:8px;}
@@ -4680,7 +4693,7 @@ body.dash-active #aura-canvas{ display:block; }
 /* ── Budget sheet (add/edit) ── */
 .bgt-sheet{position:fixed;inset:0;z-index:800;display:flex;align-items:flex-end;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .bgt-sheet.hidden{display:none;}
-.bgt-sheet-card{width:100%;max-height:88vh;overflow-y:auto;background:var(--surface);border-radius:22px 22px 0 0;padding:20px 20px max(28px,env(safe-area-inset-bottom));border-top:1px solid var(--border2);animation:sheetUp .28s cubic-bezier(.34,1.56,.64,1) both;}
+.bgt-sheet-card{width:100%;max-height:min(88vh,88svh);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--surface);border-radius:22px 22px 0 0;padding:20px 20px max(28px,env(safe-area-inset-bottom));border-top:1px solid var(--border2);animation:sheetUp .28s cubic-bezier(.34,1.56,.64,1) both;}
 .bgt-sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 14px;}
 .bgt-sheet-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;}
 .bgt-field{margin-bottom:14px;}
