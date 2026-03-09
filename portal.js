@@ -3872,12 +3872,12 @@ function auraRenderGreeting() {
     '🌆 Good Evening','🌙 Good Night','🌙 Good Night','🌙 Good Night'];
   var greet = greets[hour] || '☀️ Good Morning';
   var el = document.getElementById('aura-greeting');
-  if (el) el.innerHTML = greet + ',<br>Rajasekhar.';
+  if (el) el.textContent = greet + ', Rajasekhar.';
   var DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var MONS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var now = new Date();
   var eyeEl = document.getElementById('aura-eyebrow');
-  if (eyeEl) eyeEl.innerHTML = DAYS[now.getDay()] + ' · ' + MONS[now.getMonth()] + ' ' + now.getFullYear() + '<span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(240,180,41,.28),transparent);display:inline-block;margin-left:8px;vertical-align:middle;"></span>';
+  if (eyeEl) eyeEl.textContent = DAYS[now.getDay()] + ' · ' + MONS[now.getMonth()] + ' ' + now.getFullYear();
   var dateEl = document.getElementById('aura-date');
   if (dateEl) dateEl.textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
@@ -7980,7 +7980,9 @@ function toggleFab() {
 function fabAction(action) {
   haptic('light');
   toggleFab();
-  if (action === 'upload') {
+  if (action === 'ai') {
+    setTimeout(() => { if (typeof toggleAIPanel === 'function') toggleAIPanel(); }, 80);
+  } else if (action === 'upload') {
     openSyncModal();
   } else if (action === 'event') {
     goPage('calendar');
