@@ -220,6 +220,9 @@
     <div class="snav-item" id="snav-health" onclick="goPage('health')">
       <div class="snav-icon">💊</div> Health<div class="bnav-alert-dot snav-alert-dot" id="health-alert-dot-snav" style="display:none;"></div>
     </div>
+    <div class="snav-item" id="snav-budget" onclick="goPage('budget')">
+      <div class="snav-icon">💰</div> Budget
+    </div>
     <div class="snav-item" id="snav-search" onclick="goSearch()">
       <div class="snav-icon">🔍</div> Search
     </div>
@@ -680,7 +683,43 @@
     </div>
   </div>
 
+  <!-- ══════════ BUDGET TRACKER PAGE ══════════ -->
+  <div class="page" id="page-budget">
+    <div class="budget-wrap">
+      <div class="budget-hdr">
+        <div class="budget-title">💰 Budget Tracker</div>
+        <div class="budget-sub">Duggireddy Family · Income &amp; Expenditure</div>
+      </div>
+      <!-- Summary chips -->
+      <div class="budget-chips" id="budget-chips"></div>
+      <!-- Total monthly banner -->
+      <div id="budget-monthly-banner"></div>
+      <!-- Saving detail cards -->
+      <div class="bgt-saving-cards" id="budget-saving-cards"></div>
+      <!-- Monthly Expenditure section -->
+      <div id="budget-monthly-section"></div>
+      <!-- Yearly Expenditure section -->
+      <div id="budget-yearly-section"></div>
+      <!-- Income section -->
+      <div id="budget-income-section"></div>
+      <div style="height:12px;"></div>
+    </div>
+  </div>
+
 </div><!-- /#content -->
+
+<!-- ═══════════════ BUDGET ADD/EDIT SHEET ═══════════════ -->
+<div class="bgt-sheet hidden" id="bgt-sheet" onclick="if(event.target===this)bgtCloseSheet()">
+  <div class="bgt-sheet-card">
+    <div class="bgt-sheet-handle"></div>
+    <div class="bgt-sheet-title" id="bgt-sheet-title">Add Item</div>
+    <div id="bgt-sheet-body"></div>
+    <div class="bgt-sheet-actions">
+      <button class="bgt-sheet-btn cancel" onclick="bgtCloseSheet()">Cancel</button>
+      <button class="bgt-sheet-btn save" onclick="bgtSheetSave()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════ ADD EVENT SHEET ═══════════════ -->
 <div class="cal-sheet hidden" id="cal-sheet" onclick="if(event.target===this)closeCalSheet()">
@@ -777,6 +816,9 @@
     <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')">
       <span class="bnav-icon">❤️</span><span>Health</span>
       <div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-budget" onclick="goPage('budget')">
+      <span class="bnav-icon">💰</span><span>Budget</span>
     </div>
   </div>
 </nav>

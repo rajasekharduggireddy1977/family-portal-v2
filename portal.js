@@ -274,12 +274,13 @@ function goPage(page) {
   if(page==='health')    { initHealthPage(); applyGmHealth(); }
   if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
   if(page==='dashboard') { applyGmDashboard(); auraGoSlide(0); }
+  if(page==='budget')    { initBudget(); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['dashboard','members','documents','expiry','calendar','health','search'];
+const PAGE_ORDER = ['dashboard','members','documents','expiry','calendar','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -9156,3 +9157,276 @@ function initUploadHub() {
   uhRefreshUI();
 }
 
+
+// ═══════════════════════════════════════════════════
+// BUDGET TRACKER
+// ═══════════════════════════════════════════════════
+
+const BGT_DEFAULTS = {
+  monthly: [
+    {item:'Maintenance', amount:4400,  balance:0},
+    {item:'Maid',        amount:6000,  balance:6000},
+    {item:'Milk',        amount:1000,  balance:1000},
+    {item:'Current',     amount:2500,  balance:0},
+    {item:'TV/Mobile',   amount:3000,  balance:500},
+    {item:'Rice/Gas',    amount:2000,  balance:1500},
+    {item:'Nanna',       amount:14000, balance:0},
+    {item:'Vasundhara',  amount:14000, balance:4000},
+    {item:'Petrol',      amount:3000,  balance:3000},
+    {item:'Food',        amount:24000, balance:24000}
+  ],
+  yearly: [
+    {item:'Health Insurance',      amount:74000, balance:74000, next:''},
+    {item:'LIC',                   amount:2500,  balance:2500,  next:''},
+    {item:'Vehicle Insurance',     amount:7000,  balance:7000,  next:''},
+    {item:'Car Service',           amount:15000, balance:15000, next:''},
+    {item:'Bike Service',          amount:3000,  balance:3000,  next:''},
+    {item:'Property Tax',          amount:18000, balance:18000, next:''},
+    {item:'Cloths/Shopping',       amount:50000, balance:50000, next:''},
+    {item:'Restaurant',            amount:15000, balance:15000, next:''},
+    {item:'Movies',                amount:5000,  balance:5000,  next:''},
+    {item:'Travelling',            amount:30000, balance:30000, next:''},
+    {item:'AC/Gas/Water Services', amount:6000,  balance:6000,  next:''},
+    {item:'Medicines',             amount:6000,  balance:6000,  next:''},
+    {item:'Internet',              amount:12000, balance:12000, next:''},
+    {item:'Misc',                  amount:10000, balance:10000, next:''}
+  ],
+  income: [
+    {source:'Salary',      amount:166000},
+    {source:'FD Interest', amount:15000},
+    {source:'Rent',        amount:20700}
+  ]
+};
+
+function bgtGetData() {
+  try {
+    const s = localStorage.getItem('fp_budget_v1');
+    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+  } catch(e) { return JSON.parse(JSON.stringify(BGT_DEFAULTS)); }
+}
+function bgtSaveData(d) { localStorage.setItem('fp_budget_v1', JSON.stringify(d)); }
+
+function bgtCalc(d) {
+  const mTotal = d.monthly.reduce((s,r)=>s+r.amount, 0);
+  const mBal   = d.monthly.reduce((s,r)=>s+r.balance, 0);
+  const yTotal = d.yearly.reduce((s,r)=>s+r.amount, 0);
+  const yBal   = d.yearly.reduce((s,r)=>s+r.balance, 0);
+  const yAvg   = Math.round(yTotal / 12);
+  const iTotal = d.income.reduce((s,r)=>s+r.amount, 0);
+  const totalMonthly  = mTotal + yAvg;
+  const monthlySaving = iTotal - mTotal;
+  const yearlySaving  = (monthlySaving * 12) - yTotal;
+  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,totalMonthly,monthlySaving,yearlySaving};
+}
+
+function bgtInr(n) {
+  return '\u20b9' + Math.abs(n).toLocaleString('en-IN');
+}
+
+function initBudget() {
+  const d = bgtGetData();
+  const c = bgtCalc(d);
+
+  // Summary chips
+  const chips = document.getElementById('budget-chips');
+  if (chips) {
+    chips.innerHTML =
+      '<div class="bgt-chip"><div class="bgt-chip-label">Monthly Income</div><div class="bgt-chip-val gold">' + bgtInr(c.iTotal) + '</div></div>' +
+      '<div class="bgt-chip"><div class="bgt-chip-label">Monthly Saving</div><div class="bgt-chip-val ' + (c.monthlySaving>=0?'pos':'neg') + '">' + (c.monthlySaving<0?'\u2212':'') + bgtInr(c.monthlySaving) + '</div></div>' +
+      '<div class="bgt-chip"><div class="bgt-chip-label">Yearly Saving</div><div class="bgt-chip-val ' + (c.yearlySaving>=0?'pos':'neg') + '">' + (c.yearlySaving<0?'\u2212':'') + bgtInr(c.yearlySaving) + '</div></div>';
+  }
+
+  // Total monthly banner
+  const banner = document.getElementById('budget-monthly-banner');
+  if (banner) {
+    banner.innerHTML =
+      '<div class="bgt-monthly-banner">' +
+        '<div><div class="bgt-mb-lbl">Total Monthly Expenditure</div><div class="bgt-mb-sub">Monthly Items + Yearly Avg (\u00f712)</div></div>' +
+        '<div class="bgt-mb-val">' + bgtInr(c.totalMonthly) + '</div>' +
+      '</div>';
+  }
+
+  // Saving detail cards
+  const scards = document.getElementById('budget-saving-cards');
+  if (scards) {
+    const mSavSign = c.monthlySaving < 0 ? '\u2212' : '';
+    const ySavSign = c.yearlySaving  < 0 ? '\u2212' : '';
+    scards.innerHTML =
+      '<div class="bgt-scard blue-c">' +
+        '<div class="bgt-scard-lbl blue">\ud83d\udcc8 Monthly Saving</div>' +
+        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Income</span><span class="bgt-scard-row-val" style="color:var(--green)">' + bgtInr(c.iTotal) + '</span></div>' +
+        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Expenditure</span><span class="bgt-scard-row-val" style="color:var(--orange)">' + bgtInr(c.mTotal) + '</span></div>' +
+        '<hr class="bgt-scard-divider">' +
+        '<div class="bgt-scard-total"><span class="bgt-scard-total-lbl">Saving</span><span class="bgt-scard-total-val ' + (c.monthlySaving>=0?'pos':'neg') + '">' + mSavSign + bgtInr(c.monthlySaving) + '</span></div>' +
+      '</div>' +
+      '<div class="bgt-scard teal-c">' +
+        '<div class="bgt-scard-lbl teal">\ud83c\udfaf Yearly Saving</div>' +
+        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Saving \u00d7 12</span><span class="bgt-scard-row-val" style="color:var(--green)">' + bgtInr(c.monthlySaving*12) + '</span></div>' +
+        '<div class="bgt-scard-row"><span class="bgt-scard-row-lbl">Yearly Expenses</span><span class="bgt-scard-row-val" style="color:var(--red)">' + bgtInr(c.yTotal) + '</span></div>' +
+        '<hr class="bgt-scard-divider">' +
+        '<div class="bgt-scard-total"><span class="bgt-scard-total-lbl">Saving</span><span class="bgt-scard-total-val ' + (c.yearlySaving>=0?'pos':'neg') + '">' + ySavSign + bgtInr(c.yearlySaving) + '</span></div>' +
+      '</div>';
+  }
+
+  // Monthly section
+  const ms = document.getElementById('budget-monthly-section');
+  if (ms) {
+    let rows = d.monthly.map(function(r,i) {
+      return '<div class="bgt-row">' +
+        '<div class="bgt-row-name">' + r.item + '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:4px;">' +
+          '<div class="bgt-row-amt">' + bgtInr(r.amount) + '</div>' +
+          (r.balance > 0 ? '<div class="bgt-row-bal pos">' + bgtInr(r.balance) + '</div>' : '<div class="bgt-row-bal zero">\u2014</div>') +
+        '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'monthly\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'monthly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    ms.innerHTML =
+      '<div class="bgt-section">' +
+        '<div class="bgt-sec-hdr gold-h">' +
+          '<div class="bgt-sec-title gold">\ud83d\udcb0 Monthly Expenditure</div>' +
+          '<button class="bgt-add-btn" onclick="bgtAdd(\'monthly\')">\uff0b Add</button>' +
+        '</div>' +
+        '<div class="bgt-rows">' + rows + '</div>' +
+        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val gold">' + bgtInr(c.mTotal) + '</span></div>' +
+      '</div>';
+  }
+
+  // Yearly section
+  const ys = document.getElementById('budget-yearly-section');
+  if (ys) {
+    let rows = d.yearly.map(function(r,i) {
+      return '<div class="bgt-row">' +
+        '<div class="bgt-row-name" style="flex:1.2">' + r.item + (r.next ? '<br><span class="bgt-row-next">' + r.next + '</span>' : '') + '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:4px;">' +
+          '<div class="bgt-row-amt">' + bgtInr(r.amount) + '</div>' +
+          (r.balance > 0 ? '<div class="bgt-row-bal pos">' + bgtInr(r.balance) + '</div>' : '<div class="bgt-row-bal zero">\u2014</div>') +
+        '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'yearly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    ys.innerHTML =
+      '<div class="bgt-section">' +
+        '<div class="bgt-sec-hdr red-h">' +
+          '<div class="bgt-sec-title red">\ud83d\udcc5 Yearly Expenditure</div>' +
+          '<button class="bgt-add-btn" onclick="bgtAdd(\'yearly\')">\uff0b Add</button>' +
+        '</div>' +
+        '<div class="bgt-rows">' + rows + '</div>' +
+        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val red">' + bgtInr(c.yTotal) + '</span></div>' +
+        '<div class="bgt-yavg">Monthly Avg (\u00f712) \u00a0\u2192\u00a0 <strong>' + bgtInr(c.yAvg) + '</strong></div>' +
+      '</div>';
+  }
+
+  // Income section
+  const isel = document.getElementById('budget-income-section');
+  if (isel) {
+    let rows = d.income.map(function(r,i) {
+      return '<div class="bgt-row">' +
+        '<div class="bgt-row-name">' + r.source + '</div>' +
+        '<div class="bgt-row-amt" style="color:var(--green);margin-right:4px;">' + bgtInr(r.amount) + '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    isel.innerHTML =
+      '<div class="bgt-section">' +
+        '<div class="bgt-sec-hdr green-h">' +
+          '<div class="bgt-sec-title green">\ud83d\udcbc Income</div>' +
+          '<button class="bgt-add-btn" onclick="bgtAdd(\'income\')">\uff0b Add</button>' +
+        '</div>' +
+        '<div class="bgt-rows">' + rows + '</div>' +
+        '<div class="bgt-total"><span class="bgt-total-lbl">Total</span><span class="bgt-total-val green">' + bgtInr(c.iTotal) + '</span></div>' +
+      '</div>';
+  }
+}
+
+// ── CRUD helpers ──
+
+let _bgtState = null;
+
+function bgtAdd(type) {
+  _bgtState = {type, idx: -1};
+  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source'};
+  document.getElementById('bgt-sheet-title').textContent = labels[type];
+  document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
+  document.getElementById('bgt-sheet').classList.remove('hidden');
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+}
+
+function bgtEdit(type, idx) {
+  const d = bgtGetData();
+  _bgtState = {type, idx};
+  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source'};
+  document.getElementById('bgt-sheet-title').textContent = labels[type];
+  const row = type==='income' ? d.income[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
+  document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
+  document.getElementById('bgt-sheet').classList.remove('hidden');
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+}
+
+function bgtDelete(type, idx) {
+  const d = bgtGetData();
+  const name = type==='income' ? d.income[idx].source : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
+  if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
+  if (type==='monthly') d.monthly.splice(idx, 1);
+  else if (type==='yearly') d.yearly.splice(idx, 1);
+  else d.income.splice(idx, 1);
+  bgtSaveData(d);
+  initBudget();
+}
+
+function bgtSheetSave() {
+  if (!_bgtState) return;
+  const type = _bgtState.type;
+  const idx  = _bgtState.idx;
+  const f1 = (document.getElementById('bgt-f1') ? document.getElementById('bgt-f1').value : '').trim();
+  const f2 = parseInt(document.getElementById('bgt-f2') ? document.getElementById('bgt-f2').value : 0) || 0;
+  const f3 = parseInt(document.getElementById('bgt-f3') ? document.getElementById('bgt-f3').value : 0) || 0;
+  const f4 = (document.getElementById('bgt-f4') ? document.getElementById('bgt-f4').value : '').trim();
+  if (!f1) { if(document.getElementById('bgt-f1')) document.getElementById('bgt-f1').focus(); return; }
+  const d = bgtGetData();
+  if (type === 'monthly') {
+    const obj = {item:f1, amount:f2, balance:f3};
+    if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
+  } else if (type === 'yearly') {
+    const obj = {item:f1, amount:f2, balance:f3, next:f4};
+    if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
+  } else {
+    const obj = {source:f1, amount:f2};
+    if (idx < 0) d.income.push(obj); else d.income[idx] = obj;
+  }
+  bgtSaveData(d);
+  bgtCloseSheet();
+  initBudget();
+}
+
+function bgtCloseSheet() {
+  document.getElementById('bgt-sheet').classList.add('hidden');
+  _bgtState = null;
+}
+
+function _bgtFields(type, row) {
+  if (type === 'monthly') {
+    return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'yearly') {
+    return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Term Insurance" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Next Due</label><input id="bgt-f4" type="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
+  }
+  return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
+         '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+         '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+}
