@@ -775,31 +775,26 @@
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
   <div class="bnav-inner">
+    <div class="bnav-selector" id="bnav-selector"></div>
     <div class="bnav-item active pressable" id="bnav-dashboard" onclick="goPage('dashboard')">
-      <span class="bnav-icon">⊞</span><span>Home</span><div class="bnav-dot"></div>
+      <span class="bnav-icon">🏠</span><span>Home</span>
     </div>
     <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')">
-      <span class="bnav-icon">👥</span><span>Members</span><div class="bnav-dot"></div>
+      <span class="bnav-icon">👨‍👩‍👧‍👦</span><span>Members</span>
     </div>
     <div class="bnav-item pressable" id="bnav-documents" onclick="goPage('documents')">
-      <span class="bnav-icon">📁</span><span>Docs</span><div class="bnav-dot"></div>
+      <span class="bnav-icon">📁</span><span>Docs</span>
+    </div>
+    <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')">
+      <span class="bnav-icon">📅</span><span>Calendar</span>
     </div>
     <div class="bnav-item pressable" id="bnav-expiry" onclick="goPage('expiry')">
       <span class="bnav-icon">⏳</span><span>Expiry</span>
       <span class="bnav-badge">2</span>
-      <div class="bnav-dot"></div>
-    </div>
-    <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')">
-      <span class="bnav-icon">📅</span><span>Calendar</span><div class="bnav-dot"></div>
     </div>
     <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')">
-      <span class="bnav-icon">💊</span><span>Health</span><div class="bnav-dot"></div><div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
-    </div>
-    <div class="bnav-item pressable" id="bnav-search" onclick="goPage('search')">
-      <span class="bnav-icon">⌕</span><span>Search</span><div class="bnav-dot"></div>
-    </div>
-    <div class="bnav-item pressable" id="bnav-backup" onclick="openBackupModal()">
-      <span class="bnav-icon">💾</span><span>Backup</span><div class="bnav-dot"></div>
+      <span class="bnav-icon">❤️</span><span>Health</span>
+      <div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
     </div>
   </div>
 </nav>

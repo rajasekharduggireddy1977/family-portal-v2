@@ -183,6 +183,24 @@ let currentMember = 'rajasekhar';
 let currentTab = 'identity';
 let currentExpTab = 'docs';
 
+/* ── Liquid glass nav selector ── */
+function moveBnavSelector(activeEl) {
+  const sel = document.getElementById('bnav-selector');
+  const inner = activeEl && activeEl.closest('.bnav-inner');
+  if(!sel || !activeEl || !inner) return;
+  const iRect = inner.getBoundingClientRect();
+  const eRect = activeEl.getBoundingClientRect();
+  sel.style.left = (eRect.left - iRect.left) + 'px';
+  sel.style.width = eRect.width + 'px';
+}
+// Init selector on load
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    const active = document.querySelector('.bnav-item.active');
+    if(active) moveBnavSelector(active);
+  }, 100);
+});
+
 function goPage(page) {
   if(currentPage === page && page !== 'members') return;
 
@@ -216,19 +234,9 @@ function goPage(page) {
   }
 
   currentPage = page;
-  document.querySelectorAll('.bnav-item').forEach(b=>{
-    b.classList.remove('active');
-    b.style.background='';b.style.boxShadow='';b.style.color='';
-  });
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const navEl = document.getElementById('bnav-'+page);
-  if(navEl){
-    navEl.classList.add('active');
-    const c=navEl.dataset.color||'#60a5fa';
-    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),bl=parseInt(c.slice(5,7),16);
-    navEl.style.background=`linear-gradient(145deg,rgba(${r},${g},${bl},0.22),rgba(${r},${g},${bl},0.08))`;
-    navEl.style.boxShadow=`0 0 18px rgba(${r},${g},${bl},0.28),inset 0 1px 0 rgba(${r},${g},${bl},0.35)`;
-    navEl.style.color=c;
-  }
+  if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
