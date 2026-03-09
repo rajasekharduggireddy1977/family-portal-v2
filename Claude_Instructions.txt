@@ -19,6 +19,15 @@ Paste this at the start of your next chat with Claude:
 
 ---
 
+Recent Session summary so far:
+
+✅ Upcoming section — education excluded, finance included
+✅ Upcoming — overdue events shown with red label, no item cap
+✅ SEED_EVENTS removed — backup.json is single source of truth
+✅ Auto-restore from backup.json on first load
+✅ Auto-restore trigger fixed — checks both fp_cal_events AND fp_attendance_synced
+✅ EDU Subject Intelligence Cards loading correctly
+
 **Tips to save tokens:**
 - Upload files **only when needed** — if changing JS only, don't upload CSS
 - Describe bugs with a screenshot + one sentence, not long explanations
