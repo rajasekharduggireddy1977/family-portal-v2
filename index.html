@@ -774,45 +774,32 @@
 
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
-  <div class="bnav-glass-wrap">
-    <!-- Primary 5 dashboard tabs -->
-    <div class="bnav-island" id="bnav-island-main">
-      <div class="bnav-item pressable active" id="bnav-dashboard" onclick="goPage('dashboard')" data-color="#60a5fa">
-        <span class="bnav-icon">🏠</span><span>Home</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')" data-color="#fb7185">
-        <span class="bnav-icon">❤️</span><span>Health</span><div class="bnav-dot"></div>
-        <div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-edu" onclick="goPage('dashboard');setTimeout(()=>auraGoPanel&&auraGoPanel(1),200)" data-color="#a78bfa">
-        <span class="bnav-icon">📚</span><span>Edu</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-finance" onclick="goPage('dashboard');setTimeout(()=>auraGoPanel&&auraGoPanel(3),200)" data-color="#fbbf24">
-        <span class="bnav-icon">💰</span><span>Finance</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')" data-color="#34d399">
-        <span class="bnav-icon">👨‍👩‍👧‍👦</span><span>Family</span><div class="bnav-dot"></div>
-      </div>
+  <div class="bnav-inner">
+    <div class="bnav-item active pressable" id="bnav-dashboard" onclick="goPage('dashboard')">
+      <span class="bnav-icon">⊞</span><span>Home</span><div class="bnav-dot"></div>
     </div>
-    <!-- Secondary utility tabs -->
-    <div class="bnav-island bnav-island-sec" id="bnav-island-sec">
-      <div class="bnav-item pressable" id="bnav-documents" onclick="goPage('documents')" data-color="#60a5fa">
-        <span class="bnav-icon">📁</span><span>Docs</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')" data-color="#60a5fa">
-        <span class="bnav-icon">📅</span><span>Cal</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-expiry" onclick="goPage('expiry')" data-color="#f97316">
-        <span class="bnav-icon">⏳</span><span>Expiry</span>
-        <span class="bnav-badge">2</span>
-        <div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-search" onclick="goPage('search')" data-color="#60a5fa">
-        <span class="bnav-icon">🔍</span><span>Search</span><div class="bnav-dot"></div>
-      </div>
-      <div class="bnav-item pressable" id="bnav-backup" onclick="openBackupModal()" data-color="#60a5fa">
-        <span class="bnav-icon">💾</span><span>Backup</span><div class="bnav-dot"></div>
-      </div>
+    <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')">
+      <span class="bnav-icon">👥</span><span>Members</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-documents" onclick="goPage('documents')">
+      <span class="bnav-icon">📁</span><span>Docs</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-expiry" onclick="goPage('expiry')">
+      <span class="bnav-icon">⏳</span><span>Expiry</span>
+      <span class="bnav-badge">2</span>
+      <div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-calendar" onclick="goPage('calendar')">
+      <span class="bnav-icon">📅</span><span>Calendar</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-health" onclick="goPage('health')">
+      <span class="bnav-icon">💊</span><span>Health</span><div class="bnav-dot"></div><div class="bnav-alert-dot" id="health-alert-dot" style="display:none;"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-search" onclick="goPage('search')">
+      <span class="bnav-icon">⌕</span><span>Search</span><div class="bnav-dot"></div>
+    </div>
+    <div class="bnav-item pressable" id="bnav-backup" onclick="openBackupModal()">
+      <span class="bnav-icon">💾</span><span>Backup</span><div class="bnav-dot"></div>
     </div>
   </div>
 </nav>
