@@ -273,7 +273,7 @@ function goPage(page) {
   if(page==='calendar')  { initCalendar(); applyGmCalendar(); }
   if(page==='health')    { initHealthPage(); applyGmHealth(); }
   if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
-  if(page==='dashboard') { applyGmDashboard(); }
+  if(page==='dashboard') { applyGmDashboard(); auraGoSlide(0); }
 }
 
 // ═══════════════════════════════════════════════════
@@ -7178,8 +7178,8 @@ function checkPinSession() {
       const delta = newH - _lastVPHeight;
       _lastVPHeight = newH;
 
-      // Keyboard dismissed = viewport grew significantly (> 100px)
-      if (delta > 100) {
+      // Keyboard dismissed OR browser chrome hide = viewport grew (> 40px)
+      if (delta > 40) {
         // Pin the nav during the reflow frame
         nav.style.transition = 'none';
         nav.style.transform = 'translateZ(0) translateY(0)';
