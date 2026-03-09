@@ -183,23 +183,47 @@ let currentMember = 'rajasekhar';
 let currentTab = 'identity';
 let currentExpTab = 'docs';
 
-/* ── Liquid glass nav selector ── */
-function moveBnavSelector(activeEl) {
-  const sel = document.getElementById('bnav-selector');
-  const inner = activeEl && activeEl.closest('.bnav-inner');
-  if(!sel || !activeEl || !inner) return;
-  const iRect = inner.getBoundingClientRect();
-  const eRect = activeEl.getBoundingClientRect();
-  sel.style.left = (eRect.left - iRect.left) + 'px';
-  sel.style.width = eRect.width + 'px';
+/* ── Pulse Rail JS ── */
+function pulseActivate(el){
+  document.querySelectorAll('.pulse-cat').forEach(c=>c.classList.remove('pulse-active'));
+  el.classList.add('pulse-active');
+  movePulseSelector(el);
 }
-// Init selector on load
-document.addEventListener('DOMContentLoaded', function(){
+function movePulseSelector(el){
+  const sel=document.getElementById('pulse-selector');
+  const inner=el&&el.closest('.pulse-rail-inner');
+  if(!sel||!el||!inner)return;
+  const iR=inner.getBoundingClientRect(),eR=el.getBoundingClientRect();
+  sel.style.left=(eR.left-iR.left)+'px';
+  sel.style.width=eR.width+'px';
+}
+function setPulseRailVisible(show){
+  const r=document.getElementById('pulse-rail');
+  if(!r)return;
+  if(show){r.classList.remove('pulse-hidden');}
+  else{r.classList.add('pulse-hidden');}
+}
+document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
-    const active = document.querySelector('.bnav-item.active');
-    if(active) moveBnavSelector(active);
-  }, 100);
+    // Init bottom nav selector
+    const ab=document.querySelector('.bnav-item.active');
+    if(ab)moveBnavSelector(ab);
+    // Init pulse selector
+    const ap=document.querySelector('.pulse-cat.pulse-active');
+    if(ap)movePulseSelector(ap);
+    // Show pulse only on dashboard
+    setPulseRailVisible(document.getElementById('page-dashboard')?.classList.contains('active'));
+  },150);
 });
+
+function moveBnavSelector(activeEl){
+  const sel=document.getElementById('bnav-selector');
+  const inner=activeEl&&activeEl.closest('.bnav-inner');
+  if(!sel||!activeEl||!inner)return;
+  const iR=inner.getBoundingClientRect(),eR=activeEl.getBoundingClientRect();
+  sel.style.left=(eR.left-iR.left)+'px';
+  sel.style.width=eR.width+'px';
+}
 
 function goPage(page) {
   if(currentPage === page && page !== 'members') return;
@@ -234,6 +258,7 @@ function goPage(page) {
   }
 
   currentPage = page;
+  setPulseRailVisible(page === 'dashboard');
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
   const navEl = document.getElementById('bnav-'+page);
   if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }

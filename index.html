@@ -316,30 +316,6 @@
     <!-- Aura OS Dashboard Shell -->
     <div class="aura-dash" id="aura-dash">
 
-      <!-- CATEGORY RAIL -->
-      <div class="aura-rail" id="aura-rail">
-        <div class="aura-cat aura-active" style="--aura-cat-c:rgba(200,210,255,.55);" onclick="auraGoSlide(0)">
-          <div class="aura-cat-orb">🏠</div>
-          <div class="aura-cat-lbl">Home</div>
-        </div>
-        <div class="aura-cat" style="--aura-cat-c:rgba(0,230,118,.6);" onclick="auraGoSlide(1)">
-          <div class="aura-cat-orb" style="position:relative;">❤️<div class="aura-cat-alert" id="aura-health-badge" style="display:none;"></div></div>
-          <div class="aura-cat-lbl">Health</div>
-        </div>
-        <div class="aura-cat" style="--aura-cat-c:rgba(167,139,250,.7);" onclick="auraGoSlide(2)" id="aura-cat-edu">
-          <div class="aura-cat-orb" style="position:relative;">📚<div class="aura-cat-alert" id="aura-edu-badge" style="display:none;"></div></div>
-          <div class="aura-cat-lbl">Edu</div>
-        </div>
-        <div class="aura-cat" style="--aura-cat-c:rgba(245,158,11,.7);" onclick="auraGoSlide(3)" id="aura-cat-fin">
-          <div class="aura-cat-orb" style="position:relative;">💰<div class="aura-cat-alert" id="aura-fin-badge" style="display:none;"></div></div>
-          <div class="aura-cat-lbl">Finance</div>
-        </div>
-        <div class="aura-cat" style="--aura-cat-c:rgba(79,127,255,.65);" onclick="auraGoSlide(4)">
-          <div class="aura-cat-orb">👨‍👩‍👧‍👦</div>
-          <div class="aura-cat-lbl">Family</div>
-        </div>
-      </div>
-
       <!-- SWIPEABLE STAGE -->
       <div class="aura-stage" id="aura-stage">
         <div class="aura-track" id="aura-track">
@@ -798,6 +774,31 @@
     </div>
   </div>
 </nav>
+
+<!-- ═══ PULSE RAIL — fixed above bottom nav, dashboard only ═══ -->
+<div id="pulse-rail" class="pulse-rail-wrap">
+  <div class="pulse-rail-inner">
+    <div class="pulse-selector" id="pulse-selector"></div>
+    <div class="pulse-cat pulse-active" style="--pc:rgba(200,210,255,.7);" onclick="auraGoSlide(0);pulseActivate(this)">
+      <span class="pulse-icon">🏠</span><span class="pulse-lbl">Overview</span>
+    </div>
+    <div class="pulse-cat" style="--pc:rgba(0,230,118,.7);" onclick="auraGoSlide(1);pulseActivate(this)">
+      <span class="pulse-icon">❤️</span><span class="pulse-lbl">Health</span>
+      <div class="pulse-alert" id="aura-health-badge" style="display:none;"></div>
+    </div>
+    <div class="pulse-cat" style="--pc:rgba(167,139,250,.8);" id="aura-cat-edu" onclick="auraGoSlide(2);pulseActivate(this)">
+      <span class="pulse-icon">📚</span><span class="pulse-lbl">Edu</span>
+      <div class="pulse-alert" id="aura-edu-badge" style="display:none;"></div>
+    </div>
+    <div class="pulse-cat" style="--pc:rgba(245,158,11,.8);" id="aura-cat-fin" onclick="auraGoSlide(3);pulseActivate(this)">
+      <span class="pulse-icon">💰</span><span class="pulse-lbl">Finance</span>
+      <div class="pulse-alert" id="aura-fin-badge" style="display:none;"></div>
+    </div>
+    <div class="pulse-cat" style="--pc:rgba(79,127,255,.7);" onclick="auraGoSlide(4);pulseActivate(this)">
+      <span class="pulse-icon">👨‍👩‍👧‍👦</span><span class="pulse-lbl">Family</span>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════ ADD LAB REPORT SHEET ═══════════════ -->
 <div class="hr-sheet hidden" id="hr-sheet" onclick="if(event.target===this)closeAddReportSheet()">
