@@ -54,7 +54,7 @@
 <!-- ═══════════════════════════════════════════════════════
      AI FAMILY ASSISTANT — FLOATING PANEL
 ═══════════════════════════════════════════════════════ -->
-<div id="ai-fab-wrap" style="position:fixed;bottom:calc(var(--nav-h) + 10px);right:16px;z-index:9101;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
+<div id="ai-fab-wrap" style="position:fixed;bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 10px);right:16px;z-index:9101;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
   <div id="ai-fab" onclick="toggleAIPanel()" title="AI Family Assistant" style="position:relative;bottom:auto;right:auto;z-index:auto;">
     <div id="ai-fab-ring"></div>
     <div id="ai-fab-icon">✦</div>
@@ -121,7 +121,7 @@
     <div class="fab-item-ico">💾</div> Backup Now
   </div>
 </div>
-<div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
+<div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
   <div id="fab-btn" onclick="toggleFab()" title="Quick Actions" aria-label="Quick Actions" style="position:relative;bottom:auto;left:auto;z-index:auto;">＋</div>
   <div style="font-size:8px;font-weight:700;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.4px;pointer-events:none;opacity:.7;">ACTIONS</div>
 </div>
@@ -784,15 +784,12 @@
     </div>
     <div class="pulse-cat" style="--pc:rgba(0,230,118,.7);" onclick="auraGoSlide(1);pulseActivate(this)">
       <span class="pulse-icon">❤️</span><span class="pulse-lbl">Health</span>
-      <div class="pulse-alert" id="aura-health-badge" style="display:none;"></div>
     </div>
     <div class="pulse-cat" style="--pc:rgba(167,139,250,.8);" id="aura-cat-edu" onclick="auraGoSlide(2);pulseActivate(this)">
       <span class="pulse-icon">📚</span><span class="pulse-lbl">Edu</span>
-      <div class="pulse-alert" id="aura-edu-badge" style="display:none;"></div>
     </div>
     <div class="pulse-cat" style="--pc:rgba(245,158,11,.8);" id="aura-cat-fin" onclick="auraGoSlide(3);pulseActivate(this)">
       <span class="pulse-icon">💰</span><span class="pulse-lbl">Finance</span>
-      <div class="pulse-alert" id="aura-fin-badge" style="display:none;"></div>
     </div>
     <div class="pulse-cat" style="--pc:rgba(79,127,255,.7);" onclick="auraGoSlide(4);pulseActivate(this)">
       <span class="pulse-icon">👨‍👩‍👧‍👦</span><span class="pulse-lbl">Family</span>

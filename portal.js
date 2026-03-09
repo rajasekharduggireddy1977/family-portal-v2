@@ -3781,11 +3781,17 @@ function auraGoSlide(idx) {
   track.style.transform = 'translateX(' + (-idx * vw) + 'px)';
   var newP = document.getElementById(_auraSlides[idx]);
   if (newP) { newP.classList.add('aura-panel-active'); newP.scrollTop = 0; }
-  // Also reset page scroll so new panel starts at top
   var pg = document.getElementById('page-dashboard');
   if (pg) pg.scrollTop = 0;
   var cats = document.querySelectorAll('.aura-cat');
   for (var i=0; i<cats.length; i++) cats[i].classList.toggle('aura-active', i===idx);
+  // Sync pulse rail
+  var pCats = document.querySelectorAll('.pulse-cat');
+  if (pCats[idx]) {
+    pCats.forEach(function(c){ c.classList.remove('pulse-active'); });
+    pCats[idx].classList.add('pulse-active');
+    movePulseSelector(pCats[idx]);
+  }
 }
 
 function auraInitSwipe() {

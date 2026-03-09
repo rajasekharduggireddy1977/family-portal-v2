@@ -277,16 +277,16 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 #bottom-nav{
   position:fixed;bottom:0;left:0;right:0;z-index:200;
   background:transparent;
-  padding:6px 0 max(10px,env(safe-area-inset-bottom));
+  padding:6px 0 env(safe-area-inset-bottom,0px);
   -webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);
   will-change:transform;contain:layout style;
 }
 .bnav-inner{
   position:relative;
   display:flex;justify-content:space-around;align-items:center;
-  margin:0 14px;padding:8px 6px 6px;
+  margin:0 14px;padding:8px 6px 8px;
   border-radius:32px;
-  background:rgba(14,18,36,0.8);
+  background:rgba(14,18,36,0.85);
   backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);
   border:1px solid rgba(255,255,255,0.1);
   box-shadow:0 8px 32px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.07);
