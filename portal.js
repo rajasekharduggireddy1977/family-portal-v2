@@ -216,9 +216,19 @@ function goPage(page) {
   }
 
   currentPage = page;
-  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(b=>{
+    b.classList.remove('active');
+    b.style.background='';b.style.boxShadow='';b.style.color='';
+  });
   const navEl = document.getElementById('bnav-'+page);
-  if(navEl) navEl.classList.add('active');
+  if(navEl){
+    navEl.classList.add('active');
+    const c=navEl.dataset.color||'#60a5fa';
+    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),bl=parseInt(c.slice(5,7),16);
+    navEl.style.background=`linear-gradient(145deg,rgba(${r},${g},${bl},0.22),rgba(${r},${g},${bl},0.08))`;
+    navEl.style.boxShadow=`0 0 18px rgba(${r},${g},${bl},0.28),inset 0 1px 0 rgba(${r},${g},${bl},0.35)`;
+    navEl.style.color=c;
+  }
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
