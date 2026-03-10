@@ -7269,6 +7269,31 @@ function syncSidebarNav(page) {
   }
 })();
 
+// ═══════════════════════════════════════
+// WELCOME OVERLAY — first-visit intro (non-PWA only)
+// Shows on first load for browser users; skipped for PWA / return visits.
+// enterPortal() dismisses it with a fade and sets the visited flag.
+// ═══════════════════════════════════════
+(function initWelcomeOverlay() {
+  const isPWA = window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  const visited = localStorage.getItem('portal-visited');
+  const overlay = document.getElementById('welcome-overlay');
+  if (!overlay) return;
+  if (isPWA || visited) {
+    overlay.classList.add('wov-gone'); // hidden instantly for known users / PWA
+  }
+  // else overlay remains visible (default DOM state) — user sees welcome screen
+})();
+
+function enterPortal() {
+  localStorage.setItem('portal-visited', '1');
+  var overlay = document.getElementById('welcome-overlay');
+  if (!overlay) return;
+  overlay.classList.add('wov-hidden');   // fade out
+  setTimeout(function() { overlay.classList.add('wov-gone'); }, 520); // then remove
+}
+
 checkPinSession();
 checkPwaPrompt();
 (function initLoader() {

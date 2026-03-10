@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- First-visit gate: all users (including PWA) see landing page first -->
-<script>if(!localStorage.getItem('portal-visited'))location.replace('landing.html');</script>
+<!-- Welcome overlay shown on first visit for non-PWA users (see portal.js initWelcomeOverlay) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -197,6 +196,57 @@
   </div>
   <div class="pin-err-msg" id="pin-err"></div>
   <div class="pin-hint">Default PIN: <strong style="color:var(--gold);font-family:'DM Mono',monospace">1234</strong><br>Change in Settings after unlock</div>
+</div>
+
+<!-- ═══════════════ WELCOME OVERLAY (first-visit, non-PWA) ═══════════════ -->
+<div id="welcome-overlay">
+  <div class="wov-inner">
+    <svg class="wov-mark" viewBox="0 0 80 80" fill="none" aria-label="Duggireddy D mark">
+      <defs>
+        <linearGradient id="wovg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   style="stop-color:#4f7fff"/>
+          <stop offset="55%"  style="stop-color:#7c5cfc"/>
+          <stop offset="100%" style="stop-color:#f0b429"/>
+        </linearGradient>
+        <filter id="wovglow">
+          <feGaussianBlur stdDeviation="3.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#wovglow)">
+        <rect x="13" y="10" width="11" height="60" rx="3" fill="url(#wovg)"/>
+        <rect x="13" y="10" width="30" height="11" rx="3" fill="url(#wovg)"/>
+        <rect x="13" y="59" width="30" height="11" rx="3" fill="url(#wovg)"/>
+        <path d="M 40 10 Q 70 10 70 40 Q 70 70 40 70" fill="none" stroke="url(#wovg)" stroke-width="11" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div class="wov-badge">Duggireddy Family · Hyderabad</div>
+    <h1 class="wov-title">Every Family Document.<br><em>One Private Portal.</em></h1>
+    <div class="wov-stats">
+      <div class="wov-stat"><span class="wov-sn">28</span><span class="wov-sl">Docs</span></div>
+      <div class="wov-stat"><span class="wov-sn">7</span><span class="wov-sl">Expiry</span></div>
+      <div class="wov-stat"><span class="wov-sn">4</span><span class="wov-sl">Members</span></div>
+      <div class="wov-stat"><span class="wov-sn">8</span><span class="wov-sl">Pillars</span></div>
+      <div class="wov-stat"><span class="wov-sn">AI</span><span class="wov-sl">Powered</span></div>
+    </div>
+    <div class="wov-modules">
+      <div class="wov-mod"><span>📁</span>Documents</div>
+      <div class="wov-mod"><span>⏰</span>Expiry</div>
+      <div class="wov-mod"><span>📅</span>Calendar</div>
+      <div class="wov-mod"><span>🚗</span>Vehicles</div>
+      <div class="wov-mod"><span>💰</span>Finances</div>
+      <div class="wov-mod"><span>🤖</span>AI Chat</div>
+      <div class="wov-mod"><span>📊</span>Budget</div>
+      <div class="wov-mod"><span>🩺</span>Health</div>
+    </div>
+    <button class="wov-cta pressable" onclick="enterPortal()">
+      Enter the Portal
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+        <path d="M7 1L13 7L7 13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="wov-footer">Tap ℹ️ anytime in the portal to revisit this overview</div>
+  </div>
 </div>
 
 <!-- ═══════════════ SIDEBAR NAV (tablet/desktop) ═══════════════ -->
