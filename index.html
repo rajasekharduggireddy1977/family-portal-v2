@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- First-visit gate: all users (including PWA) see landing page first -->
+<script>if(!localStorage.getItem('portal-visited'))location.replace('landing.html');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -271,6 +273,7 @@
     <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</div>
     <div class="tb-search-btn pressable" onclick="openCommandPalette()" title="Command Palette (⌘K)" style="display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:9px;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;" onmouseenter="this.style.borderColor='rgba(79,127,255,.4)';this.style.color='var(--blue2)'" onmouseleave="this.style.borderColor='';this.style.color=''">⌘K</div>
     <div class="tb-search-btn" onclick="goSearch()" title="Search">⌕</div>
+    <div class="tb-search-btn pressable" onclick="location.href='landing.html'" title="About this Portal" style="font-size:15px;line-height:1;">ℹ️</div>
   </div>
 </div>
 
