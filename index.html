@@ -407,24 +407,33 @@
               </div>
             </div>
 
+            <!-- ── STATUS ─────────────────────── -->
+            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Status Overview</span><div class="ov-ss-line"></div></div>
+
             <!-- ② 3-GAUGE STRIP -->
-            <div class="ov-gauges" id="ov-gauges">
-              <!-- rendered by auraRenderOverview() -->
+            <div class="tc ov-gauges-tc">
+              <div class="ov-gauges" id="ov-gauges">
+                <!-- rendered by auraRenderOverview() -->
+              </div>
             </div>
 
             <!-- ③ CRITICAL ALERTS -->
-            <div class="ov-alerts-wrap" id="ov-alerts-wrap">
-              <div class="ov-sec-hd">
-                <div class="ov-sec-title">
-                  <span class="ov-sec-dot pulse" style="background:var(--red);box-shadow:0 0 5px rgba(255,79,79,.6);"></span>
+            <div class="tc" id="ov-alerts-wrap">
+              <div class="tc-sec-hd">
+                <div class="tc-sec-title" style="display:flex;align-items:center;gap:6px;">
+                  <span class="ov-sec-dot pulse" style="background:var(--red);box-shadow:0 0 6px rgba(255,79,79,.7);"></span>
                   Critical Alerts
                 </div>
                 <span class="ov-sec-badge ov-badge-red" id="ov-alerts-badge">—</span>
               </div>
-              <div class="ov-alerts-scroll" id="ov-alerts-scroll">
+              <div class="ov-alerts-grid" id="ov-alerts-scroll">
                 <!-- rendered by auraRenderOverview() -->
               </div>
+              <div style="text-align:right;padding:6px 16px 8px;"><span class="tc-sec-action" onclick="goPage('expiry')">All Alerts &#8594;</span></div>
             </div>
+
+            <!-- ── SCHEDULE ───────────────────── -->
+            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Today &amp; Schedule</span><div class="ov-ss-line"></div></div>
 
             <!-- ④ TODAY block — exact today calendar events -->
             <div class="tc">
@@ -458,32 +467,34 @@
             <!-- Hidden stubs — backward-compat with auraRenderHome gravity rail refs -->
             <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
 
+            <!-- ── COMMAND ────────────────────── -->
+            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Command Stations</span><div class="ov-ss-line"></div></div>
+
             <!-- ⑥ COMMAND STATIONS -->
-            <div>
-              <div class="ov-sec-hd" style="margin-bottom:8px;">
-                <div class="ov-sec-title">
-                  <span class="ov-sec-dot" style="background:var(--gold);"></span>
-                  Command Stations
-                </div>
+            <div class="tc">
+              <div class="tc-sec-hd">
+                <div class="tc-sec-title">Command Stations</div>
                 <span class="ov-badge-mono">8 Pillars</span>
               </div>
               <div class="ov-modules-grid" id="ov-modules-grid">
                 <!-- rendered by auraRenderOverview() -->
               </div>
+              <div style="height:10px;"></div>
             </div>
 
+            <!-- ── FAMILY ─────────────────────── -->
+            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Family</span><div class="ov-ss-line"></div></div>
+
             <!-- ⑦ FAMILY STATUS -->
-            <div>
-              <div class="ov-sec-hd" style="margin-bottom:8px;">
-                <div class="ov-sec-title">
-                  <span class="ov-sec-dot" style="background:var(--gold);"></span>
-                  Family Status
-                </div>
+            <div class="tc">
+              <div class="tc-sec-hd">
+                <div class="tc-sec-title">Family Status</div>
                 <span class="ov-badge-mono">4 Members</span>
               </div>
-              <div class="ov-family-scroll" id="ov-family-scroll">
+              <div class="ov-family-grid" id="ov-family-scroll">
                 <!-- rendered by auraRenderOverview() -->
               </div>
+              <div style="height:10px;"></div>
             </div>
 
             <!-- ⑧ AI QUICK ASK -->
