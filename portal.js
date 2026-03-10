@@ -290,8 +290,8 @@ document.addEventListener('DOMContentLoaded',function(){
     // Init pulse selector
     const ap=document.querySelector('.pulse-cat.pulse-active');
     if(ap)movePulseSelector(ap);
-    // Show pulse only on dashboard
-    setPulseRailVisible(document.getElementById('page-dashboard')?.classList.contains('active'));
+    // Pulse rail hidden — use swipe to navigate dashboard panels
+    setPulseRailVisible(false);
   },150);
 });
 
@@ -340,7 +340,7 @@ function goPage(page) {
   }
 
   currentPage = page;
-  setPulseRailVisible(page === 'dashboard');
+  setPulseRailVisible(false);
   setBudgetRailVisible(page === 'budget');
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
@@ -8250,6 +8250,15 @@ function closeMoreMenuIfOpen() {
   const btn = document.getElementById('bnav-more');
   if (btn) btn.classList.remove('active');
 }
+// Close more menu when tapping anywhere outside it
+document.addEventListener('touchstart', function(e) {
+  if (!moreMenuOpen) return;
+  const menu = document.getElementById('bnav-more-menu');
+  const btn  = document.getElementById('bnav-more');
+  if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+    closeMoreMenuIfOpen();
+  }
+}, {passive: true});
 // ────────────────────────────────────────────────────────
 
 // Update FAB visibility per page — hide on search/dashboard
