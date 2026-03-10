@@ -4151,7 +4151,7 @@ function auraRenderHome() {
 
   var grCards = document.getElementById('gr-cards');
   var grEmpty = document.getElementById('gr-empty');
-  if (!grCards) return;
+  if (!grCards) { ovRenderMonthEvents && ovRenderMonthEvents(); return; }
 
   if (upcoming.length === 0) {
     grCards.innerHTML = '';
@@ -4225,6 +4225,84 @@ function auraRenderHome() {
   if (!window._grClockTick) {
     window._grClockTick = setInterval(updateGrClock, 30000);
   }
+}
+
+// ════════════════════════════════════════════════════════
+// Month Navigator — Upcoming section in Overview Panel 0
+// ════════════════════════════════════════════════════════
+var ovMonthOffset = 0;
+
+function ovMonthNav(delta) {
+  ovMonthOffset += delta;
+  ovRenderMonthEvents();
+}
+
+function ovRenderMonthEvents() {
+  var labelEl  = document.getElementById('ov-month-label');
+  var eventsEl = document.getElementById('ov-month-events');
+  if (!labelEl || !eventsEl) return;
+
+  var now    = new Date();
+  var target = new Date(now.getFullYear(), now.getMonth() + ovMonthOffset, 1);
+  var yr = target.getFullYear();
+  var mo = target.getMonth(); // 0-based
+
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  labelEl.textContent = MONTH_NAMES[mo] + ' ' + yr;
+
+  // Disable prev button if it would go before current month (optional — allow past browsing)
+  var prevBtn = labelEl.previousElementSibling;
+  var nextBtn = labelEl.nextElementSibling;
+  if (prevBtn) prevBtn.style.opacity = '1';
+  if (nextBtn) nextBtn.style.opacity = '1';
+
+  var calEvts = [];
+  try {
+    calEvts = typeof getCalEvents === 'function' ? getCalEvents() : JSON.parse(localStorage.getItem('fp_cal_events') || '[]');
+  } catch(e) {}
+
+  // Filter events belonging to this month
+  var pad = function(n) { return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad(mo + 1);
+  var monthEvts = calEvts
+    .filter(function(e) { return (e.date || '').slice(0, 7) === moStr; })
+    .sort(function(a, b) { return a.date.localeCompare(b.date); });
+
+  if (monthEvts.length === 0) {
+    eventsEl.innerHTML = '<div class="ov-month-empty">&#9728;&#65039; No events this month</div>';
+    return;
+  }
+
+  var CAT_COLORS = {
+    health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6',
+    government:'#fb923c', education:'#a78bfa', travel:'var(--teal,#06b6d4)',
+    family:'var(--green)', other:'var(--blue2)'
+  };
+  var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+
+  var html = '<div class="ov-month-list">';
+  monthEvts.forEach(function(e) {
+    var d   = new Date(e.date + 'T12:00:00');
+    var day = d.getDate();
+    var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    var col = CAT_COLORS[e.cat] || 'var(--blue2)';
+    var isToday = e.date === (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
+    var isPast  = d < now && !isToday;
+    var members = (e.members || []).map(function(m) { return MEMBER_LABELS[m] || m; }).join(', ') || '';
+    html += '<div class="ov-mon-evt' + (isPast ? ' ov-mon-evt-past' : '') + '" onclick="goPage(\'calendar\')">'
+      + '<div class="ov-mon-evt-date' + (isToday ? ' ov-mon-evt-today' : '') + '">'
+      + '<div class="ov-mon-day">' + day + '</div>'
+      + '<div class="ov-mon-dow">' + dow + '</div>'
+      + '</div>'
+      + '<div class="ov-mon-evt-bar" style="background:' + col + ';"></div>'
+      + '<div class="ov-mon-evt-body">'
+      + '<div class="ov-mon-evt-title">' + (e.title || '') + '</div>'
+      + (members ? '<div class="ov-mon-evt-meta">' + members + (e.cat ? ' · ' + e.cat : '') + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  eventsEl.innerHTML = html;
 }
 
 // ════════════════════════════════════════════════════════
@@ -4476,6 +4554,9 @@ function auraRenderOverview() {
       return '<div class="ov-stat"><div class="ov-stat-val">'+s.val+'</div><div class="ov-stat-lbl">'+s.lbl+'</div></div>';
     }).join('');
   }
+
+  // ════ ⑥ MONTH EVENTS ════
+  if (typeof ovRenderMonthEvents === 'function') ovRenderMonthEvents();
 }
 
 function auraRenderHealth() {
