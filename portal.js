@@ -7299,18 +7299,9 @@ function startWelcomeTimer() {
   // Timer starts in showWelcomeOverlay() — called after the loader screen fades out
 })();
 
-// Called by initLoader after loader fades — overlay fades in, timer starts
+// Called by initLoader after loader fades — overlay is already visible, just start timer
 function showWelcomeOverlay() {
-  var overlay = document.getElementById('welcome-overlay');
-  if (!overlay) return;
-  overlay.classList.remove('wov-gone');
-  // Double-rAF: ensures display:flex applies before opacity transition fires
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      overlay.classList.add('wov-show');
-      startWelcomeTimer();
-    });
-  });
+  startWelcomeTimer();
 }
 
 function enterPortal() {
