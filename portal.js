@@ -354,7 +354,7 @@ function goPage(page) {
 
   var canvas = document.getElementById('aura-canvas');
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
-  if (page !== 'dashboard') window.scrollTo(0,0);
+  if (page !== 'dashboard') { var _cnt=document.getElementById('content'); if(_cnt) _cnt.scrollTop=0; }
 
   if(page==='members')   { applyGmMembers(); }
   if(page==='expiry')    { initExpiry(); animateExpBars(); }
@@ -4415,7 +4415,7 @@ function auraRenderOverview() {
     function personInit(p) { return (p||'').slice(0,2).toUpperCase() || 'FA'; }
     var sorted = expiry.slice().sort(function(a,b){ return du(a.date)-du(b.date); });
     var html = '';
-    sorted.forEach(function(e) {
+    sorted.slice(0, 2).forEach(function(e) {
       var d = du(e.date);
       var isOverdue = d < 0;
       var isUrgent  = !isOverdue && d <= 90;
@@ -5122,7 +5122,7 @@ function showMemberDetail(memberId, tab) {
     </div>`).join('')}</div>`;
 
   renderMemberTab(m, currentTab);
-  if (!window._skipScroll) window.scrollTo(0,0);
+  if (!window._skipScroll) { var _mc=document.getElementById('content'); if(_mc) _mc.scrollTop=0; }
   window._skipScroll = false;
 }
 
