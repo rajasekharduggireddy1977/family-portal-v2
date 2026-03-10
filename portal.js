@@ -3859,6 +3859,8 @@ function auraInitDashboard() {
   auraRenderAlerts();
   auraRenderHome();
   auraRenderOverview();
+  // Always render month events directly so it shows even if auraRenderOverview errors mid-way
+  if (typeof ovRenderMonthEvents === 'function') ovRenderMonthEvents();
   auraRenderHealth();
   auraRenderEducation();
   auraRenderFinance();
@@ -4249,12 +4251,6 @@ function ovRenderMonthEvents() {
 
   var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   labelEl.textContent = MONTH_NAMES[mo] + ' ' + yr;
-
-  // Disable prev button if it would go before current month (optional — allow past browsing)
-  var prevBtn = labelEl.previousElementSibling;
-  var nextBtn = labelEl.nextElementSibling;
-  if (prevBtn) prevBtn.style.opacity = '1';
-  if (nextBtn) nextBtn.style.opacity = '1';
 
   var calEvts = [];
   try {

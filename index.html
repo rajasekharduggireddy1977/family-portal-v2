@@ -435,23 +435,28 @@
               <div id="aura-today-timeline"></div>
             </div>
 
-            <!-- ⑤ UPCOMING — gravity rail -->
-            <div class="tc tc-grav-rail-wrap" id="aura-grav-rail-tc">
-              <div class="tc-sec-hd">
-                <div class="tc-sec-title">Upcoming</div>
-                <div class="tc-sec-action" onclick="goPage('calendar')">All →</div>
+            <!-- ⑤ UPCOMING — month navigator -->
+            <div>
+              <div class="ov-sec-hd" style="margin-bottom:8px;">
+                <div class="ov-sec-title">
+                  <span class="ov-sec-dot" style="background:var(--blue2);"></span>
+                  Upcoming
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
+                  <span id="ov-month-label" class="ov-month-label"></span>
+                  <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
+                </div>
               </div>
-              <div class="gr-now-bar">
-                <div class="gr-now-label">NOW</div>
-                <div class="gr-now-line"></div>
-                <div class="gr-now-clock" id="gr-now-clock"></div>
+              <div class="tc" id="ov-month-cal-tc">
+                <div id="ov-month-events" style="padding:4px 0 2px;">
+                  <!-- rendered by ovRenderMonthEvents() -->
+                </div>
+                <div style="text-align:right;padding:6px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
               </div>
-              <div class="gr-rail-wrap" id="gr-rail-wrap">
-                <div class="gr-rail-track"></div>
-                <div class="gr-cards" id="gr-cards"></div>
-              </div>
-              <div class="gr-empty" id="gr-empty" style="display:none;">&#10003; All clear — no upcoming events</div>
             </div>
+            <!-- Hidden stubs — backward-compat with auraRenderHome gravity rail refs -->
+            <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
 
             <!-- ⑥ COMMAND STATIONS -->
             <div>
