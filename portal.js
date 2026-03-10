@@ -4415,7 +4415,7 @@ function auraRenderOverview() {
     function personInit(p) { return (p||'').slice(0,2).toUpperCase() || 'FA'; }
     var sorted = expiry.slice().sort(function(a,b){ return du(a.date)-du(b.date); });
     var html = '';
-    sorted.forEach(function(e) {
+    sorted.slice(0, 2).forEach(function(e) {
       var d = du(e.date);
       var isOverdue = d < 0;
       var isUrgent  = !isOverdue && d <= 90;
