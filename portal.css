@@ -4315,6 +4315,8 @@ input:focus, button:focus-visible {
 }
 #page-dashboard.active ~ * #aura-canvas,
 body.dash-active #aura-canvas{ display:block; }
+/* Prevent body scroll when dashboard is active (fixed overlay — no in-flow content) */
+body.dash-active{ overflow-y:hidden; }
 
 /* Dashboard page — fixed viewport fill, shown only when active */
 #page-dashboard{

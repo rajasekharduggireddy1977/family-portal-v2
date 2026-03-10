@@ -354,6 +354,7 @@ function goPage(page) {
 
   var canvas = document.getElementById('aura-canvas');
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
+  document.body.classList.toggle('dash-active', page === 'dashboard');
   if (page !== 'dashboard') window.scrollTo(0,0);
 
   if(page==='members')   { applyGmMembers(); }
