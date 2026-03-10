@@ -4968,7 +4968,13 @@ body.dash-active #aura-canvas{ display:block; }
 /* Limit Today section to max 3 rows to prevent over-tall panel */
 #aura-today-timeline .tc-tl-row:nth-child(n+4) { display: none; }
 
-/* ── 4. HORIZONTAL LINE FIX ── */
+/* ── 4. PANEL 0 COMPACT SPACING ── */
+/* Reduce gap between sections and tighten padding to minimize Home scroll */
+#aura-p0{gap:7px !important;}
+#aura-p0 .ov-sec-hd{padding:0 14px;margin-bottom:6px;}
+#aura-p0 .ov-month-hd{padding:0 14px 7px;}
+
+/* ── 5. HORIZONTAL LINE FIX ── */
 /* Remove top shimmer line from TC cards (the ::before line "above Upcoming") */
 .tc::before { display: none !important; }
 /* Remove bottom border of pulse rail inner (line "below Overview bar") */
@@ -4996,12 +5002,12 @@ body.dash-active #aura-canvas{ display:block; }
 
 /* 3-GAUGE ROW */
 .ov-gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px;}
-.ov-gauge{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:12px 10px;text-align:center;position:relative;overflow:hidden;transition:transform .15s;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ov-gauge{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:10px 8px;text-align:center;position:relative;overflow:hidden;transition:transform .15s;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .ov-gauge:active{transform:scale(.96);}
-.ov-gauge-icon{font-size:17px;display:block;margin-bottom:5px;}
-.ov-gauge-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.03em;display:block;line-height:1;}
+.ov-gauge-icon{font-size:15px;display:block;margin-bottom:4px;}
+.ov-gauge-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.03em;display:block;line-height:1;}
 .ov-gauge-lbl{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.45);text-transform:uppercase;letter-spacing:.07em;display:block;margin-top:3px;}
-.ov-gauge-status{display:inline-flex;align-items:center;gap:3px;margin-top:5px;font-size:9px;padding:2px 6px;border-radius:100px;}
+.ov-gauge-status{display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:9px;padding:2px 6px;border-radius:100px;}
 .ov-gauge.ov-red{border-color:rgba(255,79,79,.22);}
 .ov-gauge.ov-amber{border-color:rgba(240,180,41,.2);}
 .ov-gauge.ov-green{border-color:rgba(62,207,142,.18);}
@@ -5025,7 +5031,7 @@ body.dash-active #aura-canvas{ display:block; }
 
 /* CRITICAL ALERTS SCROLL */
 .ov-alerts-wrap{padding:0;}
-.ov-alerts-scroll{display:flex;gap:10px;padding:0 14px 4px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;}
+.ov-alerts-scroll{display:flex;gap:10px;padding:0 14px 4px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .ov-alerts-scroll::-webkit-scrollbar{display:none;}
 .ov-alert-card{flex-shrink:0;width:min(210px,calc(82vw - 28px));border-radius:14px;padding:11px 12px;scroll-snap-align:start;position:relative;overflow:hidden;border:1px solid;transition:transform .15s;-webkit-tap-highlight-color:transparent;cursor:pointer;}
 .ov-alert-card:active{transform:scale(.96);}
@@ -5074,7 +5080,7 @@ body.dash-active #aura-canvas{ display:block; }
 .ov-module:hover .ov-mod-accent{transform:scaleX(1);}
 
 /* FAMILY STATUS */
-.ov-family-scroll{display:flex;gap:8px;padding:0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;}
+.ov-family-scroll{display:flex;gap:8px;padding:0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .ov-family-scroll::-webkit-scrollbar{display:none;}
 .ov-mem-card{flex-shrink:0;width:140px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:11px 10px;transition:transform .15s;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .ov-mem-card:active{transform:scale(.96);}
@@ -5115,7 +5121,8 @@ body.dash-active #aura-canvas{ display:block; }
 .ov-mon-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:rgba(235,240,255,.8);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;}
 .ov-mon-btn:active{background:rgba(255,255,255,.14);}
 .ov-month-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:rgba(235,240,255,.9);flex-shrink:0;}
-.ov-month-list{display:flex;flex-direction:column;gap:6px;padding:0 14px;}
+.ov-month-list{display:flex;flex-direction:column;gap:6px;padding:0 14px;max-height:220px;overflow-y:auto;scrollbar-width:none;}
+.ov-month-list::-webkit-scrollbar{display:none;}
 .ov-month-empty{text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:rgba(140,158,220,.4);padding:18px 0;}
 .ov-mon-evt{display:flex;align-items:stretch;gap:0;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;}
 .ov-mon-evt:active{background:rgba(255,255,255,.08);}
