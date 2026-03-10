@@ -774,6 +774,7 @@ function deleteCalEvent(id) {
   if (calMiniBody) calMiniBody.innerHTML = buildCalMiniWidget();
   showToast('🗑 Event deleted');
   if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
   if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
 }
 
@@ -828,6 +829,7 @@ function saveCalEvent() {
   // Refresh dashboard cal widget and home panel immediately
   buildCalMiniWidget && buildCalMiniWidget();
   if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
   if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
 }
 
@@ -3856,6 +3858,7 @@ function auraInitDashboard() {
   auraRenderGreeting();
   auraRenderAlerts();
   auraRenderHome();
+  auraRenderOverview();
   auraRenderHealth();
   auraRenderEducation();
   auraRenderFinance();
@@ -4221,6 +4224,257 @@ function auraRenderHome() {
   updateGrClock();
   if (!window._grClockTick) {
     window._grClockTick = setInterval(updateGrClock, 30000);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// auraRenderOverview — drives the Overview panel (Panel 0)
+// Reads: EXPIRY, MEMBERS, getHealthData(), getCalEvents(),
+//        ALL_DOCS (via buildAllDocs), bgtGetData/bgtCalc
+// ════════════════════════════════════════════════════════
+function auraRenderOverview() {
+  // ── helpers ──
+  function du(d) { return typeof daysUntil === 'function' ? daysUntil(d) : Math.round((new Date(d) - new Date()) / 86400000); }
+  var expiry = (typeof EXPIRY !== 'undefined') ? EXPIRY : [];
+
+  // ── ensure docs built ──
+  if (typeof buildAllDocs === 'function') buildAllDocs();
+  var docCount = (typeof ALL_DOCS !== 'undefined') ? ALL_DOCS.length : 28;
+
+  // ── expiry counts ──
+  var overdueCnt = 0, urgentCnt = 0, safeCnt = 0;
+  expiry.forEach(function(e) {
+    var d = du(e.date);
+    if (d < 0) overdueCnt++;
+    else if (d <= 90) urgentCnt++;
+    else safeCnt++;
+  });
+
+  // ── budget: read fp_budget_v1 for monthly fill % ──
+  var bgtPct = null, bgtLabel = '—';
+  try {
+    if (typeof bgtGetData === 'function' && typeof bgtCalc === 'function') {
+      var bd = bgtGetData();
+      var bc = bgtCalc(bd);
+      if (bc.iTotal > 0) {
+        bgtPct = Math.min(100, Math.round(bc.mTotal / bc.iTotal * 100));
+        bgtLabel = bgtPct + '%';
+      }
+    } else {
+      var bRaw = localStorage.getItem('fp_budget_v1');
+      if (bRaw) {
+        var bObj = JSON.parse(bRaw);
+        var mTot = (bObj.monthly||[]).reduce(function(s,r){return s+r.amount;},0);
+        var inc  = (bObj.income||[]).reduce(function(s,r){return s+r.amount;},0);
+        if (inc > 0) { bgtPct = Math.min(100,Math.round(mTot/inc*100)); bgtLabel = bgtPct+'%'; }
+      }
+    }
+  } catch(e2) {}
+
+  // ── calendar events ──
+  var calEvts = [];
+  try {
+    calEvts = (typeof getCalEvents === 'function') ? getCalEvents() : JSON.parse(localStorage.getItem('fp_cal_events')||'[]');
+  } catch(e3){}
+  var upcomingCnt = calEvts.filter(function(e){
+    var d = new Date(e.date+'T12:00:00'); return d >= new Date();
+  }).length;
+
+  // ── health flag count ──
+  var healthFlagCnt = 0;
+  try {
+    var hd = (typeof getHealthData === 'function') ? getHealthData() : JSON.parse(localStorage.getItem('fp_health_v3')||'{}');
+    Object.keys(hd).forEach(function(mid) {
+      var mData = hd[mid]; if (!mData || !mData.markers) return;
+      var meta = (typeof HEALTH_MEMBER_META !== 'undefined') ? HEALTH_MEMBER_META[mid] : {gender:'M'};
+      Object.entries(mData.markers).forEach(function(entry) {
+        var bmId = entry[0], val = entry[1];
+        if (val === null || val === undefined) return;
+        var def = (typeof BM_DEFS !== 'undefined') ? BM_DEFS.find(function(b){return b.id===bmId;}) : null;
+        if (!def) return;
+        var st = (typeof getBmStatus === 'function') ? getBmStatus(def, val, meta ? meta.gender : 'M') : 'normal';
+        if (st === 'high' || st === 'low') healthFlagCnt++;
+      });
+    });
+  } catch(e4){}
+
+  // ════ ① 3-GAUGE STRIP ════
+  var gaugesEl = document.getElementById('ov-gauges');
+  if (gaugesEl) {
+    var overdueStatus = overdueCnt > 0 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Action Now</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; All Clear</span>';
+    var bgtStatus = bgtPct === null ? '' : bgtPct >= 90 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Near Limit</span>' : bgtPct >= 70 ? '<span class="ov-gauge-status ov-gs-amber">&#9679; Watch</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; Healthy</span>';
+    gaugesEl.innerHTML =
+      '<div class="ov-gauge ov-red pressable" onclick="goPage(\'expiry\')">'
+      + '<span class="ov-gauge-icon">&#x23F0;</span>'
+      + '<span class="ov-gauge-val ov-gv-red">' + (overdueCnt > 0 ? overdueCnt : urgentCnt) + '</span>'
+      + '<span class="ov-gauge-lbl">' + (overdueCnt > 0 ? 'Overdue' : 'Upcoming') + '</span>'
+      + overdueStatus
+      + '</div>'
+      + '<div class="ov-gauge ov-amber pressable" onclick="goPage(\'budget\')">'
+      + '<span class="ov-gauge-icon">&#x1F4CA;</span>'
+      + '<span class="ov-gauge-val ov-gv-amber">' + bgtLabel + '</span>'
+      + '<span class="ov-gauge-lbl">Budget</span>'
+      + bgtStatus
+      + '</div>'
+      + '<div class="ov-gauge ov-green pressable" onclick="goPage(\'documents\')">'
+      + '<span class="ov-gauge-icon">&#x1F6E1;&#xFE0F;</span>'
+      + '<span class="ov-gauge-val ov-gv-green">' + docCount + '</span>'
+      + '<span class="ov-gauge-lbl">Docs Safe</span>'
+      + '<span class="ov-gauge-status ov-gs-green">&#9679; All Secure</span>'
+      + '</div>';
+  }
+
+  // ════ ② CRITICAL ALERTS scroll ════
+  var alertBadge = document.getElementById('ov-alerts-badge');
+  var alertScroll = document.getElementById('ov-alerts-scroll');
+  if (alertBadge) {
+    alertBadge.textContent = overdueCnt + ' Overdue · ' + urgentCnt + ' Upcoming';
+  }
+  if (alertScroll) {
+    var PERSON_GRADS = {
+      'Rajasekhar':'linear-gradient(135deg,#1a3254,#3b6fd4)',
+      'Vasundhara':'linear-gradient(135deg,#5b21b6,#9333ea)',
+      'Josritha':'linear-gradient(135deg,#9d174d,#ec4899)',
+      'Jeevan':'linear-gradient(135deg,#065f46,#0d9488)',
+      'Family':'linear-gradient(135deg,#1a4a3a,#3ecf8e)'
+    };
+    function personInit(p) { return (p||'').slice(0,2).toUpperCase() || 'FA'; }
+    var sorted = expiry.slice().sort(function(a,b){ return du(a.date)-du(b.date); });
+    var html = '';
+    sorted.forEach(function(e) {
+      var d = du(e.date);
+      var isOverdue = d < 0;
+      var isUrgent  = !isOverdue && d <= 90;
+      var cls = isOverdue ? 'ov-ac-red' : isUrgent ? 'ov-ac-amber' : 'ov-ac-green';
+      var stripCls = isOverdue ? 'ov-ac-strip-red' : isUrgent ? 'ov-ac-strip-amber' : 'ov-ac-strip-green';
+      var catCls = isOverdue ? 'ov-ac-cat-red' : isUrgent ? 'ov-ac-cat-amber' : 'ov-ac-cat-green';
+      var chipCls = isOverdue ? 'ov-chip-red' : isUrgent ? 'ov-chip-amber' : 'ov-chip-green';
+      var chipLabel = isOverdue ? 'Overdue' : ('~'+d+' days');
+      var catLabel = e.policy ? e.policy.split('/')[0] : (e.sub||'').split('·')[0].trim();
+      var grad = PERSON_GRADS[e.person] || 'linear-gradient(135deg,#334,#556)';
+      html += '<div class="ov-alert-card ' + cls + '" onclick="goPage(\'expiry\')">'
+        + '<div class="ov-ac-strip ' + stripCls + '"></div>'
+        + '<div class="ov-ac-top">'
+        + '<span class="ov-ac-cat ' + catCls + '">' + e.icon + ' ' + catLabel + '</span>'
+        + '<span class="ov-ac-chip ' + chipCls + '">' + chipLabel + '</span>'
+        + '</div>'
+        + '<div class="ov-ac-name">' + e.label + '</div>'
+        + '<div class="ov-ac-meta">Due: ' + e.date + '</div>'
+        + '<div class="ov-ac-member">'
+        + '<div class="ov-ac-av" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
+        + e.person
+        + '</div>'
+        + '</div>';
+    });
+    alertScroll.innerHTML = html || '<div style="padding:10px 0;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">All items are safe &#x2705;</div>';
+  }
+
+  // ════ ③ COMMAND STATIONS ════
+  var modulesEl = document.getElementById('ov-modules-grid');
+  if (modulesEl) {
+    var vehItems = expiry.filter(function(e){ return e.id.indexOf('ins')!==-1||e.id.indexOf('car')!==-1||e.id.indexOf('bike')!==-1; });
+    var vehOverdue = vehItems.filter(function(e){ return du(e.date)<0; }).length;
+    var vehStatus  = vehOverdue > 0 ? '<span class="ov-mod-val" style="color:var(--red)">&#x26A0;&#xFE0F;'+vehOverdue+'</span>' : '<span class="ov-mod-val" style="color:var(--green)">OK</span>';
+    var vehDot     = vehOverdue > 0 ? 'ov-mod-dot-red' : 'ov-mod-dot-green';
+    var bgtPctBar  = bgtPct !== null ? '<div class="ov-mod-bar"><div class="ov-mod-bar-fill" style="width:'+(Math.min(100,bgtPct))+'%;background:'+(bgtPct>=90?'var(--red)':bgtPct>=70?'var(--gold)':'var(--teal,#06b6d4)')+'"></div></div>' : '';
+    var hFlagDot   = healthFlagCnt > 0 ? 'ov-mod-dot-red' : 'ov-mod-dot-green';
+    var hFlagVal   = healthFlagCnt > 0 ? '<span class="ov-mod-val" style="color:var(--red)">&#x26A0;&#xFE0F;'+healthFlagCnt+'</span>' : '<span class="ov-mod-val" style="color:var(--green)">OK</span>';
+    var modules = [
+      { icon:'&#x1F4C1;', dot:'ov-mod-dot-blue',   name:'Documents', val:'<span class="ov-mod-val" style="color:var(--blue2)">'+docCount+'</span>',  sub:'5 categories<br>All indexed',                        accent:'var(--blue2)',   page:'documents' },
+      { icon:'&#x23F0;',  dot:(overdueCnt>0?'ov-mod-dot-red':'ov-mod-dot-amber'), name:'Expiry',    val:'<span class="ov-mod-val" style="color:'+(overdueCnt>0?'var(--red)':'var(--gold)') + '">'+(overdueCnt>0?overdueCnt+'&#x1F534;':urgentCnt+' &#x1F7E1;')+'</span>', sub:urgentCnt+' upcoming<br>'+safeCnt+' safe', accent:(overdueCnt>0?'var(--red)':'var(--gold)'), page:'expiry' },
+      { icon:'&#x1F4C5;', dot:'ov-mod-dot-violet', name:'Calendar',  val:'<span class="ov-mod-val" style="color:#a78bfa">'+upcomingCnt+'</span>',     sub:'Events ahead<br>Next 30 days',                       accent:'#a78bfa',        page:'calendar' },
+      { icon:'&#x1F697;', dot:vehDot,              name:'Vehicles',  val:vehStatus,                                                                   sub:'i10 · Activa<br>Insurance',                           accent:'var(--green)',   page:'expiry' },
+      { icon:'&#x1F4B0;', dot:'ov-mod-dot-amber',  name:'Budget',    val:'<span class="ov-mod-val" style="color:var(--gold)">'+(bgtLabel)+'</span>',  sub:'Monthly plan'+bgtPctBar,                              accent:'var(--gold)',    page:'budget' },
+      { icon:'&#x1F46A;', dot:'ov-mod-dot-green',  name:'Family',    val:'<span class="ov-mod-val" style="color:var(--green)">4</span>',              sub:'Members<br>Active profiles',                          accent:'var(--green)',   page:'members' },
+      { icon:'&#x2764;&#xFE0F;', dot:hFlagDot,     name:'Health',    val:hFlagVal,                                                                    sub:(healthFlagCnt>0?'Flags detected':'All normal'),        accent:'var(--red)',     page:'health' },
+      { icon:'&#x1F916;', dot:'ov-mod-dot-violet', name:'AI',        val:'<span class="ov-mod-val" style="color:#a78bfa">ON</span>',                  sub:'Claude active<br>Memory ready',                       accent:'#a78bfa',        action:'ai' }
+    ];
+    modulesEl.innerHTML = modules.map(function(m) {
+      var onclick = m.action === 'ai' ? 'typeof toggleAIPanel===\'function\'?toggleAIPanel():null' : 'goPage(\''+m.page+'\')';
+      return '<div class="ov-module pressable" onclick="'+onclick+'">'
+        + '<div class="ov-mod-hd"><span class="ov-mod-icon">'+m.icon+'</span><span class="ov-mod-dot '+m.dot+'"></span></div>'
+        + '<div class="ov-mod-name">'+m.name+'</div>'
+        + m.val
+        + '<div class="ov-mod-sub">'+m.sub+'</div>'
+        + '<div class="ov-mod-accent" style="background:'+m.accent+';"></div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // ════ ④ FAMILY STATUS ════
+  var famEl = document.getElementById('ov-family-scroll');
+  if (famEl && typeof MEMBERS !== 'undefined') {
+    var hDataAll = {};
+    try { hDataAll = (typeof getHealthData === 'function') ? getHealthData() : JSON.parse(localStorage.getItem('fp_health_v3')||'{}'); } catch(e5){}
+    var memberOrder = ['rajasekhar','vasundhara','josritha','jeevan'];
+    famEl.innerHTML = memberOrder.map(function(mid) {
+      var m = MEMBERS[mid]; if (!m) return '';
+      var mhd = hDataAll[mid] || {};
+      var markers = mhd.markers || {};
+      var meta = (typeof HEALTH_MEMBER_META !== 'undefined') ? HEALTH_MEMBER_META[mid] : {gender:'M'};
+      // health flags
+      var flags = 0;
+      Object.entries(markers).forEach(function(entry){
+        var bmId = entry[0], val = entry[1];
+        if (val===null||val===undefined) return;
+        var def = (typeof BM_DEFS!=='undefined') ? BM_DEFS.find(function(b){return b.id===bmId;}) : null;
+        if (!def) return;
+        var st = (typeof getBmStatus==='function') ? getBmStatus(def,val,meta?meta.gender:'M') : 'normal';
+        if (st==='high'||st==='low') flags++;
+      });
+      var hasHealthData = Object.keys(markers).length > 0;
+      // expiry items for this person
+      var persExpiry = expiry.filter(function(e){ return e.person === m.shortName || e.person === 'Family'; });
+      var persOverdue = persExpiry.filter(function(e){ return du(e.date)<0; }).length;
+      var persUrgent  = persExpiry.filter(function(e){ var d=du(e.date); return d>=0&&d<=90; }).length;
+      // next appointment from calendar
+      var now = new Date(); now.setHours(0,0,0,0);
+      var memEvts = calEvts.filter(function(e){
+        var d = new Date(e.date+'T12:00:00');
+        return d >= now && e.cat === 'health' && (e.members||[]).some(function(mem){ return mem.toLowerCase()===mid; });
+      }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+      var nextAppt = memEvts.length > 0 ? memEvts[0] : null;
+      // vitals
+      var vitals = [];
+      if (hasHealthData) {
+        var score = (typeof computeHealthScore==='function') ? computeHealthScore(mid) : null;
+        var scoreChip = score!==null ? (score>=80?'ov-chip-ok':score>=60?'ov-chip-warn':'ov-chip-crit') : 'ov-chip-info';
+        var scoreTxt = score!==null ? score+'/100' : 'No data';
+        vitals.push({lbl:'Health',chip:scoreChip,val:scoreTxt});
+      } else {
+        vitals.push({lbl:'Health',chip:'ov-chip-info',val:'No data'});
+      }
+      if (persOverdue > 0) vitals.push({lbl:'Expiry',chip:'ov-chip-crit',val:persOverdue+' Overdue'});
+      else if (persUrgent > 0) vitals.push({lbl:'Expiry',chip:'ov-chip-warn',val:persUrgent+' Due Soon'});
+      else vitals.push({lbl:'Expiry',chip:'ov-chip-ok',val:'All Clear'});
+      if (nextAppt) vitals.push({lbl:'Next Appt',chip:'ov-chip-warn',val:nextAppt.date.slice(5).replace('-','/')});
+      else if (flags > 0) vitals.push({lbl:'Flags',chip:'ov-chip-crit',val:flags+' Issues'});
+      else vitals.push({lbl:'Status',chip:'ov-chip-ok',val:'Healthy'});
+      return '<div class="ov-mem-card pressable" onclick="goPage(\'members\')">'
+        + '<div class="ov-mem-top">'
+        + '<div class="ov-mem-av" style="background:'+m.gradient+'">'+m.initials+'</div>'
+        + '<div><div class="ov-mem-name">'+m.shortName+'</div><div class="ov-mem-role">'+m.role+'</div></div>'
+        + '</div>'
+        + '<div class="ov-mem-vitals">'
+        + vitals.slice(0,3).map(function(v){
+            return '<div class="ov-vital-row"><span class="ov-vital-lbl">'+v.lbl+'</span><span class="ov-vital-chip '+v.chip+'">'+v.val+'</span></div>';
+          }).join('')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // ════ ⑤ STATS BAR ════
+  var statsEl = document.getElementById('ov-stats-bar');
+  if (statsEl) {
+    statsEl.innerHTML = [
+      { val: docCount,          lbl: 'Docs' },
+      { val: expiry.length,     lbl: 'Expiry' },
+      { val: typeof MEMBERS !== 'undefined' ? Object.keys(MEMBERS).length : 4, lbl: 'Members' },
+      { val: 8,                 lbl: 'Pillars' }
+    ].map(function(s){
+      return '<div class="ov-stat"><div class="ov-stat-val">'+s.val+'</div><div class="ov-stat-lbl">'+s.lbl+'</div></div>';
+    }).join('');
   }
 }
 
@@ -5322,7 +5576,7 @@ function syncTimetableFile(input) {
       localStorage.setItem("fp_timetable_synced_ts", ts);
       window._acadView = 'combined';
       showToast("✅ Timetable synced — " + data.length + " slots loaded");
-      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderHome(); }, 50);
+      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderHome(); auraRenderOverview(); }, 50);
       input.value = "";
     } catch(err) { showToast("❌ Could not parse timetable file"); }
   };
@@ -5901,7 +6155,7 @@ function getHealthData() {
 }
 function saveHealthData(data) {
   localStorage.setItem('fp_health_v3', JSON.stringify(data));
-  setTimeout(function() { auraRenderHealth(); auraRenderAlerts(); }, 50);
+  setTimeout(function() { auraRenderHealth(); auraRenderAlerts(); auraRenderOverview(); }, 50);
 }
 
 // ── Compute health score (0–100) for a member ──
@@ -9281,7 +9535,7 @@ function uhHandleFile(type, input) {
       showToast('\u2705 ' + msg);
       if (card) card.classList.remove('uploading');
       uhRefreshUI();
-      setTimeout(function() { auraRenderAlerts(); auraRenderHealth(); auraRenderEducation(); auraRenderFinance(); auraRenderHome(); }, 100);
+      setTimeout(function() { auraRenderAlerts(); auraRenderHealth(); auraRenderEducation(); auraRenderFinance(); auraRenderHome(); auraRenderOverview(); }, 100);
       input.value = '';
     } catch(err) {
       showToast('\u274c Could not parse JSON');
