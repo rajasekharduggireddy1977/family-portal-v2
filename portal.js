@@ -354,7 +354,7 @@ function goPage(page) {
 
   var canvas = document.getElementById('aura-canvas');
   if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
-  if (page !== 'dashboard') { var _cnt=document.getElementById('content'); if(_cnt) _cnt.scrollTop=0; }
+  if (page !== 'dashboard') window.scrollTo(0,0);
 
   if(page==='members')   { applyGmMembers(); }
   if(page==='expiry')    { initExpiry(); animateExpBars(); }
@@ -5122,7 +5122,7 @@ function showMemberDetail(memberId, tab) {
     </div>`).join('')}</div>`;
 
   renderMemberTab(m, currentTab);
-  if (!window._skipScroll) { var _mc=document.getElementById('content'); if(_mc) _mc.scrollTop=0; }
+  if (!window._skipScroll) window.scrollTo(0,0);
   window._skipScroll = false;
 }
 
