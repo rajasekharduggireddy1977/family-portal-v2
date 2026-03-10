@@ -239,13 +239,14 @@
       <div class="wov-mod"><span>📊</span>Budget</div>
       <div class="wov-mod"><span>🩺</span>Health</div>
     </div>
-    <button class="wov-cta pressable" onclick="enterPortal()">
-      Enter the Portal
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <path d="M7 1L13 7L7 13M1 7H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <div class="wov-footer">Tap ℹ️ anytime in the portal to revisit this overview</div>
+    <div class="wov-progress-wrap" id="wov-progress-wrap" onclick="enterPortal()" role="button" aria-label="Enter portal now">
+      <div class="wov-progress-fill" id="wov-progress-fill"></div>
+      <div class="wov-progress-label">
+        <span>Entering Portal</span>
+        <span class="wov-countdown" id="wov-countdown">6</span>
+      </div>
+    </div>
+    <div class="wov-footer">Tap to skip · ℹ️ anytime to revisit</div>
   </div>
 </div>
 

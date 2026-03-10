@@ -899,18 +899,28 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   font-family:'DM Mono',monospace;
 }
 .wov-mod span{font-size:16px;}
-.wov-cta{
-  display:inline-flex;align-items:center;gap:8px;
-  background:linear-gradient(135deg,var(--blue),var(--violet));
-  color:#fff;border:none;cursor:pointer;
-  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
-  padding:14px 32px;border-radius:12px;
-  box-shadow:0 4px 20px rgba(79,127,255,.3);
-  transition:all .15s;
+.wov-progress-wrap{
+  position:relative;width:100%;height:52px;
+  background:var(--surface);border:1px solid rgba(79,127,255,.35);
+  border-radius:14px;overflow:hidden;cursor:pointer;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-.wov-cta:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(79,127,255,.4);}
-.wov-cta:active{transform:scale(.97);}
+.wov-progress-wrap:active{opacity:.85;}
+.wov-progress-fill{
+  position:absolute;inset:0;width:0%;
+  background:linear-gradient(90deg,rgba(79,127,255,.55),rgba(124,92,252,.55));
+  transition:none;
+}
+.wov-progress-label{
+  position:relative;z-index:1;height:100%;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);
+}
+.wov-countdown{
+  font-family:'DM Mono',monospace;font-size:22px;font-weight:700;
+  color:var(--gold);min-width:24px;text-align:right;line-height:1;
+}
 .wov-footer{
   font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);
   margin-top:20px;line-height:1.6;

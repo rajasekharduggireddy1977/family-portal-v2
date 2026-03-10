@@ -7270,19 +7270,47 @@ function syncSidebarNav(page) {
 })();
 
 // ═══════════════════════════════════════
-// WELCOME OVERLAY — shows on every load (PWA and browser alike)
-// Always visible on app launch; enterPortal() fades it out for this session.
+// WELCOME OVERLAY — auto-progress bar (6s) on every load
 // ═══════════════════════════════════════
+var _wovAnimId = null;
+var _wovStartTime = null;
+var WOV_DURATION = 6000; // ms
+
+function startWelcomeTimer() {
+  _wovStartTime = Date.now();
+  var bar = document.getElementById('wov-progress-fill');
+  var cd  = document.getElementById('wov-countdown');
+  function tick() {
+    var elapsed = Date.now() - _wovStartTime;
+    var pct     = Math.min(elapsed / WOV_DURATION * 100, 100);
+    var secs    = Math.max(Math.ceil((WOV_DURATION - elapsed) / 1000), 0);
+    if (bar) bar.style.width = pct + '%';
+    if (cd)  cd.textContent  = secs;
+    if (elapsed >= WOV_DURATION) { enterPortal(); return; }
+    _wovAnimId = requestAnimationFrame(tick);
+  }
+  _wovAnimId = requestAnimationFrame(tick);
+}
+
 (function initWelcomeOverlay() {
-  // Overlay is always shown — no PWA or visited checks.
-  // It is visible by default in HTML; nothing to do here.
+  // FAB has z-index:9100 — hide it while overlay is visible
+  var fab = document.getElementById('fab-btn-wrap');
+  if (fab) fab.style.display = 'none';
+  // Start 6-second auto-enter countdown
+  startWelcomeTimer();
 })();
 
 function enterPortal() {
+  // Cancel timer if still running
+  if (_wovAnimId) { cancelAnimationFrame(_wovAnimId); _wovAnimId = null; }
   var overlay = document.getElementById('welcome-overlay');
-  if (!overlay) return;
-  overlay.classList.add('wov-hidden');   // fade out
-  setTimeout(function() { overlay.classList.add('wov-gone'); }, 520); // then remove from layout
+  if (!overlay || overlay.classList.contains('wov-hidden') || overlay.classList.contains('wov-gone')) return;
+  // Restore FAB
+  var fab = document.getElementById('fab-btn-wrap');
+  if (fab) fab.style.display = '';
+  // Fade out overlay
+  overlay.classList.add('wov-hidden');
+  setTimeout(function() { overlay.classList.add('wov-gone'); }, 520);
 }
 
 checkPinSession();
