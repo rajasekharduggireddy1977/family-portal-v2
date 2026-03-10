@@ -7270,28 +7270,19 @@ function syncSidebarNav(page) {
 })();
 
 // ═══════════════════════════════════════
-// WELCOME OVERLAY — first-visit intro (non-PWA only)
-// Shows on first load for browser users; skipped for PWA / return visits.
-// enterPortal() dismisses it with a fade and sets the visited flag.
+// WELCOME OVERLAY — shows on every load (PWA and browser alike)
+// Always visible on app launch; enterPortal() fades it out for this session.
 // ═══════════════════════════════════════
 (function initWelcomeOverlay() {
-  const isPWA = window.navigator.standalone === true ||
-    window.matchMedia('(display-mode: standalone)').matches;
-  const visited = localStorage.getItem('portal-visited');
-  const overlay = document.getElementById('welcome-overlay');
-  if (!overlay) return;
-  if (isPWA || visited) {
-    overlay.classList.add('wov-gone'); // hidden instantly for known users / PWA
-  }
-  // else overlay remains visible (default DOM state) — user sees welcome screen
+  // Overlay is always shown — no PWA or visited checks.
+  // It is visible by default in HTML; nothing to do here.
 })();
 
 function enterPortal() {
-  localStorage.setItem('portal-visited', '1');
   var overlay = document.getElementById('welcome-overlay');
   if (!overlay) return;
   overlay.classList.add('wov-hidden');   // fade out
-  setTimeout(function() { overlay.classList.add('wov-gone'); }, 520); // then remove
+  setTimeout(function() { overlay.classList.add('wov-gone'); }, 520); // then remove from layout
 }
 
 checkPinSession();
