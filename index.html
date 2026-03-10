@@ -199,29 +199,41 @@
 </div>
 
 <!-- ═══════════════ WELCOME OVERLAY (first-visit, non-PWA) ═══════════════ -->
-<div id="welcome-overlay">
+<div id="welcome-overlay" class="wov-gone">
   <div class="wov-inner">
-    <svg class="wov-mark" viewBox="0 0 80 80" fill="none" aria-label="Duggireddy D mark">
-      <defs>
-        <linearGradient id="wovg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   style="stop-color:#4f7fff"/>
-          <stop offset="55%"  style="stop-color:#7c5cfc"/>
-          <stop offset="100%" style="stop-color:#f0b429"/>
-        </linearGradient>
-        <filter id="wovglow">
-          <feGaussianBlur stdDeviation="3.5" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <g filter="url(#wovglow)">
-        <rect x="13" y="10" width="11" height="60" rx="3" fill="url(#wovg)"/>
-        <rect x="13" y="10" width="30" height="11" rx="3" fill="url(#wovg)"/>
-        <rect x="13" y="59" width="30" height="11" rx="3" fill="url(#wovg)"/>
-        <path d="M 40 10 Q 70 10 70 40 Q 70 70 40 70" fill="none" stroke="url(#wovg)" stroke-width="11" stroke-linecap="round"/>
-      </g>
-    </svg>
+
+    <!-- Family constellation — 4 members orbiting the D mark -->
+    <div class="wov-constellation">
+      <div class="wov-orbit wov-o1"></div>
+      <div class="wov-orbit wov-o2"></div>
+      <div class="wov-center">
+        <svg viewBox="0 0 80 80" fill="none" width="38" height="38" aria-hidden="true">
+          <defs>
+            <linearGradient id="wovg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   style="stop-color:#4f7fff"/>
+              <stop offset="55%"  style="stop-color:#7c5cfc"/>
+              <stop offset="100%" style="stop-color:#f0b429"/>
+            </linearGradient>
+            <filter id="wovgf"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <g filter="url(#wovgf)">
+            <rect x="13" y="10" width="11" height="60" rx="3" fill="url(#wovg)"/>
+            <rect x="13" y="10" width="30" height="11" rx="3" fill="url(#wovg)"/>
+            <rect x="13" y="59" width="30" height="11" rx="3" fill="url(#wovg)"/>
+            <path d="M 40 10 Q 70 10 70 40 Q 70 70 40 70" fill="none" stroke="url(#wovg)" stroke-width="11" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+      <div class="wov-mem wov-m1"><span>RD</span></div>
+      <div class="wov-mem wov-m2"><span>VD</span></div>
+      <div class="wov-mem wov-m3"><span>JD</span></div>
+      <div class="wov-mem wov-m4"><span>JV</span></div>
+    </div>
+
     <div class="wov-badge">Duggireddy Family · Hyderabad</div>
-    <h1 class="wov-title">Every Family Document.<br><em>One Private Portal.</em></h1>
+    <h1 class="wov-title">Your Family's Everything.<br><em>Private. Organized. Always Ready.</em></h1>
+    <p class="wov-sub">Documents, expiry alerts, budget tracking &amp; health vitals — all secured in one private portal for every family member.</p>
+
     <div class="wov-stats">
       <div class="wov-stat"><span class="wov-sn">28</span><span class="wov-sl">Docs</span></div>
       <div class="wov-stat"><span class="wov-sn">7</span><span class="wov-sl">Expiry</span></div>

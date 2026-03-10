@@ -7296,9 +7296,22 @@ function startWelcomeTimer() {
   // FAB has z-index:9100 — hide it while overlay is visible
   var fab = document.getElementById('fab-btn-wrap');
   if (fab) fab.style.display = 'none';
-  // Start 6-second auto-enter countdown
-  startWelcomeTimer();
+  // Timer starts in showWelcomeOverlay() — called after the loader screen fades out
 })();
+
+// Called by initLoader after loader fades — overlay fades in, timer starts
+function showWelcomeOverlay() {
+  var overlay = document.getElementById('welcome-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('wov-gone');
+  // Double-rAF: ensures display:flex applies before opacity transition fires
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      overlay.classList.add('wov-show');
+      startWelcomeTimer();
+    });
+  });
+}
 
 function enterPortal() {
   // Cancel timer if still running
@@ -7342,7 +7355,7 @@ checkPwaPrompt();
     const loader = document.getElementById('loader-screen');
     if (loader) {
       loader.classList.add('fade-out');
-      setTimeout(() => { loader.style.display = 'none'; }, 850);
+      setTimeout(() => { loader.style.display = 'none'; showWelcomeOverlay(); }, 850);
     }
   }, 3200);
 })();
