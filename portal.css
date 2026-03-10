@@ -234,9 +234,9 @@
 .gm-cb-clear:hover{background:rgba(79,127,255,.2);}
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{height:100%;overflow-x:hidden;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;overscroll-behavior-y:none;}
-body.modal-open{overflow:hidden;position:fixed;width:100%;left:0;}
+html{height:100dvh;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden;-webkit-text-size-adjust:100%;overscroll-behavior-y:none;}
+body.modal-open{/* overflow already hidden on body */}
 body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(79,127,255,.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
 body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(240,180,41,.05) 0%,transparent 70%);pointer-events:none;z-index:0;}
 
@@ -326,10 +326,13 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 ═══════════════════════════════════════ */
 #content{
   position:relative;z-index:1;
+  height:100%;
   padding-top:calc(var(--topbar-h) + var(--sat));
-  padding-bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 80px);
-  min-height:100dvh;
-  /* Prevent bottom nav reflow affecting scroll */
+  padding-bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 16px);
+  box-sizing:border-box;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:none;
   isolation:isolate;
 }
 /* Dashboard is position:fixed so it's out of normal flow.
@@ -1023,7 +1026,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   /* Hide bottom nav, show sidebar nav */
   #bottom-nav{display:none;}
   #sidebar-nav{display:flex;}
-  #content{margin-left:240px;padding-bottom:0;}
+  #content{margin-left:240px;padding-bottom:calc(var(--pulse-h) + var(--pulse-gap) + 16px);}
   body::before{width:900px;height:900px;}
 
   /* Topbar */
@@ -4321,12 +4324,8 @@ body.dash-active #aura-canvas{ display:block; }
   position:fixed !important;
   top:calc(var(--topbar-h) + var(--sat)) !important;
   left:0 !important; right:0 !important;
-  bottom:0 !important; /* fill to physical bottom — no gap below nav */
-  overflow-x:hidden !important;
-  overflow-y:auto !important;
-  -webkit-overflow-scrolling:touch;
-  /* hide by default — .page{display:none} already handles this,
-     but we need flex when active */
+  bottom:0 !important;
+  overflow:hidden !important; /* panels scroll internally — dashboard itself does not scroll */
   display:none !important;
   flex-direction:column;
   z-index:2;
@@ -4340,7 +4339,7 @@ body.dash-active #aura-canvas{ display:block; }
 .aura-dash{
   position:relative;z-index:1;
   display:flex;flex-direction:column;
-  height:100%;overflow:visible;
+  height:100%;overflow:hidden;
   font-family:'Syne',sans-serif;
 }
 
@@ -4456,11 +4455,11 @@ body.dash-active #aura-canvas{ display:block; }
 .aura-rail{ display:none; }
 
 /* ── Swipeable Stage ── */
-.aura-stage{flex:1;position:relative;overflow-x:hidden;overflow-y:visible;min-height:0;}
-.aura-track{display:flex;min-height:100%;transition:transform .32s cubic-bezier(0.4,0,0.2,1);will-change:transform;}
+.aura-stage{flex:1;position:relative;overflow:hidden;min-height:0;}
+.aura-track{display:flex;height:100%;transition:transform .32s cubic-bezier(0.4,0,0.2,1);will-change:transform;}
 .aura-track.aura-live{transition:none;}
 .aura-panel{
-  flex-shrink:0;width:100%;min-height:100%;
+  flex-shrink:0;width:100%;height:100%;
   padding:6px 14px calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 16px);
   overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
