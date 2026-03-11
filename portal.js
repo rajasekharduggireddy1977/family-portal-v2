@@ -4105,7 +4105,7 @@ function auraRenderHome() {
   if (evtRaw) {
     try {
       var evts = JSON.parse(evtRaw);
-      var todayEvts = evts.filter(function(e){ return e.date === todayStr; })
+      var todayEvts = evts.filter(function(e){ return e.date === todayStr && e.cat !== 'education'; })
         .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
       for (var i=0; i<todayEvts.length; i++) {
         var ev = todayEvts[i];
