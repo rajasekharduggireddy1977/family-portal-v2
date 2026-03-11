@@ -4315,9 +4315,7 @@ body.dash-active #aura-canvas{ display:block; }
    overflow:hidden alone isn't enough on iOS — also zero #content's extra height so
    the body has nothing to scroll, and lock overscroll/touch. */
 body.dash-active{
-  overflow:hidden;
   overscroll-behavior:none;
-  touch-action:none;
 }
 body.dash-active #content{
   min-height:0 !important;
