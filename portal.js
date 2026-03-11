@@ -9876,16 +9876,16 @@ function initUploadHub() {
 
 const BGT_DEFAULTS = {
   monthly: [
-    {item:'Maintenance', amount:4400,  balance:0},
-    {item:'Maid',        amount:6000,  balance:6000},
-    {item:'Milk',        amount:1000,  balance:1000},
-    {item:'Current',     amount:2500,  balance:0},
-    {item:'TV/Mobile',   amount:3000,  balance:500},
-    {item:'Rice/Gas',    amount:2000,  balance:1500},
-    {item:'Nanna',       amount:14000, balance:0},
-    {item:'Vasundhara',  amount:14000, balance:4000},
-    {item:'Petrol',      amount:3000,  balance:3000},
-    {item:'Food',        amount:24000, balance:24000}
+    {item:'Maintenance', amount:4400,  paid:4400,  balance:0},
+    {item:'Maid',        amount:6000,  paid:0,     balance:6000},
+    {item:'Milk',        amount:1000,  paid:0,     balance:1000},
+    {item:'Current',     amount:2500,  paid:2500,  balance:0},
+    {item:'TV/Mobile',   amount:3000,  paid:2500,  balance:500},
+    {item:'Rice/Gas',    amount:2000,  paid:500,   balance:1500},
+    {item:'Nanna',       amount:14000, paid:14000, balance:0},
+    {item:'Vasundhara',  amount:14000, paid:10000, balance:4000},
+    {item:'Petrol',      amount:3000,  paid:0,     balance:3000},
+    {item:'Food',        amount:24000, paid:0,     balance:24000}
   ],
   yearly: [
     {item:'Health Insurance',      amount:74000, balance:74000, next:''},
@@ -10239,7 +10239,7 @@ function _bgtOpenSheet() {
       window.visualViewport.addEventListener('resize', card._bgtVpHandler);
     }
   }
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 120);
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); bgtCalcBal(); }, 120);
 }
 
 function bgtAdd(type) {
@@ -10282,7 +10282,9 @@ function bgtSheetSave() {
   if (!f1) { if(document.getElementById('bgt-f1')) document.getElementById('bgt-f1').focus(); return; }
   const d = bgtGetData();
   if (type === 'monthly') {
-    const obj = {item:f1, amount:f2, balance:f3};
+    const paid = f3;
+    const balance = Math.max(0, f2 - paid);
+    const obj = {item:f1, amount:f2, paid:paid, balance:balance};
     if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
   } else if (type === 'yearly') {
     const obj = {item:f1, amount:f2, balance:f3, next:f4};
@@ -10311,11 +10313,25 @@ function bgtCloseSheet() {
   _bgtState = null;
 }
 
+function bgtCalcBal() {
+  var amt  = parseInt((document.getElementById('bgt-f2') || {}).value) || 0;
+  var paid = parseInt((document.getElementById('bgt-f3') || {}).value) || 0;
+  var bal  = Math.max(0, amt - paid);
+  var el   = document.getElementById('bgt-bal-val');
+  if (el) {
+    el.textContent = bgtFmt(bal);
+    el.style.color = bal > 0 ? 'var(--gold)' : 'var(--green)';
+  }
+}
+
 function _bgtFields(type, row) {
   if (type === 'monthly') {
+    // For backward compat: if row has no paid field, derive it from amount - balance
+    var paidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - row.balance)) : '';
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + paidVal + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
