@@ -10209,13 +10209,16 @@ function _bgtOpenSheet() {
   const sheet = document.getElementById('bgt-sheet');
   const card  = document.querySelector('.bgt-sheet-card');
   sheet.classList.remove('hidden');
-  // Scroll input into view when keyboard opens (Android Chrome fix)
+  // Scroll input into view when keyboard opens — use instant+nearest to avoid iOS focus loss
+  // Remove old listener before adding (prevents accumulation across multiple opens)
   if (card) {
-    card.addEventListener('focusin', function(e) {
+    if (card._bgtFocusIn) card.removeEventListener('focusin', card._bgtFocusIn);
+    card._bgtFocusIn = function(e) {
       if (e.target.tagName === 'INPUT' && e.target.type !== 'hidden') {
-        setTimeout(function() { e.target.scrollIntoView({behavior:'smooth', block:'center'}); }, 350);
+        setTimeout(function() { e.target.scrollIntoView({behavior:'instant', block:'nearest'}); }, 100);
       }
-    }, {once: false});
+    };
+    card.addEventListener('focusin', card._bgtFocusIn);
   }
   setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
 }

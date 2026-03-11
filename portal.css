@@ -4911,7 +4911,7 @@ body.dash-active #content{
 .bgt-sheet-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;}
 .bgt-field{margin-bottom:14px;}
 .bgt-field label{display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
-.bgt-field input{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;}
+.bgt-field input{width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;touch-action:manipulation;}
 .bgt-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,127,255,.12);}
 .bgt-sheet-actions{display:flex;gap:10px;margin-top:6px;}
 .bgt-sheet-btn{flex:1;padding:13px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
