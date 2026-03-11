@@ -3202,6 +3202,7 @@ function renderTimeline() {
   /* Gather + filter events */
   var calFiltered = allCalEvts.filter(function(ev) {
     if (ev.id && ev.id.indexOf('att_risk_') === 0) return false;
+    if (ev.cat === 'education') return false;
     var evDate = new Date(ev.date + 'T12:00:00');
     return evDate >= tlMonthStart && evDate <= tlMonthEnd;
   });
@@ -4262,7 +4263,7 @@ function ovRenderMonthEvents() {
   var pad = function(n) { return String(n).padStart(2,'0'); };
   var moStr = yr + '-' + pad(mo + 1);
   var monthEvts = calEvts
-    .filter(function(e) { return (e.date || '').slice(0, 7) === moStr; })
+    .filter(function(e) { return (e.date || '').slice(0, 7) === moStr && e.cat !== 'education'; })
     .sort(function(a, b) { return a.date.localeCompare(b.date); });
 
   if (monthEvts.length === 0) {
