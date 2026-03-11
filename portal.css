@@ -964,7 +964,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .wov-title{
   font-family:'Syne',sans-serif;font-size:clamp(18px,5vw,26px);
   font-weight:800;letter-spacing:-.025em;line-height:1.2;
-  color:var(--text);margin-bottom:8px;
+  color:var(--text);margin-bottom:3px;
 }
 .wov-title em{
   font-style:normal;
