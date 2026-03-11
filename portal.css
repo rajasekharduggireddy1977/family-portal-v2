@@ -313,7 +313,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 }
 .bnav-item.active{color:rgba(255,255,255,0.95);transform:translateY(-2px);}
 .bnav-item:active{transform:scale(0.88) !important;}
-.bnav-icon{font-size:13px;line-height:1;transition:filter .3s ease;}
+.bnav-icon{font-size:13px;line-height:1;transition:filter .3s ease;display:flex;align-items:center;justify-content:center;width:22px;height:22px;}
 .bnav-item > span:not(.bnav-icon):not(.bnav-badge){text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;}
 .bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px rgba(180,210,255,0.7));}
 .bnav-alert-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--bg);animation:alertPulse 1.8s ease-in-out infinite;}
@@ -2779,7 +2779,7 @@ body.ai-panel-open #fab-menu { opacity: 0; pointer-events: none; }
 }
 .fab-item:hover { background: var(--surface2); border-color: var(--blue); color: var(--blue2); }
 .fab-item:active { transform: scale(0.96); }
-.fab-item-ico { font-size: 18px; width: 32px; height: 32px; border-radius: 9px; background: var(--blue-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.fab-item-ico { font-size: 18px; width: 32px; height: 32px; border-radius: 9px; background: rgba(99,102,241,.32); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 @media(min-width:768px) {
   #fab-btn { bottom: 24px; left: 20px; }
   #fab-menu { bottom: 74px; }
@@ -4922,14 +4922,14 @@ body.dash-active #content{
    IPHNE 15 PLUS POLISH — ALL FIXES (March 2026)
 ══════════════════════════════════════════════════════ */
 
-/* ── 1. FAB MENU ITEMS — solid readable background ── */
+/* ── 1. FAB MENU ITEMS — contrasting deep-indigo background ── */
 .fab-item {
-  background: rgba(8,11,26,0.97) !important;
-  border: 1px solid rgba(79,127,255,0.28) !important;
-  color: rgba(255,255,255,0.92) !important;
-  box-shadow: 0 6px 24px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.08) !important;
+  background: rgba(22,18,72,0.98) !important;
+  border: 1px solid rgba(99,102,241,0.45) !important;
+  color: rgba(255,255,255,0.95) !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.75), 0 0 0 1px rgba(99,102,241,.12), inset 0 1px 0 rgba(255,255,255,.1) !important;
 }
-.fab-item:hover { background: rgba(20,28,56,0.98) !important; }
+.fab-item:hover { background: rgba(35,28,95,0.99) !important; }
 [data-theme="light"] .fab-item {
   background: rgba(255,255,255,0.97) !important;
   border: 1px solid rgba(79,127,255,0.3) !important;
@@ -4961,9 +4961,9 @@ body.dash-active #content{
   pointer-events: all;
   padding: 12px 18px 12px 12px;
   border-radius: 16px;
-  background: rgba(8,11,28,0.97);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.92);
+  background: rgba(22,18,72,0.98);
+  border: 1px solid rgba(99,102,241,0.45);
+  color: rgba(255,255,255,0.95);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -4971,7 +4971,7 @@ body.dash-active #content{
   white-space: nowrap;
   min-height: 48px;
   min-width: 140px;
-  box-shadow: 0 6px 28px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
+  box-shadow: 0 8px 28px rgba(0,0,0,.75), 0 0 0 1px rgba(99,102,241,.12), inset 0 1px 0 rgba(255,255,255,.1);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   transition: background .15s, transform .12s;
@@ -4979,14 +4979,14 @@ body.dash-active #content{
 }
 .more-menu-item:active {
   transform: scale(0.96);
-  background: rgba(79,127,255,.18);
+  background: rgba(45,35,120,0.99);
 }
 .more-menu-ico {
   font-size: 18px;
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: rgba(79,127,255,.18);
+  background: rgba(99,102,241,.28);
   display: flex;
   align-items: center;
   justify-content: center;
