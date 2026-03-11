@@ -10209,18 +10209,37 @@ function _bgtOpenSheet() {
   const sheet = document.getElementById('bgt-sheet');
   const card  = document.querySelector('.bgt-sheet-card');
   sheet.classList.remove('hidden');
-  // Scroll input into view when keyboard opens — use instant+nearest to avoid iOS focus loss
-  // Remove old listener before adding (prevents accumulation across multiple opens)
+
   if (card) {
+    // ── Clean up any previous listeners ──
     if (card._bgtFocusIn) card.removeEventListener('focusin', card._bgtFocusIn);
+    if (card._bgtVpHandler && window.visualViewport)
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+
+    // ── focusin: scroll active input into view ──
     card._bgtFocusIn = function(e) {
       if (e.target.tagName === 'INPUT' && e.target.type !== 'hidden') {
-        setTimeout(function() { e.target.scrollIntoView({behavior:'instant', block:'nearest'}); }, 100);
+        setTimeout(function() { e.target.scrollIntoView({behavior:'instant', block:'nearest'}); }, 80);
       }
     };
     card.addEventListener('focusin', card._bgtFocusIn);
+
+    // ── visualViewport: push card above iOS keyboard ──
+    // iOS fixed overlays don't shrink with the keyboard — we add paddingBottom
+    // equal to keyboard height so the last input is never hidden behind it.
+    if (window.visualViewport) {
+      card._bgtVpHandler = function() {
+        var kbH = window.innerHeight - window.visualViewport.height;
+        card.style.paddingBottom = kbH > 50 ? (kbH + 24) + 'px' : '';
+        var active = document.activeElement;
+        if (active && active.tagName === 'INPUT' && active.type !== 'hidden') {
+          setTimeout(function() { active.scrollIntoView({behavior:'instant', block:'nearest'}); }, 60);
+        }
+      };
+      window.visualViewport.addEventListener('resize', card._bgtVpHandler);
+    }
   }
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 120);
 }
 
 function bgtAdd(type) {
@@ -10279,6 +10298,16 @@ function bgtSheetSave() {
 
 function bgtCloseSheet() {
   document.getElementById('bgt-sheet').classList.add('hidden');
+  // Clean up listeners and reset keyboard padding
+  var card = document.querySelector('.bgt-sheet-card');
+  if (card) {
+    card.style.paddingBottom = '';
+    if (card._bgtFocusIn) { card.removeEventListener('focusin', card._bgtFocusIn); card._bgtFocusIn = null; }
+    if (card._bgtVpHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+      card._bgtVpHandler = null;
+    }
+  }
   _bgtState = null;
 }
 
