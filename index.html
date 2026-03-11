@@ -860,11 +860,11 @@
     </div>
   </div>
 
-  <!-- ══════════ BUDGET TRACKER PAGE — 3-PANEL ══════════ -->
+  <!-- ══════════ BUDGET TRACKER PAGE — 4-PANEL ══════════ -->
   <div class="page" id="page-budget">
     <div id="budget-stage">
       <div id="budget-track">
-        <!-- Panel 0: Monthly -->
+        <!-- Panel 0: Monthly Expenses only -->
         <div class="budget-panel" id="bgt-p0">
           <div class="bgt-hero" id="bgt-hero-m"></div>
           <div class="bgt-sec-row">
@@ -876,11 +876,6 @@
             <span class="bgt-total-lbl">Monthly Total</span>
             <span class="bgt-total-val gold" id="bgt-m-total"></span>
           </div>
-          <div class="bgt-sec-row">
-            <div class="bgt-sec-lbl">💼 Income</div>
-            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
-          </div>
-          <div class="bgt-inc-list" id="bgt-inc-list"></div>
         </div>
         <!-- Panel 1: Yearly -->
         <div class="budget-panel" id="bgt-p1">
@@ -899,9 +894,31 @@
             <span class="bgt-total-val gold" id="bgt-y-avg"></span>
           </div>
         </div>
-        <!-- Panel 2: Summary -->
+        <!-- Panel 2: Assets & Income -->
         <div class="budget-panel" id="bgt-p2">
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">🏦 Assets &amp; Investments</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('assets')">＋ Add</button>
+          </div>
+          <div class="bgt-inc-list" id="bgt-asset-list"></div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Total Assets</span>
+            <span class="bgt-total-val green" id="bgt-a-total"></span>
+          </div>
+          <div class="bgt-sec-row" style="margin-top:14px;">
+            <div class="bgt-sec-lbl">💼 Income</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
+          </div>
+          <div class="bgt-inc-list" id="bgt-inc-list"></div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Total Income</span>
+            <span class="bgt-total-val gold" id="bgt-i-total"></span>
+          </div>
+        </div>
+        <!-- Panel 3: Summary -->
+        <div class="budget-panel" id="bgt-p3">
           <div class="bgt-sum-banner" id="bgt-sum-banner"></div>
+          <div id="bgt-cur-balance"></div>
           <div class="bgt-bd-hdr">Top Expenses Breakdown</div>
           <div id="bgt-breakdown"></div>
         </div>
@@ -1048,6 +1065,9 @@
       <span class="bgt-cat-icon">📆</span><span class="bgt-cat-lbl">Yearly</span>
     </div>
     <div class="bgt-cat" id="bgt-cat-2" onclick="bgtGoPanel(2)">
+      <span class="bgt-cat-icon">🏦</span><span class="bgt-cat-lbl">Assets</span>
+    </div>
+    <div class="bgt-cat" id="bgt-cat-3" onclick="bgtGoPanel(3)">
       <span class="bgt-cat-icon">📊</span><span class="bgt-cat-lbl">Summary</span>
     </div>
   </div>

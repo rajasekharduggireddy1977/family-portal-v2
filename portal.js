@@ -9907,6 +9907,13 @@ const BGT_DEFAULTS = {
     {source:'Salary',      amount:166000},
     {source:'FD Interest', amount:15000},
     {source:'Rent',        amount:20700}
+  ],
+  assets: [
+    {item:'HDFC Life', amount:270000},
+    {item:'Babai',     amount:500000},
+    {item:'Murali',    amount:22200},
+    {item:'Krishna',   amount:25000},
+    {item:'NPS',       amount:50000}
   ]
 };
 
@@ -9933,10 +9940,12 @@ function bgtCalc(d) {
   const yBal   = d.yearly.reduce((s,r)=>s+r.balance, 0);
   const yAvg   = Math.round(yTotal / 12);
   const iTotal = d.income.reduce((s,r)=>s+r.amount, 0);
-  const totalMonthly  = mTotal + yAvg;
-  const monthlySaving = iTotal - mTotal;
-  const yearlySaving  = (monthlySaving * 12) - yTotal;
-  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,totalMonthly,monthlySaving,yearlySaving};
+  const aTotal = (d.assets||[]).reduce((s,r)=>s+r.amount, 0);
+  const totalMonthly   = mTotal + yAvg;
+  const monthlySaving  = iTotal - mTotal;
+  const yearlySaving   = (monthlySaving * 12) - yTotal;
+  const currentBalance = aTotal + iTotal - (mBal + yBal);
+  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
 }
 
 function bgtInr(n) {
@@ -10006,7 +10015,7 @@ function bgtInitSwipe() {
     if (!dragging && Math.abs(dx)>6) dragging=true;
     if (dragging) {
       ddx=dx;
-      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===2&&dx<0)?.15:1;
+      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0)?.15:1;
       track.style.transform='translateX('+((-_bgtPanel*vw())+dx*resist)+'px)';
     }
   }, {passive:false});
@@ -10016,7 +10025,7 @@ function bgtInitSwipe() {
     var elapsed=Math.max(1, Date.now()-t0);
     var velocity=Math.abs(ddx)/elapsed;
     var th=velocity>0.3 ? vw()*.12 : vw()*.22;
-    if (ddx<-th && _bgtPanel<2) bgtGoPanel(_bgtPanel+1);
+    if (ddx<-th && _bgtPanel<3) bgtGoPanel(_bgtPanel+1);
     else if (ddx>th && _bgtPanel>0) bgtGoPanel(_bgtPanel-1);
     else bgtGoPanel(_bgtPanel);
     dragging=false;
@@ -10028,6 +10037,7 @@ function initBudget() {
   const c = bgtCalc(d);
   renderBgtMonthly(d, c);
   renderBgtYearly(d, c);
+  renderBgtAssets(d, c);
   renderBgtSummary(d, c);
   bgtInitSwipe();
   // Move selector and animate bars after render
@@ -10062,20 +10072,6 @@ function renderBgtMonthly(d, c) {
         '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.monthlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + sPct + '"></div></div>' +
       '</div>';
   }
-  // Income list
-  const incList = document.getElementById('bgt-inc-list');
-  if (incList) {
-    incList.innerHTML = d.income.map(function(r, i) {
-      return '<div class="bgt-inc-row">' +
-        '<div class="bgt-inc-name">' + r.source + '</div>' +
-        '<div class="bgt-inc-amt">' + bgtFmt(r.amount) + '</div>' +
-        '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
   // Monthly 2-col grid
   const mgrid = document.getElementById('bgt-m-grid');
   if (mgrid) {
@@ -10097,6 +10093,43 @@ function renderBgtMonthly(d, c) {
   // Monthly total
   const mt = document.getElementById('bgt-m-total');
   if (mt) mt.textContent = bgtFmt(c.mTotal);
+}
+
+function renderBgtAssets(d, c) {
+  // Assets list
+  const alist = document.getElementById('bgt-asset-list');
+  if (alist) {
+    alist.innerHTML = (d.assets||[]).map(function(r, i) {
+      return '<div class="bgt-inc-row">' +
+        '<div class="bgt-inc-name">' + r.item + '</div>' +
+        '<div class="bgt-inc-amt bgt-amt-green">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'assets\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'assets\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  // Assets total
+  const at = document.getElementById('bgt-a-total');
+  if (at) at.textContent = bgtFmt(c.aTotal);
+  // Income list (now lives in Assets panel)
+  const incList = document.getElementById('bgt-inc-list');
+  if (incList) {
+    incList.innerHTML = d.income.map(function(r, i) {
+      return '<div class="bgt-inc-row">' +
+        '<div class="bgt-inc-name">' + r.source + '</div>' +
+        '<div class="bgt-inc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  // Income total
+  const it = document.getElementById('bgt-i-total');
+  if (it) it.textContent = bgtFmt(c.iTotal);
 }
 
 function renderBgtYearly(d, c) {
@@ -10178,6 +10211,34 @@ function renderBgtSummary(d, c) {
         '</div>' +
       '</div>';
   }
+  // Current Balance card
+  const cb = document.getElementById('bgt-cur-balance');
+  if (cb) {
+    const balColor = c.currentBalance >= 0 ? 'green' : 'red';
+    cb.innerHTML =
+      '<div class="bgt-curbal-card">' +
+        '<div class="bgt-curbal-title">\ud83d\udcb0 Current Balance</div>' +
+        '<div class="bgt-curbal-big ' + balColor + '">' + bgtFmt(c.currentBalance) + '</div>' +
+        '<div class="bgt-curbal-formula">' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Total Assets</span>' +
+            '<span class="bgt-curbal-val green">+ ' + bgtFmt(c.aTotal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Total Income</span>' +
+            '<span class="bgt-curbal-val gold">+ ' + bgtFmt(c.iTotal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Monthly Balance Due</span>' +
+            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.mBal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Yearly Balance Due</span>' +
+            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.yBal) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
   // Top expense breakdown bars
   const bd = document.getElementById('bgt-breakdown');
   if (bd) {
@@ -10244,7 +10305,7 @@ function _bgtOpenSheet() {
 
 function bgtAdd(type) {
   _bgtState = {type, idx: -1};
-  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source'};
+  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source', assets:'Add Asset'};
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
   _bgtOpenSheet();
@@ -10253,19 +10314,20 @@ function bgtAdd(type) {
 function bgtEdit(type, idx) {
   const d = bgtGetData();
   _bgtState = {type, idx};
-  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source'};
-  document.getElementById('bgt-sheet-title').textContent = labels[type];
-  const row = type==='income' ? d.income[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
+  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source', assets:'Edit Asset'};
+  document.getElementById('bgt-sheet-title').textContent = labels[type] || 'Edit Item';
+  const row = type==='income' ? d.income[idx] : type==='assets' ? (d.assets||[])[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
   _bgtOpenSheet();
 }
 
 function bgtDelete(type, idx) {
   const d = bgtGetData();
-  const name = type==='income' ? d.income[idx].source : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
+  const name = type==='income' ? d.income[idx].source : type==='assets' ? (d.assets||[])[idx].item : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
   if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
   if (type==='monthly') d.monthly.splice(idx, 1);
   else if (type==='yearly') d.yearly.splice(idx, 1);
+  else if (type==='assets') { if (!d.assets) d.assets=[]; d.assets.splice(idx, 1); }
   else d.income.splice(idx, 1);
   bgtSaveData(d);
   initBudget();
@@ -10289,6 +10351,10 @@ function bgtSheetSave() {
   } else if (type === 'yearly') {
     const obj = {item:f1, amount:f2, balance:f3, next:f4};
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
+  } else if (type === 'assets') {
+    if (!d.assets) d.assets = [];
+    const obj = {item:f1, amount:f2};
+    if (idx < 0) d.assets.push(obj); else d.assets[idx] = obj;
   } else {
     const obj = {source:f1, amount:f2};
     if (idx < 0) d.income.push(obj); else d.income[idx] = obj;
@@ -10339,6 +10405,11 @@ function _bgtFields(type, row) {
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
            '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
            '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
+  }
+  if (type === 'assets') {
+    return '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. HDFC Life, NPS" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
   }
   return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
          '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
