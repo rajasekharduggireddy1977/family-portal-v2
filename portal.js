@@ -10279,14 +10279,14 @@ function renderBgtSummary(d, c) {
   const bd = document.getElementById('bgt-breakdown');
   if (bd) {
     const allItems = [];
-    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount}); });
-    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, yr: true}); });
+    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount * 12, tag: '×12'}); });
+    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, tag: 'yr'}); });
     allItems.sort(function(a, b) { return b.amt - a.amt; });
     const top = allItems.slice(0, 8);
     const maxAmt = top[0] ? top[0].amt : 1;
     bd.innerHTML = top.map(function(item) {
       const pct = Math.round(item.amt / maxAmt * 100);
-      const tag = item.yr ? ' <span style="font-size:9px;opacity:.4">(yr)</span>' : '';
+      const tag = ' <span style="font-size:9px;opacity:.45">' + item.tag + '</span>';
       return '<div class="bgt-bd-item">' +
         '<div class="bgt-bd-row">' +
           '<div class="bgt-bd-name">' + item.name + tag + '</div>' +
