@@ -305,10 +305,15 @@ function moveBnavSelector(activeEl){
 }
 
 function goPage(page) {
-  if(currentPage === page && page !== 'members') return;
-
-  // Close more menu whenever navigating
+  // Always close more menu and sync nav selector, even if already on this page
   closeMoreMenuIfOpen();
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const _morePages = ['documents','expiry','calendar'];
+  const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
+  const _navEl = document.getElementById(_navId);
+  if(_navEl){ _navEl.classList.add('active'); moveBnavSelector(_navEl); }
+
+  if(currentPage === page && page !== 'members') return;
 
   const _nav = document.getElementById('bottom-nav');
   if (_nav) { _nav.style.transition = ''; _nav.style.transform = ''; _nav.style.bottom = ''; }
@@ -345,11 +350,6 @@ function goPage(page) {
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
-  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const _morePages = ['documents','expiry','calendar'];
-  const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
-  const navEl = document.getElementById(_navId);
-  if(navEl){ navEl.classList.add('active'); moveBnavSelector(navEl); }
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
@@ -5596,6 +5596,8 @@ function autoManageAttendanceEvents(attData) {
         id: PREFIX + safeKey + '_' + dateStr,
         title: label + ' ' + shortName,
         date: dateStr,
+        cat: 'education',
+        color: '#a78bfa',
         type: 'Academic',
         icon: icon,
         members: ['Josritha'],
@@ -8631,11 +8633,19 @@ function closeMoreMenuIfOpen() {
   if (btn) btn.classList.remove('active');
 }
 // Close more menu when tapping anywhere outside it
+// Use coordinate-based check (more reliable than contains() when container has pointer-events:none)
 document.addEventListener('touchstart', function(e) {
   if (!moreMenuOpen) return;
+  const touch = e.touches[0];
   const menu = document.getElementById('bnav-more-menu');
   const btn  = document.getElementById('bnav-more');
-  if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+  const inRect = function(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return touch.clientX >= r.left && touch.clientX <= r.right &&
+           touch.clientY >= r.top  && touch.clientY <= r.bottom;
+  };
+  if (!inRect(menu) && !inRect(btn)) {
     closeMoreMenuIfOpen();
   }
 }, {passive: true});
