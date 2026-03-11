@@ -182,18 +182,7 @@
   </div>
   <div class="loader-title">Duggireddy Portal</div>
   <div class="loader-sub">Family · Secure · Private</div>
-  <div class="warp-wrap">
-    <div class="warp-ring"></div>
-    <div class="warp-bar">
-      <div class="warp-track">
-        <div class="warp-fill"></div>
-        <div class="warp-lines">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-      </div>
-      <div class="warp-label">ENTERING PORTAL</div>
-    </div>
-  </div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
   <div class="loader-status" id="loader-status">Initialising…</div>
 </div>
 
@@ -280,10 +269,16 @@
       <div class="wov-mod"><span>🩺</span>Health</div>
     </div>
     <div class="wov-progress-wrap" id="wov-progress-wrap" onclick="enterPortal()" role="button" aria-label="Enter portal now">
-      <div class="wov-progress-fill" id="wov-progress-fill"></div>
-      <div class="wov-progress-label">
-        <span>Entering Portal</span>
-        <span class="wov-countdown" id="wov-countdown">6</span>
+      <div class="wov-warp-ring"></div>
+      <div class="wov-warp-bar">
+        <div class="wov-warp-track">
+          <div class="wov-warp-fill" id="wov-progress-fill"></div>
+          <div class="wov-warp-lines">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="wov-warp-label">ENTERING PORTAL</div>
+        <div class="wov-warp-count" id="wov-countdown">6</div>
       </div>
     </div>
     <div class="wov-footer">Tap to skip · ℹ️ anytime to revisit</div>
