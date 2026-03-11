@@ -7831,7 +7831,8 @@ const BACKUP_KEYS = [
   'fp_widgets','fp_widgets_ver',
   'fp_theme','fp_active_member','fp_pin','emg_collapsed',
   'fp_groq_key',  // ← AI key — included in backup so it survives redeployment
-  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap'
+  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap',
+  'fp_budget_v1'  // ← Budget data (Monthly, Yearly, Assets, Income)
 ];
 
 
