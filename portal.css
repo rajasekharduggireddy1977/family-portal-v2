@@ -265,9 +265,9 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-logo{width:30px;height:30px;background:linear-gradient(135deg,var(--blue),var(--gold));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
 .tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.3px;}
 .tb-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
-.tb-right{display:flex;align-items:center;gap:8px;}
-.tb-clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:4px 9px;letter-spacing:.5px;}
-.tb-search-btn{width:34px;height:34px;border-radius:9px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:all .18s;flex-shrink:0;}
+.tb-right{display:flex;align-items:center;gap:6px;}
+.tb-clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);border:1px solid var(--border);border-radius:9px;padding:0 9px;height:36px;display:flex;align-items:center;letter-spacing:.5px;}
+.tb-search-btn{width:36px;height:36px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:all .18s;flex-shrink:0;}
 .tb-search-btn:hover{border-color:var(--blue);color:var(--blue2);}
 
 /* ═══════════════════════════════════════

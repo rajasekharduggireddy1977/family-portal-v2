@@ -8714,6 +8714,28 @@ function getCmdEntries() {
   return entries;
 }
 
+// ── JOSRITHA EDUCATION POPUP ────────────────────────────────
+function openJosrithaEduPopup() {
+  const overlay = document.getElementById('jedu-overlay');
+  const body = document.getElementById('jedu-body');
+  if (!overlay || !body) return;
+  // Clone the live EDU panel (aura-p2) content into the popup
+  const src = document.getElementById('aura-p2');
+  if (src) {
+    body.innerHTML = src.innerHTML;
+  } else {
+    body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text2);">Loading education data…</div>';
+  }
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  haptic('light');
+}
+function closeJosrithaEduPopup() {
+  const overlay = document.getElementById('jedu-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
 function openCommandPalette() {
   const overlay = document.getElementById('cmd-overlay');
   const input = document.getElementById('cmd-input');
@@ -8796,7 +8818,7 @@ document.addEventListener('keydown', e => {
   if (!overlay.classList.contains('open')) return;
   const results = document.getElementById('cmd-results');
   const items = results.querySelectorAll('.cmd-result-item');
-  if (e.key === 'Escape') { closeCommandPalette(); return; }
+  if (e.key === 'Escape') { closeCommandPalette(); closeJosrithaEduPopup(); return; }
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     cmdSelectedIdx = Math.min(cmdSelectedIdx + 1, items.length - 1);
