@@ -15,7 +15,7 @@
 
 <link rel="stylesheet" href="portal.css">
 </head>
-<body class="dash-active">
+<body>
 
 <!-- ═══════════════ PULL-TO-REFRESH INDICATOR ═══════════════ -->
 <div id="ptr-indicator">
@@ -373,8 +373,133 @@
 <!-- ═══════════════ CONTENT ═══════════════ -->
 <div id="content">
 
+  <!-- ══════════ VIEW PAGE — Overview landing (regular scrollable page) ══════════ -->
+  <div class="page active" id="page-view">
+    <div class="view-page-wrap">
+
+      <!-- ① GREETING CARD -->
+      <div class="tc">
+        <div class="tc-greeting">
+          <div class="tc-greet-left">
+            <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
+            <div class="tc-greet-name" id="aura-greeting">Good Morning, Rajasekhar.</div>
+          </div>
+          <div class="tc-greet-clock-wrap">
+            <div class="tc-greet-date" id="aura-date"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STATUS ─────────────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Status Overview</span><div class="ov-ss-line"></div></div>
+
+      <!-- ② 3-GAUGE STRIP -->
+      <div class="tc ov-gauges-tc">
+        <div class="ov-gauges" id="ov-gauges"></div>
+      </div>
+
+      <!-- ③ CRITICAL ALERTS -->
+      <div class="tc" id="ov-alerts-wrap">
+        <div class="tc-sec-hd">
+          <div class="tc-sec-title" style="display:flex;align-items:center;gap:6px;">
+            <span class="ov-sec-dot pulse" style="background:var(--red);box-shadow:0 0 6px rgba(255,79,79,.7);"></span>
+            Critical Alerts
+          </div>
+          <span class="ov-sec-badge ov-badge-red" id="ov-alerts-badge">—</span>
+        </div>
+        <div class="ov-alerts-grid" id="ov-alerts-scroll"></div>
+        <div style="text-align:right;padding:6px 16px 8px;"><span class="tc-sec-action" onclick="goPage('expiry')">All Alerts &#8594;</span></div>
+      </div>
+
+      <!-- ── SCHEDULE ───────────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Today &amp; Schedule</span><div class="ov-ss-line"></div></div>
+
+      <!-- ④ TODAY block -->
+      <div class="tc">
+        <div class="tc-sec-hd">
+          <div class="tc-sec-title">Today</div>
+          <div class="tc-sec-action" onclick="goPage('calendar')">Calendar →</div>
+        </div>
+        <div id="aura-today-timeline"></div>
+      </div>
+
+      <!-- ⑤ UPCOMING — month navigator -->
+      <div>
+        <div class="ov-sec-hd" style="margin-bottom:8px;">
+          <div class="ov-sec-title">
+            <span class="ov-sec-dot" style="background:var(--blue2);"></span>
+            Upcoming
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
+            <span id="ov-month-label" class="ov-month-label"></span>
+            <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
+          </div>
+        </div>
+        <div class="tc" id="ov-month-cal-tc">
+          <div id="ov-month-events" style="padding:4px 0 2px;"></div>
+          <div style="text-align:right;padding:6px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
+        </div>
+      </div>
+      <!-- Hidden stubs — backward-compat with auraRenderHome gravity rail refs -->
+      <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
+
+      <!-- ── COMMAND ────────────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Command Stations</span><div class="ov-ss-line"></div></div>
+
+      <!-- ⑥ COMMAND STATIONS -->
+      <div class="tc">
+        <div class="tc-sec-hd">
+          <div class="tc-sec-title">Command Stations</div>
+          <span class="ov-badge-mono">8 Pillars</span>
+        </div>
+        <div class="ov-modules-grid" id="ov-modules-grid"></div>
+        <div style="height:10px;"></div>
+      </div>
+
+      <!-- ── FAMILY ─────────────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Family</span><div class="ov-ss-line"></div></div>
+
+      <!-- ⑦ FAMILY STATUS -->
+      <div class="tc">
+        <div class="tc-sec-hd">
+          <div class="tc-sec-title">Family Status</div>
+          <span class="ov-badge-mono">4 Members</span>
+        </div>
+        <div class="ov-family-grid" id="ov-family-scroll"></div>
+        <div style="height:10px;"></div>
+      </div>
+
+      <!-- ⑧ AI QUICK ASK -->
+      <div>
+        <div class="ov-ai-card" id="ov-ai-card" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">
+          <div class="ov-ai-icon">&#x1F916;</div>
+          <div class="ov-ai-body">
+            <div class="ov-ai-title">Ask Claude anything</div>
+            <div class="ov-ai-sub">Family context active · Memory loaded</div>
+          </div>
+          <div class="ov-ai-arrow">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 6H9M6 3L9 6L6 9" stroke="rgba(167,139,250,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="ov-ai-chips" style="margin-top:8px;">
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">What&#x27;s overdue?</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Expiry status</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Health summary</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Vehicle docs</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Next expiry?</div>
+        </div>
+      </div>
+
+      <!-- ⑨ STATS BAR -->
+      <div class="ov-stats-bar" id="ov-stats-bar"></div>
+
+      <div style="height:6px;"></div>
+    </div><!-- /view-page-wrap -->
+  </div><!-- /page-view -->
+
   <!-- ══════════ DASHBOARD PAGE — AURA OS v3 ══════════ -->
-  <div class="page active" id="page-dashboard">
+  <div class="page" id="page-dashboard">
 
     <!-- Aurora canvas background -->
     <canvas id="aura-canvas"></canvas>
@@ -391,139 +516,9 @@
       <div class="aura-stage" id="aura-stage">
         <div class="aura-track" id="aura-track">
 
-          <!-- ▸ PANEL 0: HOME / OVERVIEW -->
+          <!-- ▸ PANEL 0: HOME / OVERVIEW (IDs moved to #page-view) -->
           <div class="aura-panel" id="aura-p0">
-
-            <!-- ① GREETING CARD -->
-            <div class="tc">
-              <div class="tc-greeting">
-                <div class="tc-greet-left">
-                  <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
-                  <div class="tc-greet-name" id="aura-greeting">Good Morning, Rajasekhar.</div>
-                </div>
-                <div class="tc-greet-clock-wrap">
-                  <div class="tc-greet-date" id="aura-date"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ── STATUS ─────────────────────── -->
-            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Status Overview</span><div class="ov-ss-line"></div></div>
-
-            <!-- ② 3-GAUGE STRIP -->
-            <div class="tc ov-gauges-tc">
-              <div class="ov-gauges" id="ov-gauges">
-                <!-- rendered by auraRenderOverview() -->
-              </div>
-            </div>
-
-            <!-- ③ CRITICAL ALERTS -->
-            <div class="tc" id="ov-alerts-wrap">
-              <div class="tc-sec-hd">
-                <div class="tc-sec-title" style="display:flex;align-items:center;gap:6px;">
-                  <span class="ov-sec-dot pulse" style="background:var(--red);box-shadow:0 0 6px rgba(255,79,79,.7);"></span>
-                  Critical Alerts
-                </div>
-                <span class="ov-sec-badge ov-badge-red" id="ov-alerts-badge">—</span>
-              </div>
-              <div class="ov-alerts-grid" id="ov-alerts-scroll">
-                <!-- rendered by auraRenderOverview() -->
-              </div>
-              <div style="text-align:right;padding:6px 16px 8px;"><span class="tc-sec-action" onclick="goPage('expiry')">All Alerts &#8594;</span></div>
-            </div>
-
-            <!-- ── SCHEDULE ───────────────────── -->
-            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Today &amp; Schedule</span><div class="ov-ss-line"></div></div>
-
-            <!-- ④ TODAY block — exact today calendar events -->
-            <div class="tc">
-              <div class="tc-sec-hd">
-                <div class="tc-sec-title">Today</div>
-                <div class="tc-sec-action" onclick="goPage('calendar')">Calendar →</div>
-              </div>
-              <div id="aura-today-timeline"></div>
-            </div>
-
-            <!-- ⑤ UPCOMING — month navigator -->
-            <div>
-              <div class="ov-sec-hd" style="margin-bottom:8px;">
-                <div class="ov-sec-title">
-                  <span class="ov-sec-dot" style="background:var(--blue2);"></span>
-                  Upcoming
-                </div>
-                <div style="display:flex;align-items:center;gap:5px;">
-                  <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
-                  <span id="ov-month-label" class="ov-month-label"></span>
-                  <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
-                </div>
-              </div>
-              <div class="tc" id="ov-month-cal-tc">
-                <div id="ov-month-events" style="padding:4px 0 2px;">
-                  <!-- rendered by ovRenderMonthEvents() -->
-                </div>
-                <div style="text-align:right;padding:6px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
-              </div>
-            </div>
-            <!-- Hidden stubs — backward-compat with auraRenderHome gravity rail refs -->
-            <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
-
-            <!-- ── COMMAND ────────────────────── -->
-            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Command Stations</span><div class="ov-ss-line"></div></div>
-
-            <!-- ⑥ COMMAND STATIONS -->
-            <div class="tc">
-              <div class="tc-sec-hd">
-                <div class="tc-sec-title">Command Stations</div>
-                <span class="ov-badge-mono">8 Pillars</span>
-              </div>
-              <div class="ov-modules-grid" id="ov-modules-grid">
-                <!-- rendered by auraRenderOverview() -->
-              </div>
-              <div style="height:10px;"></div>
-            </div>
-
-            <!-- ── FAMILY ─────────────────────── -->
-            <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Family</span><div class="ov-ss-line"></div></div>
-
-            <!-- ⑦ FAMILY STATUS -->
-            <div class="tc">
-              <div class="tc-sec-hd">
-                <div class="tc-sec-title">Family Status</div>
-                <span class="ov-badge-mono">4 Members</span>
-              </div>
-              <div class="ov-family-grid" id="ov-family-scroll">
-                <!-- rendered by auraRenderOverview() -->
-              </div>
-              <div style="height:10px;"></div>
-            </div>
-
-            <!-- ⑧ AI QUICK ASK -->
-            <div>
-              <div class="ov-ai-card" id="ov-ai-card" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">
-                <div class="ov-ai-icon">&#x1F916;</div>
-                <div class="ov-ai-body">
-                  <div class="ov-ai-title">Ask Claude anything</div>
-                  <div class="ov-ai-sub">Family context active · Memory loaded</div>
-                </div>
-                <div class="ov-ai-arrow">
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 6H9M6 3L9 6L6 9" stroke="rgba(167,139,250,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </div>
-              </div>
-              <div class="ov-ai-chips" style="margin-top:8px;">
-                <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">What&#x27;s overdue?</div>
-                <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Expiry status</div>
-                <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Health summary</div>
-                <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Vehicle docs</div>
-                <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Next expiry?</div>
-              </div>
-            </div>
-
-            <!-- ⑨ STATS BAR -->
-            <div class="ov-stats-bar" id="ov-stats-bar">
-              <!-- rendered by auraRenderOverview() -->
-            </div>
-
-            <div style="height:6px;"></div>
+            <!-- content rendered in #page-view; this panel kept for swipe structure -->
           </div>
 
           <!-- ▸ PANEL 1: HEALTH -->
@@ -982,7 +977,7 @@
 <nav id="bottom-nav">
   <div class="bnav-inner">
     <div class="bnav-selector" id="bnav-selector"></div>
-    <div class="bnav-item active pressable" id="bnav-dashboard" onclick="goPage('dashboard')">
+    <div class="bnav-item active pressable" id="bnav-view" onclick="goPage('view')">
       <span class="bnav-icon">🏠</span><span>Home</span>
     </div>
     <div class="bnav-item pressable" id="bnav-members" onclick="goPage('members')">

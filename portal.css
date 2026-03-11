@@ -332,6 +332,9 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   /* Prevent bottom nav reflow affecting scroll */
   isolation:isolate;
 }
+/* View page — regular scrollable landing page */
+.view-page-wrap{display:flex;flex-direction:column;gap:10px;padding:8px 14px 20px;}
+
 /* Dashboard is position:fixed so it's out of normal flow.
    Ensure it never adds scroll height to #content. */
 #page-dashboard.active ~ * { /* siblings after dashboard are unaffected */ }

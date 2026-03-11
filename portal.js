@@ -227,7 +227,7 @@ updateClock();setInterval(updateClock,1000);
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
-let currentPage = 'dashboard';
+let currentPage = 'view';
 let currentMember = 'rajasekhar';
 let currentTab = 'identity';
 let currentExpTab = 'docs';
@@ -353,23 +353,23 @@ function goPage(page) {
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
-  if (canvas) canvas.style.display = (page === 'dashboard') ? 'block' : 'none';
-  document.body.classList.toggle('dash-active', page === 'dashboard');
-  if (page !== 'dashboard') window.scrollTo(0,0);
+  if (canvas) canvas.style.display = 'none';
+  document.body.classList.remove('dash-active');
+  window.scrollTo(0,0);
 
+  if(page==='view')      { applyGmView(); }
   if(page==='members')   { applyGmMembers(); }
   if(page==='expiry')    { initExpiry(); animateExpBars(); }
   if(page==='calendar')  { initCalendar(); applyGmCalendar(); }
   if(page==='health')    { initHealthPage(); applyGmHealth(); }
   if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
-  if(page==='dashboard') { applyGmDashboard(); auraGoSlide(0); }
   if(page==='budget')    { initBudget(); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['dashboard','members','documents','expiry','calendar','health','budget','search'];
+const PAGE_ORDER = ['view','members','documents','expiry','calendar','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -7398,6 +7398,7 @@ function applyMemberContextToCurrentPage() {
   if (!activePage) return;
   const pageId = activePage.id.replace('page-', '');
   switch(pageId) {
+    case 'view':        applyGmView();        break;
     case 'dashboard':   applyGmDashboard();   break;
     case 'members':     applyGmMembers();     break;
     case 'documents':   applyGmDocuments();   break;
@@ -7411,6 +7412,14 @@ function applyMemberContextToCurrentPage() {
 function applyGmDashboard() {
   // Re-render family widget on member context switch via initWidgetDynamic
   initWidgetDynamic();
+}
+
+// ── View page (overview landing) ──
+function applyGmView() {
+  if (typeof auraRenderGreeting === 'function') auraRenderGreeting();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof ovRenderMonthEvents === 'function') ovRenderMonthEvents();
 }
 
 // ── Members: filter list and jump straight to member ──
@@ -8678,7 +8687,7 @@ function updateFabVisibility(page) {
 let cmdSelectedIdx = -1;
 
 const CMD_PAGES = [
-  { icon: '🏠', title: 'Dashboard', sub: 'Home overview', action: () => goPage('dashboard'), badge: 'Page' },
+  { icon: '🏠', title: 'Home', sub: 'Home overview', action: () => goPage('view'), badge: 'Page' },
   { icon: '👨‍👩‍👧‍👦', title: 'Members', sub: 'Family profiles & documents', action: () => goPage('members'), badge: 'Page' },
   { icon: '📁', title: 'Documents', sub: 'All family records', action: () => goPage('documents'), badge: 'Page' },
   { icon: '⏰', title: 'Expiry Tracker', sub: 'Passports, insurance, visas', action: () => goPage('expiry'), badge: 'Page' },
