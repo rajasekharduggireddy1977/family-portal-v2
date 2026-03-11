@@ -9945,7 +9945,7 @@ function bgtCalc(d) {
   const totalMonthly   = mTotal + yAvg;
   const monthlySaving  = iTotal - mTotal;
   const yearlySaving   = (monthlySaving * 12) - yTotal;
-  const currentBalance = aTotal + iTotal - (mBal + yBal);
+  const currentBalance = aTotal - (mBal + yBal);
   return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
 }
 
@@ -10224,10 +10224,6 @@ function renderBgtSummary(d, c) {
           '<div class="bgt-curbal-row">' +
             '<span class="bgt-curbal-lbl">Total Assets</span>' +
             '<span class="bgt-curbal-val green">+ ' + bgtFmt(c.aTotal) + '</span>' +
-          '</div>' +
-          '<div class="bgt-curbal-row">' +
-            '<span class="bgt-curbal-lbl">Total Income</span>' +
-            '<span class="bgt-curbal-val gold">+ ' + bgtFmt(c.iTotal) + '</span>' +
           '</div>' +
           '<div class="bgt-curbal-row">' +
             '<span class="bgt-curbal-lbl">Monthly Balance Due</span>' +
