@@ -7618,7 +7618,7 @@ function syncSidebarNav(page) {
 // ═══════════════════════════════════════
 var _wovAnimId = null;
 var _wovStartTime = null;
-var WOV_DURATION = 6000; // ms
+var WOV_DURATION = 15000; // ms
 
 function startWelcomeTimer() {
   _wovStartTime = Date.now();
