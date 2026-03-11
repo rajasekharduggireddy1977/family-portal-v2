@@ -900,11 +900,26 @@
             <div class="bgt-sec-lbl">🏦 Assets &amp; Investments</div>
             <button class="bgt-add-btn" onclick="bgtAdd('assets')">＋ Add</button>
           </div>
-          <div class="bgt-inc-list" id="bgt-asset-list"></div>
-          <div class="bgt-total-row">
+          <!-- Banking sub-section -->
+          <div class="bgt-asset-sub-hdr">🏛️ Banking</div>
+          <div class="bgt-inc-list" id="bgt-asset-b-list"></div>
+          <div class="bgt-sub-total-row">
+            <span class="bgt-total-lbl">Banking Total</span>
+            <span class="bgt-total-val green" id="bgt-b-total"></span>
+          </div>
+          <!-- Non-Banking sub-section -->
+          <div class="bgt-asset-sub-hdr" style="margin-top:14px;">📊 Non-Banking</div>
+          <div class="bgt-inc-list" id="bgt-asset-nb-list"></div>
+          <div class="bgt-sub-total-row">
+            <span class="bgt-total-lbl">Non-Banking Total</span>
+            <span class="bgt-total-val green" id="bgt-nb-total"></span>
+          </div>
+          <!-- Grand Total Assets -->
+          <div class="bgt-total-row bgt-grand-total-row">
             <span class="bgt-total-lbl">Total Assets</span>
             <span class="bgt-total-val green" id="bgt-a-total"></span>
           </div>
+          <!-- Income sub-section -->
           <div class="bgt-sec-row" style="margin-top:14px;">
             <div class="bgt-sec-lbl">💼 Income</div>
             <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>

@@ -4918,6 +4918,22 @@ body.dash-active #content{
 .bgt-bal-val{font-size:16px;font-weight:700;font-family:'Inter',sans-serif;color:var(--green);}
 /* Assets amount colour */
 .bgt-amt-green{color:var(--green)!important;}
+/* Assets sub-section header */
+.bgt-asset-sub-hdr{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;padding:6px 0 4px;border-bottom:1px solid var(--border2);margin-bottom:6px;}
+/* Sub-total row (lighter than grand total) */
+.bgt-sub-total-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;opacity:.75;}
+.bgt-sub-total-row .bgt-total-lbl{font-size:11px;}
+.bgt-sub-total-row .bgt-total-val{font-size:13px;}
+/* Grand total row separator */
+.bgt-grand-total-row{border-top:1.5px solid var(--border2);margin-top:6px;padding-top:8px;}
+/* Banking/Non-Banking toggle in add sheet */
+.bgt-asset-toggle{display:flex;gap:8px;margin-bottom:16px;}
+.bgt-cat-btn{flex:1;padding:9px 0;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid var(--border2);background:var(--surface3);color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;touch-action:manipulation;transition:all .15s;}
+.bgt-cat-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+/* Category badge in edit sheet */
+.bgt-cat-badge{display:inline-block;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;margin-bottom:14px;}
+.bgt-cat-banking{background:rgba(79,127,255,.15);color:var(--blue);}
+.bgt-cat-nb{background:rgba(62,207,142,.15);color:var(--green);}
 /* Current Balance card (Summary panel) */
 .bgt-curbal-card{background:var(--surface2);border:1px solid var(--border2);border-radius:16px;padding:18px 16px;margin:0 0 16px;}
 .bgt-curbal-title{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}

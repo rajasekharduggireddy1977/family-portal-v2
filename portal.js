@@ -9909,13 +9909,20 @@ const BGT_DEFAULTS = {
     {source:'FD Interest', amount:15000},
     {source:'Rent',        amount:20700}
   ],
-  assets: [
-    {item:'HDFC Life', amount:270000},
-    {item:'Babai',     amount:500000},
-    {item:'Murali',    amount:22200},
-    {item:'Krishna',   amount:25000},
-    {item:'NPS',       amount:50000}
-  ]
+  assets: {
+    banking: [
+      {item:'ICICI Bank', amount:0},
+      {item:'Axis Bank',  amount:0},
+      {item:'HDFC Bank',  amount:0}
+    ],
+    nonBanking: [
+      {item:'HDFC Life', amount:270000},
+      {item:'Babai',     amount:500000},
+      {item:'Murali',    amount:22200},
+      {item:'Krishna',   amount:25000},
+      {item:'NPS',       amount:50000}
+    ]
+  }
 };
 
 
@@ -9929,7 +9936,14 @@ const BGT_DEFAULTS = {
 function bgtGetData() {
   try {
     const s = localStorage.getItem('fp_budget_v1');
-    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    const d = s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    // Migrate old flat assets array → {banking, nonBanking}
+    if (Array.isArray(d.assets)) {
+      d.assets = { banking: [], nonBanking: d.assets };
+      bgtSaveData(d);
+    }
+    if (!d.assets) d.assets = { banking: [], nonBanking: [] };
+    return d;
   } catch(e) { return JSON.parse(JSON.stringify(BGT_DEFAULTS)); }
 }
 function bgtSaveData(d) { localStorage.setItem('fp_budget_v1', JSON.stringify(d)); }
@@ -9941,12 +9955,14 @@ function bgtCalc(d) {
   const yBal   = d.yearly.reduce((s,r)=>s+r.balance, 0);
   const yAvg   = Math.round(yTotal / 12);
   const iTotal = d.income.reduce((s,r)=>s+r.amount, 0);
-  const aTotal = (d.assets||[]).reduce((s,r)=>s+r.amount, 0);
+  const bTotal  = (d.assets?.banking||[]).reduce((s,r)=>s+r.amount, 0);
+  const nbTotal = (d.assets?.nonBanking||[]).reduce((s,r)=>s+r.amount, 0);
+  const aTotal  = bTotal + nbTotal;
   const totalMonthly   = mTotal + yAvg;
   const monthlySaving  = iTotal - mTotal;
   const yearlySaving   = (monthlySaving * 12) - yTotal;
   const currentBalance = aTotal - (mBal + yBal);
-  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
+  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,bTotal,nbTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
 }
 
 function bgtInr(n) {
@@ -10097,24 +10113,30 @@ function renderBgtMonthly(d, c) {
 }
 
 function renderBgtAssets(d, c) {
-  // Assets list
-  const alist = document.getElementById('bgt-asset-list');
-  if (alist) {
-    alist.innerHTML = (d.assets||[]).map(function(r, i) {
-      return '<div class="bgt-inc-row">' +
-        '<div class="bgt-inc-name">' + r.item + '</div>' +
-        '<div class="bgt-inc-amt bgt-amt-green">' + bgtFmt(r.amount) + '</div>' +
-        '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'assets\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'assets\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+  function assetRow(r, i, type) {
+    return '<div class="bgt-inc-row">' +
+      '<div class="bgt-inc-name">' + r.item + '</div>' +
+      '<div class="bgt-inc-amt bgt-amt-green">' + bgtFmt(r.amount) + '</div>' +
+      '<div class="bgt-row-acts">' +
+        '<button class="bgt-act" onclick="bgtEdit(\'' + type + '\',' + i + ')">\u270f\ufe0f</button>' +
+        '<button class="bgt-act" onclick="bgtDelete(\'' + type + '\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+      '</div>' +
+    '</div>';
   }
-  // Assets total
+  // Banking list
+  const bList = document.getElementById('bgt-asset-b-list');
+  if (bList) bList.innerHTML = (d.assets.banking||[]).map(function(r,i){ return assetRow(r,i,'assets_b'); }).join('');
+  const bt = document.getElementById('bgt-b-total');
+  if (bt) bt.textContent = bgtFmt(c.bTotal);
+  // Non-Banking list
+  const nbList = document.getElementById('bgt-asset-nb-list');
+  if (nbList) nbList.innerHTML = (d.assets.nonBanking||[]).map(function(r,i){ return assetRow(r,i,'assets_nb'); }).join('');
+  const nbt = document.getElementById('bgt-nb-total');
+  if (nbt) nbt.textContent = bgtFmt(c.nbTotal);
+  // Grand Total
   const at = document.getElementById('bgt-a-total');
   if (at) at.textContent = bgtFmt(c.aTotal);
-  // Income list (now lives in Assets panel)
+  // Income list
   const incList = document.getElementById('bgt-inc-list');
   if (incList) {
     incList.innerHTML = d.income.map(function(r, i) {
@@ -10128,7 +10150,6 @@ function renderBgtAssets(d, c) {
       '</div>';
     }).join('');
   }
-  // Income total
   const it = document.getElementById('bgt-i-total');
   if (it) it.textContent = bgtFmt(c.iTotal);
 }
@@ -10302,7 +10323,7 @@ function _bgtOpenSheet() {
 
 function bgtAdd(type) {
   _bgtState = {type, idx: -1};
-  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source', assets:'Add Asset'};
+  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source', assets:'Add Asset', assets_b:'Add Banking', assets_nb:'Add Non-Banking'};
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
   _bgtOpenSheet();
@@ -10311,20 +10332,21 @@ function bgtAdd(type) {
 function bgtEdit(type, idx) {
   const d = bgtGetData();
   _bgtState = {type, idx};
-  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source', assets:'Edit Asset'};
+  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source', assets_b:'Edit Banking', assets_nb:'Edit Non-Banking'};
   document.getElementById('bgt-sheet-title').textContent = labels[type] || 'Edit Item';
-  const row = type==='income' ? d.income[idx] : type==='assets' ? (d.assets||[])[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
+  const row = type==='income' ? d.income[idx] : type==='assets_b' ? (d.assets.banking||[])[idx] : type==='assets_nb' ? (d.assets.nonBanking||[])[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
   _bgtOpenSheet();
 }
 
 function bgtDelete(type, idx) {
   const d = bgtGetData();
-  const name = type==='income' ? d.income[idx].source : type==='assets' ? (d.assets||[])[idx].item : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
+  const name = type==='income' ? d.income[idx].source : type==='assets_b' ? (d.assets.banking||[])[idx].item : type==='assets_nb' ? (d.assets.nonBanking||[])[idx].item : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
   if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
   if (type==='monthly') d.monthly.splice(idx, 1);
   else if (type==='yearly') d.yearly.splice(idx, 1);
-  else if (type==='assets') { if (!d.assets) d.assets=[]; d.assets.splice(idx, 1); }
+  else if (type==='assets_b') { d.assets.banking.splice(idx, 1); }
+  else if (type==='assets_nb') { d.assets.nonBanking.splice(idx, 1); }
   else d.income.splice(idx, 1);
   bgtSaveData(d);
   initBudget();
@@ -10348,10 +10370,17 @@ function bgtSheetSave() {
   } else if (type === 'yearly') {
     const obj = {item:f1, amount:f2, balance:f3, next:f4};
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
-  } else if (type === 'assets') {
-    if (!d.assets) d.assets = [];
+  } else if (type === 'assets' || type === 'assets_b' || type === 'assets_nb') {
+    if (!d.assets) d.assets = {banking:[], nonBanking:[]};
     const obj = {item:f1, amount:f2};
-    if (idx < 0) d.assets.push(obj); else d.assets[idx] = obj;
+    // For new adds, check toggle; for edits, use encoded type
+    let cat = type === 'assets_b' ? 'banking' : type === 'assets_nb' ? 'nonBanking' : null;
+    if (!cat) {
+      // Read toggle selection from DOM
+      const activeCatBtn = document.querySelector('.bgt-cat-btn.active');
+      cat = (activeCatBtn && activeCatBtn.dataset.cat === 'nb') ? 'nonBanking' : 'banking';
+    }
+    if (idx < 0) d.assets[cat].push(obj); else d.assets[cat][idx] = obj;
   } else {
     const obj = {source:f1, amount:f2};
     if (idx < 0) d.income.push(obj); else d.income[idx] = obj;
@@ -10374,6 +10403,11 @@ function bgtCloseSheet() {
     }
   }
   _bgtState = null;
+}
+
+function bgtToggleAssetCat(btn) {
+  document.querySelectorAll('.bgt-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
 }
 
 function bgtCalcBal() {
@@ -10404,7 +10438,23 @@ function _bgtFields(type, row) {
            '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
   }
   if (type === 'assets') {
-    return '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. HDFC Life, NPS" value="' + (row ? row.item : '') + '"></div>' +
+    // New add — show Banking / Non-Banking toggle
+    return '<div class="bgt-asset-toggle">' +
+             '<button class="bgt-cat-btn active" data-cat="b" onclick="bgtToggleAssetCat(this)">\ud83c\udfd7\ufe0f Banking</button>' +
+             '<button class="bgt-cat-btn" data-cat="nb" onclick="bgtToggleAssetCat(this)">\ud83d\udcca Non-Banking</button>' +
+           '</div>' +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. ICICI Bank, HDFC Life" value=""></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value=""></div>' +
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets_b' || type === 'assets_nb') {
+    // Edit — show read-only category badge
+    const badge = type === 'assets_b'
+      ? '<div class="bgt-cat-badge bgt-cat-banking">\ud83c\udfd7\ufe0f Banking</div>'
+      : '<div class="bgt-cat-badge bgt-cat-nb">\ud83d\udcca Non-Banking</div>';
+    const ph = type === 'assets_b' ? 'e.g. ICICI Bank' : 'e.g. HDFC Life';
+    return badge +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="' + ph + '" value="' + (row ? row.item : '') + '"></div>' +
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
            '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
   }
