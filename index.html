@@ -125,7 +125,7 @@
     <div class="fab-item-ico">💾</div> Backup Now
   </div>
 </div>
-<div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + var(--pulse-h) + var(--pulse-gap) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
+<div id="fab-btn-wrap" style="position:fixed;bottom:calc(var(--nav-h) + 10px);left:16px;z-index:9100;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s cubic-bezier(.34,1.56,.64,1);">
   <div id="fab-btn" onclick="toggleFab()" title="Quick Actions" aria-label="Quick Actions" style="position:relative;bottom:auto;left:auto;z-index:auto;">＋</div>
 </div>
 
@@ -1002,27 +1002,6 @@
 </nav>
 
 <!-- ═══ PULSE RAIL — fixed above bottom nav, dashboard only ═══ -->
-<div id="pulse-rail" class="pulse-rail-wrap">
-  <div class="pulse-rail-inner">
-    <div class="pulse-selector" id="pulse-selector"></div>
-    <div class="pulse-cat pulse-active" style="--pc:rgba(200,210,255,.7);" onclick="auraGoSlide(0);pulseActivate(this)">
-      <span class="pulse-icon">🌐</span><span class="pulse-lbl">Overview</span>
-    </div>
-    <div class="pulse-cat" style="--pc:rgba(0,230,118,.7);" onclick="auraGoSlide(1);pulseActivate(this)">
-      <span class="pulse-icon">🩺</span><span class="pulse-lbl">Health</span>
-    </div>
-    <div class="pulse-cat" style="--pc:rgba(167,139,250,.8);" id="aura-cat-edu" onclick="auraGoSlide(2);pulseActivate(this)">
-      <span class="pulse-icon">📚</span><span class="pulse-lbl">Edu</span>
-    </div>
-    <div class="pulse-cat" style="--pc:rgba(245,158,11,.8);" id="aura-cat-fin" onclick="auraGoSlide(3);pulseActivate(this)">
-      <span class="pulse-icon">📈</span><span class="pulse-lbl">Finance</span>
-    </div>
-    <div class="pulse-cat" style="--pc:rgba(79,127,255,.7);" onclick="auraGoSlide(4);pulseActivate(this)">
-      <span class="pulse-icon">👥</span><span class="pulse-lbl">Family</span>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ BNAV MORE MENU — pops up above '...' nav item ═══ -->
 <div id="bnav-more-menu" class="hidden">
   <div class="more-menu-item" onclick="moreMenuAction('documents')">
