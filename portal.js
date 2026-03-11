@@ -7640,6 +7640,24 @@ function startWelcomeTimer() {
   // FAB has z-index:9100 — hide it while overlay is visible
   var fab = document.getElementById('fab-btn-wrap');
   if (fab) fab.style.display = 'none';
+  // Inject actual member photos into constellation badges (fallback: emoji stays if no photo)
+  var wovMemMap = [
+    {sel:'.wov-m1 span',id:'rajasekhar'},
+    {sel:'.wov-m2 span',id:'vasundhara'},
+    {sel:'.wov-m3 span',id:'josritha'},
+    {sel:'.wov-m4 span',id:'jeevan'}
+  ];
+  wovMemMap.forEach(function(entry){
+    var span = document.querySelector(entry.sel);
+    if (span && MEMBER_PHOTOS[entry.id]) {
+      span.textContent = '';
+      var img = document.createElement('img');
+      img.src = MEMBER_PHOTOS[entry.id];
+      img.alt = entry.id;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;display:block;';
+      span.appendChild(img);
+    }
+  });
   // Timer starts in showWelcomeOverlay() — called after the loader screen fades out
 })();
 
