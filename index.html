@@ -305,8 +305,8 @@
     <div class="snav-item" id="snav-budget" onclick="goPage('budget')">
       <div class="snav-icon">💰</div> Budget
     </div>
-    <div class="snav-item" onclick="openJosrithaEduPopup()">
-      <div class="snav-icon">🎓</div> Josritha's Education
+    <div class="snav-item" id="snav-search" onclick="goSearch()">
+      <div class="snav-icon">🔍</div> Search
     </div>
   </div>
   <div class="snav-section snav-ai-section">
@@ -352,7 +352,7 @@
     </div>
     <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</div>
     <div class="tb-search-btn pressable" onclick="openCommandPalette()" title="Command Palette (⌘K)" style="display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:9px;padding:6px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;" onmouseenter="this.style.borderColor='rgba(79,127,255,.4)';this.style.color='var(--blue2)'" onmouseleave="this.style.borderColor='';this.style.color=''">⌘K</div>
-    <div class="tb-search-btn" onclick="goSearch()" title="Search">⌕</div>
+    <div class="tb-search-btn pressable" onclick="openJosrithaEduPopup()" title="Josritha's Education" style="font-size:18px;line-height:1;">🎓</div>
     <div class="tb-search-btn pressable" onclick="location.href='landing.html'" title="About this Portal" style="font-size:15px;line-height:1;">ℹ️</div>
   </div>
 </div>
