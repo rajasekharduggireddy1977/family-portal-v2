@@ -5189,10 +5189,9 @@ body.dash-active #content{
 /* ── 3. HOME PANEL — iPhone 15 Plus compact (430×932) ── */
 /* Reduce TC card bottom margin for tighter stacking */
 #aura-p0 .tc { margin-bottom: 6px; }
-/* Compact greeting card */
-.tc-greeting { padding: 8px 16px 8px !important; }
-.tc-greet-name { font-size: 17px !important; }
-.tc-greet-eyebrow { margin-bottom: 2px !important; }
+/* Greeting block mobile — handled via @media(max-width:480px) in HOME VIEW v2 section */
+.greeting-block { padding: 14px 16px; }
+.gb-greeting-text { font-size: 16px !important; }
 /* Compact section header */
 .tc-sec-hd { padding: 8px 16px 3px !important; }
 .tc-sec-title { font-size: 13px !important; }
@@ -5411,6 +5410,12 @@ body.dash-active #content{
 .gb-badge-text{font-size:9px;font-weight:500;letter-spacing:.08em;color:rgba(124,255,176,.78);text-transform:uppercase;}
 .gb-property-arrow{color:rgba(160,130,255,.42);font-size:18px;flex-shrink:0;transition:transform .2s,color .2s;}
 .gb-property-card:hover .gb-property-arrow{transform:translateX(3px);color:rgba(160,130,255,.85);}
+/* MOBILE — stack greeting vertically on narrow screens */
+@media(max-width:480px){
+  .greeting-block{flex-direction:column;align-items:stretch;gap:12px;padding:14px 16px;}
+  .gb-property-card{min-width:0;width:100%;max-width:none;}
+  .gb-property-img-wrap{width:60px;height:50px;}
+}
 
 /* ── HERO BANNER CAROUSEL ───────────────────────────── */
 .hero-banner-wrap{position:relative;margin:0 -14px;overflow:hidden;touch-action:pan-y;border-radius:0;}
