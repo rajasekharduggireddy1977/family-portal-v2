@@ -401,77 +401,207 @@
   <div class="page active" id="page-view">
     <div class="view-page-wrap">
 
-      <!-- ① GREETING CARD -->
-      <div class="tc">
-        <div class="tc-greeting">
-          <div class="tc-greet-left">
-            <div class="tc-greet-eyebrow" id="aura-eyebrow">Sunday · March 2026</div>
-            <div class="tc-greet-name" id="aura-greeting">Good Morning, Rajasekhar.</div>
+      <!-- ① GREETING STRIP -->
+      <div class="greeting-strip fade-up">
+        <div class="greeting-left">
+          <div class="greeting-time" id="aura-eyebrow">Sunday · March 2026</div>
+          <div class="greeting-name" id="aura-greeting">
+            <span class="greeting-emoji">👋</span> Good Morning, Rajasekhar.
           </div>
-          <div class="tc-greet-clock-wrap">
-            <div class="tc-greet-date" id="aura-date"></div>
+          <div class="greeting-sub" id="greeting-sub">Your family is all covered today</div>
+        </div>
+        <div class="greeting-right">
+          <div class="greeting-alert-pill" onclick="goPage('expiry')" id="greeting-alert-pill" style="display:none;">
+            <div class="gap-dot"></div>
+            <span class="gap-text" id="greeting-alert-text">0 Overdue</span>
           </div>
         </div>
       </div>
 
-      <!-- ── STATUS ─────────────────────── -->
-      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Status Overview</span><div class="ov-ss-line"></div></div>
+      <!-- ② HERO BANNER CAROUSEL -->
+      <div class="hero-banner-wrap fade-up delay-1" id="heroBanner">
+        <div class="hero-progress"><div class="hero-progress-fill" id="heroProgressFill"></div></div>
+        <div class="hero-track" id="heroTrack">
 
-      <!-- ② 3-GAUGE STRIP -->
-      <div class="tc ov-gauges-tc">
-        <div class="ov-gauges" id="ov-gauges"></div>
+          <!-- SLIDE 1: Documents -->
+          <div class="hero-slide s1 active">
+            <div class="slide-mesh"></div>
+            <div class="slide-visual">📁</div>
+            <div class="slide-float sf1">🔒</div>
+            <div class="slide-float sf2">📄</div>
+            <div class="slide-float sf3">✨</div>
+            <div class="slide-content">
+              <div>
+                <div class="slide-eyebrow"><span class="slide-eyebrow-dot"></span> Documents Vault</div>
+                <div class="slide-heading">28 Documents<br>Safely Stored</div>
+                <div class="slide-sub">Aadhaar, PAN, passports, deeds — all organised for your family.</div>
+              </div>
+              <div class="slide-cta" onclick="goPage('documents')">Open Vault →</div>
+            </div>
+            <div class="slide-bottom-fade"></div>
+          </div>
+
+          <!-- SLIDE 2: Finance -->
+          <div class="hero-slide s2">
+            <div class="slide-mesh"></div>
+            <div class="slide-visual">💰</div>
+            <div class="slide-float sf1">📈</div>
+            <div class="slide-float sf2">💳</div>
+            <div class="slide-float sf3">🏦</div>
+            <div class="slide-content">
+              <div>
+                <div class="slide-eyebrow"><span class="slide-eyebrow-dot"></span> Family Finance</div>
+                <div class="slide-heading">Budget &amp; Expenses<br>At a Glance</div>
+                <div class="slide-sub">Track spend, EMIs, savings and investments across all members.</div>
+              </div>
+              <div class="slide-cta" onclick="goPage('budget')">View Finances →</div>
+            </div>
+            <div class="slide-bottom-fade"></div>
+          </div>
+
+          <!-- SLIDE 3: Health -->
+          <div class="hero-slide s3">
+            <div class="slide-mesh"></div>
+            <div class="slide-visual">❤️</div>
+            <div class="slide-float sf1">💊</div>
+            <div class="slide-float sf2">🩺</div>
+            <div class="slide-float sf3">🏃</div>
+            <div class="slide-content">
+              <div>
+                <div class="slide-eyebrow"><span class="slide-eyebrow-dot"></span> Health Records</div>
+                <div class="slide-heading">Family Wellness<br>Hub</div>
+                <div class="slide-sub">Prescriptions, lab reports and health appointments in one place.</div>
+              </div>
+              <div class="slide-cta" onclick="goPage('health')">Health Hub →</div>
+            </div>
+            <div class="slide-bottom-fade"></div>
+          </div>
+
+          <!-- SLIDE 4: Alerts -->
+          <div class="hero-slide s4">
+            <div class="slide-mesh"></div>
+            <div class="slide-visual">⚠️</div>
+            <div class="slide-float sf1">🏢</div>
+            <div class="slide-float sf2">📋</div>
+            <div class="slide-float sf3">🔔</div>
+            <div class="slide-content">
+              <div>
+                <div class="slide-eyebrow"><span class="slide-eyebrow-dot"></span> Action Required</div>
+                <div class="slide-heading">2 Property Taxes<br>Are Overdue</div>
+                <div class="slide-sub">Flat 403 &amp; Shop G5 tax payments were due Feb 2026. Act now.</div>
+              </div>
+              <div class="slide-cta" onclick="goPage('expiry')">View Alerts →</div>
+            </div>
+            <div class="slide-bottom-fade"></div>
+          </div>
+
+          <!-- SLIDE 5: Properties -->
+          <div class="hero-slide s5">
+            <div class="slide-mesh"></div>
+            <div class="slide-visual">🏠</div>
+            <div class="slide-float sf1">🗝️</div>
+            <div class="slide-float sf2">📐</div>
+            <div class="slide-float sf3">🌆</div>
+            <div class="slide-content">
+              <div>
+                <div class="slide-eyebrow"><span class="slide-eyebrow-dot"></span> Properties</div>
+                <div class="slide-heading">3 Properties<br>Under Management</div>
+                <div class="slide-sub">Track taxes, maintenance and documents for all family properties.</div>
+              </div>
+              <div class="slide-cta" onclick="goPage('documents')">View Properties →</div>
+            </div>
+            <div class="slide-bottom-fade"></div>
+          </div>
+
+        </div>
+        <div class="hero-dots" id="heroDots">
+          <div class="hero-dot active" onclick="heroGoSlide(0)"></div>
+          <div class="hero-dot" onclick="heroGoSlide(1)"></div>
+          <div class="hero-dot" onclick="heroGoSlide(2)"></div>
+          <div class="hero-dot" onclick="heroGoSlide(3)"></div>
+          <div class="hero-dot" onclick="heroGoSlide(4)"></div>
+        </div>
       </div>
 
-      <!-- ③ CRITICAL ALERTS -->
-      <div class="tc" id="ov-alerts-wrap">
-        <div class="tc-sec-hd">
-          <div class="tc-sec-title" style="display:flex;align-items:center;gap:6px;">
-            <span class="ov-sec-dot pulse" style="background:var(--red);box-shadow:0 0 6px rgba(255,79,79,.7);"></span>
+      <!-- ③ STATUS ROW (stat cards) -->
+      <div class="home-status-row fade-up delay-1">
+        <div class="hsr-card danger" onclick="goPage('expiry')">
+          <span class="hsr-icon">⏰</span>
+          <span class="hsr-num" id="hsr-overdue-num">2</span>
+          <span class="hsr-label">Overdue</span>
+          <span class="hsr-cta" id="hsr-overdue-cta">Action Now</span>
+        </div>
+        <div class="hsr-card" onclick="goPage('budget')">
+          <span class="hsr-icon">📊</span>
+          <span class="hsr-num" id="hsr-budget-num">—</span>
+          <span class="hsr-label">Budget</span>
+          <span class="hsr-cta">View</span>
+        </div>
+        <div class="hsr-card safe" onclick="goPage('documents')">
+          <span class="hsr-icon">🛡️</span>
+          <span class="hsr-num" id="hsr-docs-num">28</span>
+          <span class="hsr-label">Docs Safe</span>
+          <span class="hsr-cta">All Secure</span>
+        </div>
+      </div>
+
+      <!-- ④ CRITICAL ALERTS -->
+      <div id="ov-alerts-wrap">
+        <div class="home-sec-hdr fade-up delay-2">
+          <div class="home-sec-title">
+            <span class="home-sec-dot" style="background:#FF3B4E;box-shadow:0 0 6px rgba(255,59,78,.6);animation:hsrPulseLine 1.5s ease-in-out infinite;"></span>
             Critical Alerts
           </div>
-          <span class="ov-sec-badge ov-badge-red" id="ov-alerts-badge">—</span>
+          <div class="home-sec-right">
+            <span class="home-badge red" id="ov-alerts-badge">—</span>
+            <span class="home-sec-link" onclick="goPage('expiry')">All Alerts →</span>
+          </div>
         </div>
-        <div class="ov-alerts-grid" id="ov-alerts-scroll"></div>
-        <div style="text-align:right;padding:6px 16px 8px;"><span class="tc-sec-action" onclick="goPage('expiry')">All Alerts &#8594;</span></div>
+        <div class="home-alerts-grid fade-up delay-2" id="ov-alerts-scroll"></div>
+        <!-- hidden compat div for old JS still referencing this -->
+        <div style="display:none!important;" id="ov-gauges"></div>
       </div>
 
       <!-- ── SCHEDULE ───────────────────── -->
-      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Today &amp; Schedule</span><div class="ov-ss-line"></div></div>
+      <div class="home-section-divider fade-up delay-3"></div>
 
-      <!-- ④ TODAY block -->
-      <div class="tc">
-        <div class="tc-sec-hd">
-          <div class="tc-sec-title">Today</div>
-          <div class="tc-sec-action" onclick="goPage('calendar')">Calendar →</div>
+      <!-- ⑤ TODAY block -->
+      <div class="home-sec-hdr fade-up delay-3">
+        <div class="home-sec-title">
+          <span class="home-sec-dot" style="background:rgba(201,168,76,.7);"></span>
+          Today
         </div>
+        <span class="home-sec-link" onclick="goPage('calendar')">Calendar →</span>
+      </div>
+      <div class="home-schedule-card fade-up delay-3">
         <div id="aura-today-timeline"></div>
       </div>
 
-      <!-- ⑤ UPCOMING — month navigator -->
-      <div>
-        <div class="ov-sec-hd" style="margin-bottom:8px;">
-          <div class="ov-sec-title">
-            <span class="ov-sec-dot" style="background:var(--blue2);"></span>
-            Upcoming
-          </div>
-          <div style="display:flex;align-items:center;gap:5px;">
-            <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
-            <span id="ov-month-label" class="ov-month-label"></span>
-            <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
-          </div>
+      <!-- ⑥ UPCOMING — month navigator -->
+      <div class="home-sec-hdr fade-up delay-4" style="margin-top:4px;">
+        <div class="home-sec-title">
+          <span class="home-sec-dot" style="background:var(--blue2);"></span>
+          Upcoming
         </div>
-        <div class="tc" id="ov-month-cal-tc">
-          <div id="ov-month-events" style="padding:4px 0 2px;"></div>
-          <div style="text-align:right;padding:6px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
+          <span id="ov-month-label" class="ov-month-label"></span>
+          <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
         </div>
       </div>
-      <!-- Hidden stubs — backward-compat with auraRenderHome gravity rail refs -->
+      <div class="home-schedule-card fade-up delay-4" id="ov-month-cal-tc">
+        <div id="ov-month-events" style="padding:2px 0;"></div>
+        <div style="text-align:right;padding:5px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
+      </div>
+
+      <!-- Hidden stubs — backward-compat -->
       <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
 
-      <!-- ── COMMAND ────────────────────── -->
+      <!-- ── COMMAND STATIONS (kept) ───── -->
+      <div class="home-section-divider fade-up delay-4"></div>
       <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Command Stations</span><div class="ov-ss-line"></div></div>
 
-      <!-- ⑥ COMMAND STATIONS -->
+      <!-- ⑦ COMMAND STATIONS (existing, JS-rendered) -->
       <div class="tc">
         <div class="tc-sec-hd">
           <div class="tc-sec-title">Command Stations</div>
@@ -479,6 +609,71 @@
         </div>
         <div class="ov-modules-grid" id="ov-modules-grid"></div>
         <div style="height:10px;"></div>
+      </div>
+
+      <!-- ── QUICK ACCESS ───────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Quick Access</span><div class="ov-ss-line"></div></div>
+
+      <!-- ⑧ QUICK ACCESS MODULES (new static grid) -->
+      <div class="home-sec-hdr fade-up">
+        <div class="home-sec-title">
+          <span class="home-sec-dot" style="background:var(--blue2);"></span>
+          Quick Access
+        </div>
+        <span class="home-badge gold">8 Pillars</span>
+      </div>
+      <div class="home-modules-section fade-up">
+        <div class="home-modules-grid">
+          <div class="home-mod-card docs" onclick="goPage('documents')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">📁</div>
+            <div class="home-mod-label">Documents</div>
+            <div class="home-mod-num" id="qa-docs-num">28</div>
+          </div>
+          <div class="home-mod-card finance" onclick="goPage('budget')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">💰</div>
+            <div class="home-mod-label">Finance</div>
+            <div class="home-mod-num">₹</div>
+          </div>
+          <div class="home-mod-card health" onclick="goPage('health')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">❤️</div>
+            <div class="home-mod-label">Health</div>
+            <div class="home-mod-num">4</div>
+          </div>
+          <div class="home-mod-card tasks" onclick="goPage('expiry')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">⏰</div>
+            <div class="home-mod-label">Expiry</div>
+            <div class="home-mod-num" id="qa-expiry-num">7</div>
+          </div>
+          <div class="home-mod-card prop" onclick="goPage('documents')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">🏢</div>
+            <div class="home-mod-label">Property</div>
+            <div class="home-mod-num">3</div>
+          </div>
+          <div class="home-mod-card vehicle" onclick="goPage('expiry')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">🚗</div>
+            <div class="home-mod-label">Vehicles</div>
+            <div class="home-mod-num">2</div>
+          </div>
+          <div class="home-mod-card insure" onclick="goPage('expiry')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">🛡️</div>
+            <div class="home-mod-label">Insurance</div>
+            <div class="home-mod-num">4</div>
+          </div>
+          <div class="home-mod-card family" onclick="goPage('members')">
+            <div class="home-mod-glow"></div>
+            <div class="home-mod-icon">👨‍👩‍👧‍👦</div>
+            <div class="home-mod-label">Family</div>
+            <div class="home-mod-num">4</div>
+          </div>
+        </div>
+        <div style="height:12px;"></div>
       </div>
 
       <!-- ── FAMILY ─────────────────────── -->
