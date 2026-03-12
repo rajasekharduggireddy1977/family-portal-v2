@@ -223,6 +223,7 @@
     <div class="wov-constellation">
       <div class="wov-orbit wov-o1"></div>
       <div class="wov-orbit wov-o2"></div>
+      <div class="wov-orbit wov-o3"></div>
       <div class="wov-center">
         <svg viewBox="0 0 80 80" fill="none" width="38" height="38" aria-hidden="true">
           <defs>
@@ -241,13 +242,13 @@
           </g>
         </svg>
       </div>
-      <div class="wov-mem wov-m1"><span>RD</span></div>
-      <div class="wov-mem wov-m2"><span>VD</span></div>
-      <div class="wov-mem wov-m3"><span>JD</span></div>
-      <div class="wov-mem wov-m4"><span>JV</span></div>
+      <div class="wov-mem wov-m1"><span>👨</span></div>
+      <div class="wov-mem wov-m2"><span>👩</span></div>
+      <div class="wov-mem wov-m3"><span>👧</span></div>
+      <div class="wov-mem wov-m4"><span>👦</span></div>
     </div>
 
-    <div class="wov-badge">Duggireddy Family · Hyderabad</div>
+    <div class="wov-badge">Duggireddy Family · One City Hyderabad</div>
     <h1 class="wov-title">Your Family's Everything.<br><em>Private. Organized. Always Ready.</em></h1>
     <p class="wov-sub">Documents, expiry alerts, budget tracking &amp; health vitals — all secured in one private portal for every family member.</p>
 
@@ -278,7 +279,7 @@
           </div>
         </div>
         <div class="wov-warp-label">ENTERING PORTAL</div>
-        <div class="wov-warp-count" id="wov-countdown">6</div>
+        <div class="wov-warp-count" id="wov-countdown">15</div>
       </div>
     </div>
     <div class="wov-footer">Tap to skip · ℹ️ anytime to revisit</div>
@@ -860,11 +861,11 @@
     </div>
   </div>
 
-  <!-- ══════════ BUDGET TRACKER PAGE — 3-PANEL ══════════ -->
+  <!-- ══════════ BUDGET TRACKER PAGE — 4-PANEL ══════════ -->
   <div class="page" id="page-budget">
     <div id="budget-stage">
       <div id="budget-track">
-        <!-- Panel 0: Monthly -->
+        <!-- Panel 0: Monthly Expenses only -->
         <div class="budget-panel" id="bgt-p0">
           <div class="bgt-hero" id="bgt-hero-m"></div>
           <div class="bgt-sec-row">
@@ -876,11 +877,6 @@
             <span class="bgt-total-lbl">Monthly Total</span>
             <span class="bgt-total-val gold" id="bgt-m-total"></span>
           </div>
-          <div class="bgt-sec-row">
-            <div class="bgt-sec-lbl">💼 Income</div>
-            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
-          </div>
-          <div class="bgt-inc-list" id="bgt-inc-list"></div>
         </div>
         <!-- Panel 1: Yearly -->
         <div class="budget-panel" id="bgt-p1">
@@ -899,9 +895,46 @@
             <span class="bgt-total-val gold" id="bgt-y-avg"></span>
           </div>
         </div>
-        <!-- Panel 2: Summary -->
+        <!-- Panel 2: Assets & Income -->
         <div class="budget-panel" id="bgt-p2">
+          <div class="bgt-sec-row">
+            <div class="bgt-sec-lbl">🏦 Assets &amp; Investments</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('assets')">＋ Add</button>
+          </div>
+          <!-- Banking sub-section -->
+          <div class="bgt-asset-sub-hdr">🏛️ Banking</div>
+          <div class="bgt-inc-list" id="bgt-asset-b-list"></div>
+          <div class="bgt-sub-total-row">
+            <span class="bgt-total-lbl">Banking Total</span>
+            <span class="bgt-total-val green" id="bgt-b-total"></span>
+          </div>
+          <!-- Non-Banking sub-section -->
+          <div class="bgt-asset-sub-hdr" style="margin-top:14px;">📊 Non-Banking</div>
+          <div class="bgt-inc-list" id="bgt-asset-nb-list"></div>
+          <div class="bgt-sub-total-row">
+            <span class="bgt-total-lbl">Non-Banking Total</span>
+            <span class="bgt-total-val green" id="bgt-nb-total"></span>
+          </div>
+          <!-- Grand Total Assets -->
+          <div class="bgt-total-row bgt-grand-total-row">
+            <span class="bgt-total-lbl">Total Assets</span>
+            <span class="bgt-total-val green" id="bgt-a-total"></span>
+          </div>
+          <!-- Income sub-section -->
+          <div class="bgt-sec-row" style="margin-top:14px;">
+            <div class="bgt-sec-lbl">💼 Income</div>
+            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
+          </div>
+          <div class="bgt-inc-list" id="bgt-inc-list"></div>
+          <div class="bgt-total-row">
+            <span class="bgt-total-lbl">Total Income</span>
+            <span class="bgt-total-val gold" id="bgt-i-total"></span>
+          </div>
+        </div>
+        <!-- Panel 3: Summary -->
+        <div class="budget-panel" id="bgt-p3">
           <div class="bgt-sum-banner" id="bgt-sum-banner"></div>
+          <div id="bgt-cur-balance"></div>
           <div class="bgt-bd-hdr">Top Expenses Breakdown</div>
           <div id="bgt-breakdown"></div>
         </div>
@@ -1022,18 +1055,36 @@
 <!-- ═══ PULSE RAIL — fixed above bottom nav, dashboard only ═══ -->
 <!-- ═══ BNAV MORE MENU — pops up above '...' nav item ═══ -->
 <div id="bnav-more-menu" class="hidden">
-  <div class="more-menu-item" onclick="moreMenuAction('documents')">
-    <div class="more-menu-ico">📁</div>
-    <span>Docs</span>
-  </div>
-  <div class="more-menu-item" onclick="moreMenuAction('expiry')">
-    <div class="more-menu-ico">⏳</div>
-    <span>Expiry</span>
-    <span class="more-menu-badge">2</span>
-  </div>
-  <div class="more-menu-item" onclick="moreMenuAction('calendar')">
-    <div class="more-menu-ico">📅</div>
-    <span>Calendar</span>
+  <div class="more-menu-grid">
+    <div class="more-menu-item" onclick="moreMenuAction('monthly')">
+      <div class="more-menu-ico">📅</div>
+      <span>Monthly</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('yearly')">
+      <div class="more-menu-ico">📆</div>
+      <span>Yearly</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('assets')">
+      <div class="more-menu-ico">🏦</div>
+      <span>Assets</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('summary')">
+      <div class="more-menu-ico">📊</div>
+      <span>Summary</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('calendar')">
+      <div class="more-menu-ico">🗓️</div>
+      <span>Calendar</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('expiry')">
+      <div class="more-menu-ico">⏳</div>
+      <span>Expiry</span>
+      <span class="more-menu-badge">2</span>
+    </div>
+    <div class="more-menu-item more-menu-item--wide" onclick="moreMenuAction('documents')">
+      <div class="more-menu-ico">📁</div>
+      <span>Docs</span>
+    </div>
   </div>
 </div>
 
@@ -1048,6 +1099,9 @@
       <span class="bgt-cat-icon">📆</span><span class="bgt-cat-lbl">Yearly</span>
     </div>
     <div class="bgt-cat" id="bgt-cat-2" onclick="bgtGoPanel(2)">
+      <span class="bgt-cat-icon">🏦</span><span class="bgt-cat-lbl">Assets</span>
+    </div>
+    <div class="bgt-cat" id="bgt-cat-3" onclick="bgtGoPanel(3)">
       <span class="bgt-cat-icon">📊</span><span class="bgt-cat-lbl">Summary</span>
     </div>
   </div>
