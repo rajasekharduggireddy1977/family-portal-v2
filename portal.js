@@ -4023,18 +4023,18 @@ function auraRenderGreeting() {
     '🌤️ Good Afternoon','🌤️ Good Afternoon','🌆 Good Evening','🌆 Good Evening','🌆 Good Evening',
     '🌆 Good Evening','🌙 Good Night','🌙 Good Night','🌙 Good Night'];
   var greet = greets[hour] || '☀️ Good Morning';
+  // Strip leading emoji from greet for the new greeting-block icon layout
+  var greetText = greet.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F ]+/u, '').trim();
   var el = document.getElementById('aura-greeting');
   if (el) {
-    // greeting-strip uses innerHTML so the wave emoji span is preserved
+    // greeting-block layout: .gb-greeting-icon (has class greeting-emoji) is first child; inject text after it
     var emojiSpan = el.querySelector('.greeting-emoji');
     if (emojiSpan) {
-      // new greeting-strip layout: inject text node after the emoji
-      var txt = el.childNodes[el.childNodes.length - 1];
-      // rebuild: emoji + text
+      // Keep first child (icon image), rebuild text node after it
       while (el.childNodes.length > 1) el.removeChild(el.lastChild);
-      el.appendChild(document.createTextNode(' ' + greet + ', Rajasekhar.'));
+      el.appendChild(document.createTextNode(' ' + greetText + ', Rajasekhar.'));
     } else {
-      el.textContent = greet + ', Rajasekhar.';
+      el.textContent = greetText + ', Rajasekhar.';
     }
   }
   var DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -4527,22 +4527,14 @@ function auraRenderOverview() {
   if (hsrOverdueCard) {
     hsrOverdueCard.classList.toggle('danger', overdueCnt > 0);
   }
-  // Greeting alert pill
-  var greetPill = document.getElementById('greeting-alert-pill');
-  var greetPillTxt = document.getElementById('greeting-alert-text');
+  // Greeting attention text (gb-attention-text)
   var greetSub = document.getElementById('greeting-sub');
-  if (greetPill && greetPillTxt) {
-    if (overdueCnt > 0) {
-      greetPill.style.display = 'flex';
-      greetPillTxt.textContent = overdueCnt + ' Overdue';
-    } else {
-      greetPill.style.display = 'none';
-    }
-  }
   if (greetSub) {
-    greetSub.textContent = overdueCnt > 0
-      ? overdueCnt + ' item' + (overdueCnt > 1 ? 's' : '') + ' need your attention'
-      : 'Your family is all covered today';
+    if (overdueCnt > 0) {
+      greetSub.innerHTML = '<span>' + overdueCnt + ' item' + (overdueCnt > 1 ? 's' : '') + '</span> need your attention';
+    } else {
+      greetSub.innerHTML = '<span>All clear</span> \u2014 your family is covered today';
+    }
   }
   // Quick access expiry badge
   var qaExpiryNum = document.getElementById('qa-expiry-num');
