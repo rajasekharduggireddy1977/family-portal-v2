@@ -5379,3 +5379,14 @@ body.dash-active #content{
 .delay-4{animation-delay:.4s;}
 .delay-5{animation-delay:.5s;}
 @keyframes fadeUpAnim{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── GREETING STATS COL ─────────────────────────────── */
+.greeting-stats-col{display:flex;flex-direction:column;gap:4px;align-items:flex-end;justify-content:center;height:100%;}
+.gs-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:42px;padding:3px 7px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:background .2s;}
+.gs-stat:hover{background:rgba(255,255,255,.1);}
+.gs-stat.danger{background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.35);}
+.gs-stat.danger .gs-num{color:#ff6b7a;}
+.gs-stat.safe{background:rgba(40,167,69,.1);border-color:rgba(40,167,69,.25);}
+.gs-stat.safe .gs-num{color:#4caf7d;}
+.gs-num{font-size:.9rem;font-weight:700;line-height:1;color:var(--gold);}
+.gs-label{font-size:.6rem;color:rgba(255,255,255,.5);letter-spacing:.03em;margin-top:1px;white-space:nowrap;}
