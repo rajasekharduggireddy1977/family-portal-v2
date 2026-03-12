@@ -7515,7 +7515,15 @@ function closeGmDropdown() {
 // Close dropdown on outside tap
 document.addEventListener('click', e => {
   if (!e.target.closest('#gm-pill') && !e.target.closest('#gm-dropdown')) closeGmDropdown();
+  if (!e.target.closest('#tb-more-wrap')) closeTbMore();
 }, true);
+
+function toggleTbMore() {
+  document.getElementById('tb-more-popup').classList.toggle('open');
+}
+function closeTbMore() {
+  document.getElementById('tb-more-popup')?.classList.remove('open');
+}
 
 // ── Context banner builder ──
 function gmContextBanner(pageId) {
