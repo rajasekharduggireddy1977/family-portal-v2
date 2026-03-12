@@ -1055,18 +1055,36 @@
 <!-- ═══ PULSE RAIL — fixed above bottom nav, dashboard only ═══ -->
 <!-- ═══ BNAV MORE MENU — pops up above '...' nav item ═══ -->
 <div id="bnav-more-menu" class="hidden">
-  <div class="more-menu-item" onclick="moreMenuAction('documents')">
-    <div class="more-menu-ico">📁</div>
-    <span>Docs</span>
-  </div>
-  <div class="more-menu-item" onclick="moreMenuAction('expiry')">
-    <div class="more-menu-ico">⏳</div>
-    <span>Expiry</span>
-    <span class="more-menu-badge">2</span>
-  </div>
-  <div class="more-menu-item" onclick="moreMenuAction('calendar')">
-    <div class="more-menu-ico">📅</div>
-    <span>Calendar</span>
+  <div class="more-menu-grid">
+    <div class="more-menu-item" onclick="moreMenuAction('monthly')">
+      <div class="more-menu-ico">📅</div>
+      <span>Monthly</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('yearly')">
+      <div class="more-menu-ico">📆</div>
+      <span>Yearly</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('assets')">
+      <div class="more-menu-ico">🏦</div>
+      <span>Assets</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('summary')">
+      <div class="more-menu-ico">📊</div>
+      <span>Summary</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('calendar')">
+      <div class="more-menu-ico">🗓️</div>
+      <span>Calendar</span>
+    </div>
+    <div class="more-menu-item" onclick="moreMenuAction('expiry')">
+      <div class="more-menu-ico">⏳</div>
+      <span>Expiry</span>
+      <span class="more-menu-badge">2</span>
+    </div>
+    <div class="more-menu-item more-menu-item--wide" onclick="moreMenuAction('documents')">
+      <div class="more-menu-ico">📁</div>
+      <span>Docs</span>
+    </div>
   </div>
 </div>
 

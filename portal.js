@@ -308,7 +308,7 @@ function goPage(page) {
   // Always close more menu and sync nav selector, even if already on this page
   closeMoreMenuIfOpen();
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const _morePages = ['documents','expiry','calendar'];
+  const _morePages = ['monthly','yearly','assets','summary','documents','expiry','calendar'];
   const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
   const _navEl = document.getElementById(_navId);
   if(_navEl){ _navEl.classList.add('active'); moveBnavSelector(_navEl); }
@@ -321,14 +321,20 @@ function goPage(page) {
     document.activeElement.blur();
   }
 
+  // Budget sub-panel pages all share the page-budget DOM element
+  const _budgetSubs = {monthly:0, yearly:1, assets:2, summary:3};
+  const domPage = (p) => (p in _budgetSubs) ? 'budget' : p;
+
   // ── Directional slide transition ──
   const prevPage = currentPage;
   const prevIdx = PAGE_ORDER.indexOf(prevPage);
   const nextIdx = PAGE_ORDER.indexOf(page);
   const goingForward = nextIdx > prevIdx;
-  const prevEl = document.getElementById('page-' + prevPage);
-  const nextEl = document.getElementById('page-' + page);
-  const doAnimate = prevEl && nextEl && prevIdx >= 0 && nextIdx >= 0 && prevPage !== page;
+  const prevDom = domPage(prevPage);
+  const nextDom = domPage(page);
+  const prevEl = document.getElementById('page-' + prevDom);
+  const nextEl = document.getElementById('page-' + nextDom);
+  const doAnimate = prevEl && nextEl && prevIdx >= 0 && nextIdx >= 0 && prevPage !== page && prevDom !== nextDom;
 
   if (doAnimate) {
     prevEl.classList.remove('active');
@@ -337,19 +343,23 @@ function goPage(page) {
     prevEl.style.display = '';
     nextEl.classList.remove('slide-in-right','slide-in-left');
     nextEl.classList.add('active');
-  } else {
+  } else if (prevDom !== nextDom) {
     document.querySelectorAll('.page').forEach(p => {
       p.classList.remove('active','slide-in-right','slide-in-left','slide-out-left','slide-out-right');
     });
     if(nextEl) nextEl.classList.add('active');
+  } else {
+    // Same DOM page (budget sub-panel switch) — keep active
+    if(nextEl && !nextEl.classList.contains('active')) nextEl.classList.add('active');
   }
 
   currentPage = page;
   setPulseRailVisible(false);
-  setBudgetRailVisible(page === 'budget');
-  // Hide FAB on budget page (budget has its own + Add buttons)
+  const isBudgetLike = page === 'budget' || (page in _budgetSubs);
+  setBudgetRailVisible(isBudgetLike);
+  // Hide FAB on budget and budget sub-pages (they have their own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
-  if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
+  if (_fabW) _fabW.style.display = isBudgetLike ? 'none' : '';
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
@@ -364,12 +374,13 @@ function goPage(page) {
   if(page==='health')    { initHealthPage(); applyGmHealth(); }
   if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
   if(page==='budget')    { initBudget(); }
+  if(page in _budgetSubs){ initBudget(); bgtGoPanel(_budgetSubs[page]); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['view','members','documents','expiry','calendar','health','budget','search'];
+const PAGE_ORDER = ['view','members','health','budget','monthly','yearly','assets','summary','calendar','expiry','documents'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
