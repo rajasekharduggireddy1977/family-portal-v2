@@ -545,34 +545,79 @@
         </div>
       </div>
 
-      <!-- ③ TODAY block -->
-      <div class="home-sec-hdr fade-up delay-2">
-        <div class="home-sec-title">
-          <span class="home-sec-dot" style="background:rgba(201,168,76,.7);"></span>
-          Today
-        </div>
-        <span class="home-sec-link" onclick="goPage('calendar')">Calendar →</span>
-      </div>
-      <div class="home-schedule-card fade-up delay-2">
-        <div id="aura-today-timeline"></div>
-      </div>
+      <!-- ③④ CALENDAR WIDGET — Today + Upcoming -->
+      <div class="cw-widget fade-up delay-2">
 
-      <!-- ④ UPCOMING — month navigator -->
-      <div class="home-sec-hdr fade-up delay-3" style="margin-top:4px;">
-        <div class="home-sec-title">
-          <span class="home-sec-dot" style="background:var(--blue2);"></span>
-          Upcoming
+        <!-- Mobile tab switcher -->
+        <div class="cw-tabs">
+          <div class="cw-tab cw-tab-active" onclick="cwSwitchTab('today')" id="cw-tab-today">
+            <span class="cw-tab-dot"></span> Today
+          </div>
+          <div class="cw-tab cw-tab-blue" onclick="cwSwitchTab('upcoming')" id="cw-tab-upcoming">
+            <span class="cw-tab-dot"></span> Upcoming
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:5px;">
-          <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
-          <span id="ov-month-label" class="ov-month-label"></span>
-          <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
+
+        <!-- LEFT: TODAY PANEL -->
+        <div class="cw-panel-today" id="cwPanelToday">
+          <div class="cw-orb1"></div>
+          <div class="cw-orb2"></div>
+
+          <div class="cw-today-hdr">
+            <div class="cw-today-title">
+              <span class="cw-live-dot"></span>
+              Today
+            </div>
+            <span class="cw-cal-link" onclick="goPage('calendar')">Calendar →</span>
+          </div>
+
+          <div class="cw-date-hero">
+            <div class="cw-day-num" id="cwDayNum">—</div>
+            <div class="cw-day-info">
+              <div class="cw-day-name" id="cwDayName">—</div>
+              <div class="cw-month-year" id="cwMonthYear">—</div>
+            </div>
+          </div>
+
+          <div class="cw-sep"></div>
+
+          <div class="cw-mini-cal">
+            <div class="cw-mini-cal-hdr">
+              <span class="cw-mini-cal-month" id="cwMiniCalMonth"></span>
+              <div class="cw-mini-cal-nav">
+                <div class="cw-mini-nav-btn" onclick="cwMonthNav(-1)">&#8249;</div>
+                <div class="cw-mini-nav-btn" onclick="cwMonthNav(1)">&#8250;</div>
+              </div>
+            </div>
+            <div class="cw-mini-cal-grid" id="cwMiniCalGrid"></div>
+          </div>
+
+          <div id="aura-today-timeline"></div>
         </div>
-      </div>
-      <div class="home-schedule-card fade-up delay-3" id="ov-month-cal-tc">
-        <div id="ov-month-events" style="padding:2px 0;"></div>
-        <div style="text-align:right;padding:5px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
-      </div>
+
+        <!-- RIGHT: UPCOMING PANEL -->
+        <div class="cw-panel-upcoming" id="cwPanelUpcoming">
+          <div class="cw-upcoming-hdr">
+            <div class="cw-upcoming-title">
+              <span class="cw-upcoming-dot"></span>
+              Upcoming
+            </div>
+            <div class="cw-month-switcher">
+              <div class="cw-month-btn" onclick="ovMonthNav(-1)">&#8249;</div>
+              <span class="cw-month-label" id="ov-month-label"></span>
+              <div class="cw-month-btn" onclick="ovMonthNav(1)">&#8250;</div>
+            </div>
+          </div>
+
+          <div class="cw-events-list" id="ov-month-events"></div>
+
+          <div class="cw-upcoming-footer">
+            <span class="cw-footer-count">Showing <strong id="cw-evt-count">—</strong> events</span>
+            <span class="cw-footer-link" onclick="goPage('calendar')">All events →</span>
+          </div>
+        </div>
+
+      </div><!-- /.cw-widget -->
 
       <!-- Hidden stubs — backward-compat -->
       <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>

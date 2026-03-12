@@ -4122,36 +4122,46 @@ function auraRenderHome() {
         .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
       for (var i=0; i<todayEvts.length; i++) {
         var ev = todayEvts[i];
-        var catColors = { health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6', government:'var(--orange,#fb923c)', education:'#a78bfa', other:'var(--blue2)' };
-        var col = catColors[ev.cat] || 'var(--blue2)';
-        todayRows.push({ ts: ev.start || '\u2014', name: ev.title, meta: ev.notes||'', color: col });
+        todayRows.push({ ts: ev.start || '', name: ev.title, meta: ev.notes||'', cat: ev.cat||'other', members: ev.members||[] });
       }
     } catch(e){}
   }
 
   var todayEl = document.getElementById('aura-today-timeline');
   if (todayEl) {
+    var CW_AVATARS = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
     if (todayRows.length === 0) {
-      todayEl.innerHTML = '<div style="padding:10px 20px 14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">Nothing scheduled today</div>';
+      todayEl.innerHTML = '<div class="cw-today-empty"><div class="cw-empty-moon">🌙</div><div class="cw-empty-text">Clear schedule today</div></div>';
     } else {
       var html = '';
       for (var r=0; r<todayRows.length; r++) {
         var row = todayRows[r];
-        var isLast = r === todayRows.length-1;
-        html += '<div class="tc-tl-row">'
-          + '<div class="tc-tl-ts">' + row.ts + '</div>'
-          + '<div class="tc-tl-col">'
-          + '<div class="tc-tl-dot" style="background:' + row.color + ';box-shadow:0 0 6px ' + row.color + ';"></div>'
-          + (!isLast ? '<div class="tc-tl-wire"></div>' : '')
+        var tp = (row.ts||'').split(':');
+        var timeH = tp[0] || '—';
+        var timeM = tp[1] || '';
+        var memberKey = (row.members[0]||'').toLowerCase();
+        var av = CW_AVATARS[memberKey] || null;
+        var memberHtml = av ? '<div class="cw-person-avatar" style="background:' + av.b + '">' + av.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+        var tagHtml = '<span class="cw-event-tag">' + (row.cat||'other') + '</span>';
+        html += '<div class="cw-event-item cw-today-event cat-' + (row.cat||'other') + '" onclick="goPage(\'calendar\')">'
+          + '<div class="cw-event-stripe"></div>'
+          + '<div class="cw-event-date-col">'
+          + '<div class="cw-event-day-num">' + timeH + '</div>'
+          + '<div class="cw-event-day-name">' + (timeM ? ':'+timeM : 'all day') + '</div>'
           + '</div>'
-          + '<div class="tc-tl-body">'
-          + '<div class="tc-tl-name">' + row.name + '</div>'
-          + (row.meta ? '<div class="tc-tl-meta">' + row.meta.slice(0,50) + '</div>' : '')
-          + '</div></div>';
+          + '<div class="cw-event-body">'
+          + '<div class="cw-event-name">' + row.name + '</div>'
+          + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
+          + '</div>'
+          + '<div class="cw-event-arrow">&#8250;</div>'
+          + '</div>';
       }
       todayEl.innerHTML = html;
     }
   }
+
+  // Init calendar widget date display + mini cal
+  if (typeof cwInitWidget === 'function') cwInitWidget();
 
   // GRAVITY RAIL: overdue + today + all upcoming events (no cap)
   var upcoming = [];
@@ -4278,41 +4288,154 @@ function ovRenderMonthEvents() {
     .filter(function(e) { return (e.date || '').slice(0, 7) === moStr && e.cat !== 'education'; })
     .sort(function(a, b) { return a.date.localeCompare(b.date); });
 
+  var cntEl = document.getElementById('cw-evt-count');
+  if (cntEl) cntEl.textContent = monthEvts.length;
+
   if (monthEvts.length === 0) {
-    eventsEl.innerHTML = '<div class="ov-month-empty">&#9728;&#65039; No events this month</div>';
+    eventsEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px 0;text-align:center;"><div style="font-size:28px;opacity:.3;">📭</div><div style="font-size:11px;color:rgba(122,130,153,.65);font-style:italic;">No events this month</div></div>';
     return;
   }
 
-  var CAT_COLORS = {
-    health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6',
-    government:'#fb923c', education:'#a78bfa', travel:'var(--teal,#06b6d4)',
-    family:'var(--green)', other:'var(--blue2)'
-  };
-  var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+  var CW_AVATARS2 = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
 
-  var html = '<div class="ov-month-list">';
+  var html = '';
   monthEvts.forEach(function(e) {
     var d   = new Date(e.date + 'T12:00:00');
-    var day = d.getDate();
+    var day = String(d.getDate()).padStart(2,'0');
     var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-    var col = CAT_COLORS[e.cat] || 'var(--blue2)';
-    var isToday = e.date === (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
-    var isPast  = d < now && !isToday;
-    var members = (e.members || []).map(function(m) { return MEMBER_LABELS[m] || m; }).join(', ') || '';
-    html += '<div class="ov-mon-evt' + (isPast ? ' ov-mon-evt-past' : '') + '" onclick="goPage(\'calendar\')">'
-      + '<div class="ov-mon-evt-date' + (isToday ? ' ov-mon-evt-today' : '') + '">'
-      + '<div class="ov-mon-day">' + day + '</div>'
-      + '<div class="ov-mon-dow">' + dow + '</div>'
+    var isPast = d < now && e.date !== (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
+    var memberKey = ((e.members||[])[0]||'').toLowerCase();
+    var av2 = CW_AVATARS2[memberKey] || null;
+    var memberHtml = av2 ? '<div class="cw-person-avatar" style="background:' + av2.b + '">' + av2.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+    var tagHtml = e.cat ? '<span class="cw-event-tag">' + e.cat + '</span>' : '';
+    html += '<div class="cw-event-item cat-' + (e.cat||'other') + '" style="' + (isPast ? 'opacity:.45;' : '') + '" onclick="goPage(\'calendar\')">'
+      + '<div class="cw-event-stripe"></div>'
+      + '<div class="cw-event-date-col">'
+      + '<div class="cw-event-day-num">' + day + '</div>'
+      + '<div class="cw-event-day-name">' + dow + '</div>'
       + '</div>'
-      + '<div class="ov-mon-evt-bar" style="background:' + col + ';"></div>'
-      + '<div class="ov-mon-evt-body">'
-      + '<div class="ov-mon-evt-title">' + (e.title || '') + '</div>'
-      + (members ? '<div class="ov-mon-evt-meta">' + members + (e.cat ? ' · ' + e.cat : '') + '</div>' : '')
+      + '<div class="cw-event-body">'
+      + '<div class="cw-event-name">' + (e.title||'') + '</div>'
+      + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
       + '</div>'
+      + '<div class="cw-event-arrow">&#8250;</div>'
       + '</div>';
   });
-  html += '</div>';
   eventsEl.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════
+// Calendar Widget — Today/Upcoming two-panel (cwInitWidget)
+// ════════════════════════════════════════════════════════
+var cwCalOffset = 0;
+
+function cwInitWidget() {
+  var now = new Date();
+  var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNumEl   = document.getElementById('cwDayNum');
+  var dayNameEl  = document.getElementById('cwDayName');
+  var monthYrEl  = document.getElementById('cwMonthYear');
+  if (dayNumEl)  dayNumEl.textContent  = now.getDate();
+  if (dayNameEl) dayNameEl.textContent = DAYS_FULL[now.getDay()];
+  if (monthYrEl) monthYrEl.textContent = MONTHS[now.getMonth()] + ' · ' + now.getFullYear();
+  cwRenderMiniCal();
+  cwInitMobileTabs();
+}
+
+function cwRenderMiniCal() {
+  var gridEl     = document.getElementById('cwMiniCalGrid');
+  var monthLabel = document.getElementById('cwMiniCalMonth');
+  if (!gridEl) return;
+  var MONTHS_S = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_S    = ['S','M','T','W','T','F','S'];
+  var now      = new Date();
+  var calDate  = new Date(now.getFullYear(), now.getMonth() + cwCalOffset, 1);
+  var yr = calDate.getFullYear(), mo = calDate.getMonth();
+  if (monthLabel) monthLabel.textContent = MONTHS_S[mo] + ' ' + yr;
+  var pad2 = function(n){ return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad2(mo+1);
+  var eventDays = new Set();
+  try {
+    var raw = localStorage.getItem('fp_cal_events');
+    if (raw) JSON.parse(raw).filter(function(e){ return (e.date||'').slice(0,7)===moStr && e.cat!=='education'; })
+      .forEach(function(e){ eventDays.add(parseInt(e.date.slice(8),10)); });
+  } catch(ex){}
+  var firstDay    = new Date(yr, mo, 1).getDay();
+  var daysInMonth = new Date(yr, mo+1, 0).getDate();
+  var daysInPrev  = new Date(yr, mo, 0).getDate();
+  var isCurMonth  = yr===now.getFullYear() && mo===now.getMonth();
+  var html = DOW_S.map(function(d){ return '<div class="cw-cal-dow">'+d+'</div>'; }).join('');
+  for (var i=firstDay-1; i>=0; i--) html += '<div class="cw-cal-day cw-cal-other">'+(daysInPrev-i)+'</div>';
+  for (var d=1; d<=daysInMonth; d++) {
+    var isToday  = isCurMonth && d===now.getDate();
+    var hasEvt   = eventDays.has(d);
+    var cls = 'cw-cal-day' + (isToday ? ' cw-cal-today' : '') + (hasEvt && !isToday ? ' cw-cal-has-evt' : '');
+    html += '<div class="'+cls+'">'+d+'</div>';
+  }
+  var remaining = (firstDay+daysInMonth)%7===0 ? 0 : 7-(firstDay+daysInMonth)%7;
+  for (var nd=1; nd<=remaining; nd++) html += '<div class="cw-cal-day cw-cal-other">'+nd+'</div>';
+  gridEl.innerHTML = html;
+}
+
+function cwMonthNav(delta) {
+  cwCalOffset += delta;
+  ovMonthOffset += delta;
+  cwRenderMiniCal();
+  ovRenderMonthEvents();
+}
+
+function cwSwitchTab(tab) {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  var tabT      = document.getElementById('cw-tab-today');
+  var tabU      = document.getElementById('cw-tab-upcoming');
+  if (!todayP || !upcomingP) return;
+  if (tab === 'today') {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+    if (tabT) { tabT.classList.add('cw-tab-active'); }
+    if (tabU) { tabU.classList.remove('cw-tab-active'); }
+  } else {
+    upcomingP.classList.remove('cw-hidden');
+    todayP.classList.add('cw-hidden');
+    if (tabU) { tabU.classList.add('cw-tab-active'); }
+    if (tabT) { tabT.classList.remove('cw-tab-active'); }
+  }
+}
+
+function cwInitMobileTabs() {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  if (!todayP || !upcomingP) return;
+  if (window.innerWidth <= 640) {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+  } else {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.remove('cw-hidden');
+  }
+}
+
+if (!window._cwResizeBound) {
+  window._cwResizeBound = true;
+  window.addEventListener('resize', function(){ if (document.getElementById('cwPanelToday')) cwInitMobileTabs(); });
+  (function(){
+    var sx=0, sy=0;
+    document.addEventListener('touchstart', function(e){
+      if (!e.target.closest('.cw-widget')) return;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if (!e.target.closest('.cw-widget') || window.innerWidth>640) return;
+      var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) {
+        var hidden=document.getElementById('cwPanelToday').classList.contains('cw-hidden');
+        if (dx<0 && !hidden) cwSwitchTab('upcoming');
+        if (dx>0 &&  hidden) cwSwitchTab('today');
+      }
+    }, {passive:true});
+  })();
 }
 
 // ════════════════════════════════════════════════════════
