@@ -411,9 +411,19 @@
           <div class="greeting-sub" id="greeting-sub">Your family is all covered today</div>
         </div>
         <div class="greeting-right">
-          <div class="greeting-alert-pill" onclick="goPage('expiry')" id="greeting-alert-pill" style="display:none;">
-            <div class="gap-dot"></div>
-            <span class="gap-text" id="greeting-alert-text">0 Overdue</span>
+          <div class="greeting-stats-col">
+            <div class="gs-stat danger" onclick="goPage('expiry')" id="gs-overdue-stat">
+              <span class="gs-num" id="hsr-overdue-num">2</span>
+              <span class="gs-label" id="hsr-overdue-cta">Overdue</span>
+            </div>
+            <div class="gs-stat" onclick="goPage('budget')">
+              <span class="gs-num" id="hsr-budget-num">—</span>
+              <span class="gs-label">Budget</span>
+            </div>
+            <div class="gs-stat safe" onclick="goPage('documents')">
+              <span class="gs-num" id="hsr-docs-num">28</span>
+              <span class="gs-label">Docs</span>
+            </div>
           </div>
         </div>
       </div>
@@ -523,29 +533,45 @@
         </div>
       </div>
 
-      <!-- ③ STATUS ROW (stat cards) -->
-      <div class="home-status-row fade-up delay-1">
-        <div class="hsr-card danger" onclick="goPage('expiry')">
-          <span class="hsr-icon">⏰</span>
-          <span class="hsr-num" id="hsr-overdue-num">2</span>
-          <span class="hsr-label">Overdue</span>
-          <span class="hsr-cta" id="hsr-overdue-cta">Action Now</span>
+      <!-- ── SCHEDULE ───────────────────── -->
+      <div class="home-section-divider fade-up delay-1"></div>
+
+      <!-- ③ TODAY block -->
+      <div class="home-sec-hdr fade-up delay-1">
+        <div class="home-sec-title">
+          <span class="home-sec-dot" style="background:rgba(201,168,76,.7);"></span>
+          Today
         </div>
-        <div class="hsr-card" onclick="goPage('budget')">
-          <span class="hsr-icon">📊</span>
-          <span class="hsr-num" id="hsr-budget-num">—</span>
-          <span class="hsr-label">Budget</span>
-          <span class="hsr-cta">View</span>
-        </div>
-        <div class="hsr-card safe" onclick="goPage('documents')">
-          <span class="hsr-icon">🛡️</span>
-          <span class="hsr-num" id="hsr-docs-num">28</span>
-          <span class="hsr-label">Docs Safe</span>
-          <span class="hsr-cta">All Secure</span>
-        </div>
+        <span class="home-sec-link" onclick="goPage('calendar')">Calendar →</span>
+      </div>
+      <div class="home-schedule-card fade-up delay-1">
+        <div id="aura-today-timeline"></div>
       </div>
 
-      <!-- ④ CRITICAL ALERTS -->
+      <!-- ④ UPCOMING — month navigator -->
+      <div class="home-sec-hdr fade-up delay-2" style="margin-top:4px;">
+        <div class="home-sec-title">
+          <span class="home-sec-dot" style="background:var(--blue2);"></span>
+          Upcoming
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
+          <span id="ov-month-label" class="ov-month-label"></span>
+          <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
+        </div>
+      </div>
+      <div class="home-schedule-card fade-up delay-2" id="ov-month-cal-tc">
+        <div id="ov-month-events" style="padding:2px 0;"></div>
+        <div style="text-align:right;padding:5px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
+      </div>
+
+      <!-- Hidden stubs — backward-compat -->
+      <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
+
+      <!-- ── CRITICAL ALERTS ───────────── -->
+      <div class="home-section-divider fade-up delay-2"></div>
+
+      <!-- ⑤ CRITICAL ALERTS -->
       <div id="ov-alerts-wrap">
         <div class="home-sec-hdr fade-up delay-2">
           <div class="home-sec-title">
@@ -558,44 +584,8 @@
           </div>
         </div>
         <div class="home-alerts-grid fade-up delay-2" id="ov-alerts-scroll"></div>
-        <!-- hidden compat div for old JS still referencing this -->
         <div style="display:none!important;" id="ov-gauges"></div>
       </div>
-
-      <!-- ── SCHEDULE ───────────────────── -->
-      <div class="home-section-divider fade-up delay-3"></div>
-
-      <!-- ⑤ TODAY block -->
-      <div class="home-sec-hdr fade-up delay-3">
-        <div class="home-sec-title">
-          <span class="home-sec-dot" style="background:rgba(201,168,76,.7);"></span>
-          Today
-        </div>
-        <span class="home-sec-link" onclick="goPage('calendar')">Calendar →</span>
-      </div>
-      <div class="home-schedule-card fade-up delay-3">
-        <div id="aura-today-timeline"></div>
-      </div>
-
-      <!-- ⑥ UPCOMING — month navigator -->
-      <div class="home-sec-hdr fade-up delay-4" style="margin-top:4px;">
-        <div class="home-sec-title">
-          <span class="home-sec-dot" style="background:var(--blue2);"></span>
-          Upcoming
-        </div>
-        <div style="display:flex;align-items:center;gap:5px;">
-          <button class="ov-mon-btn pressable" onclick="ovMonthNav(-1)">&#8592;</button>
-          <span id="ov-month-label" class="ov-month-label"></span>
-          <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
-        </div>
-      </div>
-      <div class="home-schedule-card fade-up delay-4" id="ov-month-cal-tc">
-        <div id="ov-month-events" style="padding:2px 0;"></div>
-        <div style="text-align:right;padding:5px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
-      </div>
-
-      <!-- Hidden stubs — backward-compat -->
-      <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
 
       <!-- ── COMMAND STATIONS (kept) ───── -->
       <div class="home-section-divider fade-up delay-4"></div>
@@ -611,10 +601,47 @@
         <div style="height:10px;"></div>
       </div>
 
-      <!-- ── QUICK ACCESS ───────────────── -->
+      <!-- ── FAMILY ─────────────────────── -->
+      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Family</span><div class="ov-ss-line"></div></div>
+
+      <!-- ⑦ FAMILY STATUS -->
+      <div class="tc">
+        <div class="tc-sec-hd">
+          <div class="tc-sec-title">Family Status</div>
+          <span class="ov-badge-mono">4 Members</span>
+        </div>
+        <div class="ov-family-grid" id="ov-family-scroll"></div>
+        <div style="height:10px;"></div>
+      </div>
+
+      <!-- ⑧ AI QUICK ASK -->
+      <div>
+        <div class="ov-ai-card" id="ov-ai-card" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">
+          <div class="ov-ai-icon">&#x1F916;</div>
+          <div class="ov-ai-body">
+            <div class="ov-ai-title">Ask Claude anything</div>
+            <div class="ov-ai-sub">Family context active · Memory loaded</div>
+          </div>
+          <div class="ov-ai-arrow">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 6H9M6 3L9 6L6 9" stroke="rgba(167,139,250,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="ov-ai-chips" style="margin-top:8px;">
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">What&#x27;s overdue?</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Expiry status</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Health summary</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Vehicle docs</div>
+          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Next expiry?</div>
+        </div>
+      </div>
+
+      <!-- ⑨ STATS BAR -->
+      <div class="ov-stats-bar" id="ov-stats-bar"></div>
+
+      <!-- ── QUICK ACCESS (bottom) ──────── -->
       <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Quick Access</span><div class="ov-ss-line"></div></div>
 
-      <!-- ⑧ QUICK ACCESS MODULES (new static grid) -->
+      <!-- ⑩ QUICK ACCESS MODULES -->
       <div class="home-sec-hdr fade-up">
         <div class="home-sec-title">
           <span class="home-sec-dot" style="background:var(--blue2);"></span>
@@ -675,43 +702,6 @@
         </div>
         <div style="height:12px;"></div>
       </div>
-
-      <!-- ── FAMILY ─────────────────────── -->
-      <div class="ov-section-sep"><div class="ov-ss-line"></div><span class="ov-ss-label">Family</span><div class="ov-ss-line"></div></div>
-
-      <!-- ⑦ FAMILY STATUS -->
-      <div class="tc">
-        <div class="tc-sec-hd">
-          <div class="tc-sec-title">Family Status</div>
-          <span class="ov-badge-mono">4 Members</span>
-        </div>
-        <div class="ov-family-grid" id="ov-family-scroll"></div>
-        <div style="height:10px;"></div>
-      </div>
-
-      <!-- ⑧ AI QUICK ASK -->
-      <div>
-        <div class="ov-ai-card" id="ov-ai-card" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">
-          <div class="ov-ai-icon">&#x1F916;</div>
-          <div class="ov-ai-body">
-            <div class="ov-ai-title">Ask Claude anything</div>
-            <div class="ov-ai-sub">Family context active · Memory loaded</div>
-          </div>
-          <div class="ov-ai-arrow">
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M3 6H9M6 3L9 6L6 9" stroke="rgba(167,139,250,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-        </div>
-        <div class="ov-ai-chips" style="margin-top:8px;">
-          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">What&#x27;s overdue?</div>
-          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Expiry status</div>
-          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Health summary</div>
-          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Vehicle docs</div>
-          <div class="ov-ai-chip" onclick="(typeof toggleAIPanel==='function'?toggleAIPanel():null)">Next expiry?</div>
-        </div>
-      </div>
-
-      <!-- ⑨ STATS BAR -->
-      <div class="ov-stats-bar" id="ov-stats-bar"></div>
 
       <div style="height:6px;"></div>
     </div><!-- /view-page-wrap -->
