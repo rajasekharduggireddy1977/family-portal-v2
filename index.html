@@ -545,40 +545,23 @@
         </div>
       </div>
 
-      <!-- ④ CRITICAL ALERTS -->
-      <div id="ov-alerts-wrap">
-        <div class="home-sec-hdr fade-up delay-2">
-          <div class="home-sec-title">
-            <span class="home-sec-dot" style="background:#FF3B4E;box-shadow:0 0 6px rgba(255,59,78,.6);animation:hsrPulseLine 1.5s ease-in-out infinite;"></span>
-            Critical Alerts
-          </div>
-          <div class="home-sec-right">
-            <span class="home-badge red" id="ov-alerts-badge">—</span>
-            <span class="home-sec-link" onclick="goPage('expiry')">All Alerts →</span>
-          </div>
-        </div>
-        <div class="home-alerts-grid fade-up delay-2" id="ov-alerts-scroll"></div>
-        <!-- hidden compat div for old JS still referencing this -->
-        <div style="display:none!important;" id="ov-gauges"></div>
-      </div>
-
       <!-- ── SCHEDULE ───────────────────── -->
-      <div class="home-section-divider fade-up delay-3"></div>
+      <div class="home-section-divider fade-up delay-2"></div>
 
-      <!-- ⑤ TODAY block -->
-      <div class="home-sec-hdr fade-up delay-3">
+      <!-- ③ TODAY block -->
+      <div class="home-sec-hdr fade-up delay-2">
         <div class="home-sec-title">
           <span class="home-sec-dot" style="background:rgba(201,168,76,.7);"></span>
           Today
         </div>
         <span class="home-sec-link" onclick="goPage('calendar')">Calendar →</span>
       </div>
-      <div class="home-schedule-card fade-up delay-3">
+      <div class="home-schedule-card fade-up delay-2">
         <div id="aura-today-timeline"></div>
       </div>
 
-      <!-- ⑥ UPCOMING — month navigator -->
-      <div class="home-sec-hdr fade-up delay-4" style="margin-top:4px;">
+      <!-- ④ UPCOMING — month navigator -->
+      <div class="home-sec-hdr fade-up delay-3" style="margin-top:4px;">
         <div class="home-sec-title">
           <span class="home-sec-dot" style="background:var(--blue2);"></span>
           Upcoming
@@ -589,13 +572,33 @@
           <button class="ov-mon-btn pressable" onclick="ovMonthNav(1)">&#8594;</button>
         </div>
       </div>
-      <div class="home-schedule-card fade-up delay-4" id="ov-month-cal-tc">
+      <div class="home-schedule-card fade-up delay-3" id="ov-month-cal-tc">
         <div id="ov-month-events" style="padding:2px 0;"></div>
         <div style="text-align:right;padding:5px 14px 8px;"><span class="tc-sec-action" onclick="goPage('calendar')">All events &#8594;</span></div>
       </div>
 
       <!-- Hidden stubs — backward-compat -->
       <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
+
+      <!-- ── CRITICAL ALERTS ───────────── -->
+      <div class="home-section-divider fade-up delay-3"></div>
+
+      <!-- ⑤ CRITICAL ALERTS -->
+      <div id="ov-alerts-wrap">
+        <div class="home-sec-hdr fade-up delay-3">
+          <div class="home-sec-title">
+            <span class="home-sec-dot" style="background:#FF3B4E;box-shadow:0 0 6px rgba(255,59,78,.6);animation:hsrPulseLine 1.5s ease-in-out infinite;"></span>
+            Critical Alerts
+          </div>
+          <div class="home-sec-right">
+            <span class="home-badge red" id="ov-alerts-badge">—</span>
+            <span class="home-sec-link" onclick="goPage('expiry')">All Alerts →</span>
+          </div>
+        </div>
+        <div class="home-alerts-grid fade-up delay-3" id="ov-alerts-scroll"></div>
+        <!-- hidden compat div for old JS still referencing this -->
+        <div style="display:none!important;" id="ov-gauges"></div>
+      </div>
 
       <!-- ── COMMAND STATIONS (kept) ───── -->
       <div class="home-section-divider fade-up delay-4"></div>
