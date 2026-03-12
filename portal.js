@@ -4024,7 +4024,19 @@ function auraRenderGreeting() {
     '🌆 Good Evening','🌙 Good Night','🌙 Good Night','🌙 Good Night'];
   var greet = greets[hour] || '☀️ Good Morning';
   var el = document.getElementById('aura-greeting');
-  if (el) el.textContent = greet + ', Rajasekhar.';
+  if (el) {
+    // greeting-strip uses innerHTML so the wave emoji span is preserved
+    var emojiSpan = el.querySelector('.greeting-emoji');
+    if (emojiSpan) {
+      // new greeting-strip layout: inject text node after the emoji
+      var txt = el.childNodes[el.childNodes.length - 1];
+      // rebuild: emoji + text
+      while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+      el.appendChild(document.createTextNode(' ' + greet + ', Rajasekhar.'));
+    } else {
+      el.textContent = greet + ', Rajasekhar.';
+    }
+  }
   var DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var MONS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var now = new Date();
@@ -4374,33 +4386,48 @@ function auraRenderOverview() {
     });
   } catch(e4){}
 
-  // ════ ① 3-GAUGE STRIP ════
+  // ════ ① 3-GAUGE STRIP (legacy hidden div — kept for compat) ════
   var gaugesEl = document.getElementById('ov-gauges');
-  if (gaugesEl) {
-    var overdueStatus = overdueCnt > 0 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Action Now</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; All Clear</span>';
-    var bgtStatus = bgtPct === null ? '' : bgtPct >= 90 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Near Limit</span>' : bgtPct >= 70 ? '<span class="ov-gauge-status ov-gs-amber">&#9679; Watch</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; Healthy</span>';
-    gaugesEl.innerHTML =
-      '<div class="ov-gauge ov-red pressable" onclick="goPage(\'expiry\')">'
-      + '<span class="ov-gauge-icon">&#x23F0;</span>'
-      + '<span class="ov-gauge-val ov-gv-red">' + (overdueCnt > 0 ? overdueCnt : urgentCnt) + '</span>'
-      + '<span class="ov-gauge-lbl">' + (overdueCnt > 0 ? 'Overdue' : 'Upcoming') + '</span>'
-      + overdueStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-amber pressable" onclick="goPage(\'budget\')">'
-      + '<span class="ov-gauge-icon">&#x1F4CA;</span>'
-      + '<span class="ov-gauge-val ov-gv-amber">' + bgtLabel + '</span>'
-      + '<span class="ov-gauge-lbl">Budget</span>'
-      + bgtStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-green pressable" onclick="goPage(\'documents\')">'
-      + '<span class="ov-gauge-icon">&#x1F6E1;&#xFE0F;</span>'
-      + '<span class="ov-gauge-val ov-gv-green">' + docCount + '</span>'
-      + '<span class="ov-gauge-lbl">Docs Safe</span>'
-      + '<span class="ov-gauge-status ov-gs-green">&#9679; All Secure</span>'
-      + '</div>';
-  }
+  if (gaugesEl) { gaugesEl.innerHTML = ''; } // hidden, no rendering needed
 
-  // ════ ② CRITICAL ALERTS scroll ════
+  // ════ ① NEW STAT CARDS (home-status-row) ════
+  var hsrOverdueNum = document.getElementById('hsr-overdue-num');
+  var hsrOverdueCta = document.getElementById('hsr-overdue-cta');
+  var hsrBudgetNum  = document.getElementById('hsr-budget-num');
+  var hsrDocsNum    = document.getElementById('hsr-docs-num');
+  if (hsrOverdueNum) hsrOverdueNum.textContent = overdueCnt > 0 ? overdueCnt : urgentCnt;
+  if (hsrOverdueCta) hsrOverdueCta.textContent = overdueCnt > 0 ? 'Action Now' : (urgentCnt > 0 ? 'Upcoming' : 'All Clear');
+  if (hsrBudgetNum)  hsrBudgetNum.textContent  = bgtLabel || '—';
+  if (hsrDocsNum)    hsrDocsNum.textContent     = docCount;
+  // Overdue stat card: toggle danger class
+  var hsrOverdueCard = hsrOverdueNum ? hsrOverdueNum.closest('.hsr-card') : null;
+  if (hsrOverdueCard) {
+    hsrOverdueCard.classList.toggle('danger', overdueCnt > 0);
+  }
+  // Greeting alert pill
+  var greetPill = document.getElementById('greeting-alert-pill');
+  var greetPillTxt = document.getElementById('greeting-alert-text');
+  var greetSub = document.getElementById('greeting-sub');
+  if (greetPill && greetPillTxt) {
+    if (overdueCnt > 0) {
+      greetPill.style.display = 'flex';
+      greetPillTxt.textContent = overdueCnt + ' Overdue';
+    } else {
+      greetPill.style.display = 'none';
+    }
+  }
+  if (greetSub) {
+    greetSub.textContent = overdueCnt > 0
+      ? overdueCnt + ' item' + (overdueCnt > 1 ? 's' : '') + ' need your attention'
+      : 'Your family is all covered today';
+  }
+  // Quick access expiry badge
+  var qaExpiryNum = document.getElementById('qa-expiry-num');
+  if (qaExpiryNum) qaExpiryNum.textContent = (overdueCnt + urgentCnt) || expiry.length;
+  var qaDocsNum = document.getElementById('qa-docs-num');
+  if (qaDocsNum) qaDocsNum.textContent = docCount;
+
+  // ════ ② CRITICAL ALERTS scroll (new home-alert-card design) ════
   var alertBadge = document.getElementById('ov-alerts-badge');
   var alertScroll = document.getElementById('ov-alerts-scroll');
   if (alertBadge) {
@@ -4420,29 +4447,23 @@ function auraRenderOverview() {
     sorted.slice(0, 2).forEach(function(e) {
       var d = du(e.date);
       var isOverdue = d < 0;
-      var isUrgent  = !isOverdue && d <= 90;
-      var cls = isOverdue ? 'ov-ac-red' : isUrgent ? 'ov-ac-amber' : 'ov-ac-green';
-      var stripCls = isOverdue ? 'ov-ac-strip-red' : isUrgent ? 'ov-ac-strip-amber' : 'ov-ac-strip-green';
-      var catCls = isOverdue ? 'ov-ac-cat-red' : isUrgent ? 'ov-ac-cat-amber' : 'ov-ac-cat-green';
-      var chipCls = isOverdue ? 'ov-chip-red' : isUrgent ? 'ov-chip-amber' : 'ov-chip-green';
       var chipLabel = isOverdue ? 'Overdue' : ('~'+d+' days');
       var catLabel = e.policy ? e.policy.split('/')[0] : (e.sub||'').split('·')[0].trim();
       var grad = PERSON_GRADS[e.person] || 'linear-gradient(135deg,#334,#556)';
-      html += '<div class="ov-alert-card ' + cls + '" onclick="goPage(\'expiry\')">'
-        + '<div class="ov-ac-strip ' + stripCls + '"></div>'
-        + '<div class="ov-ac-top">'
-        + '<span class="ov-ac-cat ' + catCls + '">' + e.icon + ' ' + catLabel + '</span>'
-        + '<span class="ov-ac-chip ' + chipCls + '">' + chipLabel + '</span>'
+      html += '<div class="home-alert-card" onclick="goPage(\'expiry\')">'
+        + '<div class="home-alert-meta">'
+        + '<span class="home-alert-id">' + catLabel + '</span>'
+        + '<span class="home-alert-badge">' + chipLabel + '</span>'
         + '</div>'
-        + '<div class="ov-ac-name">' + e.label + '</div>'
-        + '<div class="ov-ac-meta">Due: ' + e.date + '</div>'
-        + '<div class="ov-ac-member">'
-        + '<div class="ov-ac-av" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
-        + e.person
+        + '<div class="home-alert-title">' + e.label + '</div>'
+        + '<div class="home-alert-due">📅 Due: ' + e.date + '</div>'
+        + '<div class="home-alert-person">'
+        + '<div class="home-person-dot" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
+        + '<span class="home-person-name">' + (e.person||'Family') + '</span>'
         + '</div>'
         + '</div>';
     });
-    alertScroll.innerHTML = html || '<div style="padding:10px 0;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">All items are safe &#x2705;</div>';
+    alertScroll.innerHTML = html || '<div style="padding:14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);text-align:center;">All items are safe &#x2705;</div>';
   }
 
   // ════ ③ COMMAND STATIONS ════
@@ -10296,3 +10317,85 @@ function _bgtFields(type, row) {
          '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
          '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
 }
+
+/* ═══════════════════════════════════════════════════════
+   HERO BANNER CAROUSEL
+   ═══════════════════════════════════════════════════════ */
+(function initHeroCarousel() {
+  var banner   = document.getElementById('heroBanner');
+  var track    = document.getElementById('heroTrack');
+  var progress = document.getElementById('heroProgressFill');
+  var dotsEl   = document.getElementById('heroDots');
+  if (!banner || !track) return;
+
+  var slides   = track.querySelectorAll('.hero-slide');
+  var dots     = dotsEl ? dotsEl.querySelectorAll('.hero-dot') : [];
+  var current  = 0;
+  var DURATION = 4500;
+  var autoTimer, dragging = false, startX = 0, tx = 0;
+
+  function setSlide(idx) {
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = ((idx % slides.length) + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    resetProgress();
+  }
+
+  function resetProgress() {
+    if (!progress) return;
+    progress.style.animation = 'none';
+    progress.offsetHeight; // force reflow
+    progress.style.animation = 'heroProgressFill ' + DURATION + 'ms linear forwards';
+  }
+
+  function startAuto() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(function() { setSlide(current + 1); }, DURATION);
+  }
+
+  // expose for inline onclick on dots
+  window.heroGoSlide = function(idx) { setSlide(idx); startAuto(); };
+
+  resetProgress();
+  startAuto();
+
+  // Touch swipe
+  banner.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX; dragging = true; clearInterval(autoTimer);
+  }, { passive: true });
+  banner.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    tx = e.touches[0].clientX - startX;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + tx + 'px))';
+  }, { passive: true });
+  banner.addEventListener('touchend', function() {
+    dragging = false;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(tx < -50 ? current + 1 : tx > 50 ? current - 1 : current);
+    tx = 0; startAuto();
+  });
+
+  // Mouse drag
+  var mouseDown = false, mouseStartX = 0;
+  banner.addEventListener('mousedown', function(e) { mouseDown = true; mouseStartX = e.clientX; clearInterval(autoTimer); });
+  banner.addEventListener('mousemove', function(e) {
+    if (!mouseDown) return;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + (e.clientX - mouseStartX) + 'px))';
+  });
+  banner.addEventListener('mouseup', function(e) {
+    if (!mouseDown) return;
+    mouseDown = false;
+    var dx = e.clientX - mouseStartX;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(dx < -50 ? current + 1 : dx > 50 ? current - 1 : current);
+    startAuto();
+  });
+  banner.addEventListener('mouseleave', function() {
+    if (mouseDown) { mouseDown = false; setSlide(current); startAuto(); }
+  });
+})();
