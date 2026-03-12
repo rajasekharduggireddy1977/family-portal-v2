@@ -5328,10 +5328,10 @@ body.dash-active #content{
 .ov-mem-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .ov-mem-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
 .ov-mem-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:rgba(235,240,255,.9);line-height:1.2;}
-.ov-mem-role{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
+.ov-mem-role{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.72);text-transform:uppercase;letter-spacing:.06em;margin-top:1px;}
 .ov-mem-vitals{display:flex;flex-direction:column;gap:5px;}
 .ov-vital-row{display:flex;align-items:center;justify-content:space-between;gap:4px;}
-.ov-vital-lbl{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.45);flex-shrink:0;}
+.ov-vital-lbl{font-family:'DM Mono',monospace;font-size:8px;color:rgba(140,158,220,.72);flex-shrink:0;}
 .ov-vital-chip{font-family:'DM Mono',monospace;font-size:8px;padding:1px 6px;border-radius:100px;font-weight:500;white-space:nowrap;}
 .ov-chip-ok{background:rgba(62,207,142,.13);color:var(--green);border:1px solid rgba(62,207,142,.22);}
 .ov-chip-warn{background:rgba(240,180,41,.13);color:var(--gold);border:1px solid rgba(240,180,41,.22);}
@@ -5792,3 +5792,9 @@ body.dash-active #content{
 
 /* Stats bar */
 [data-theme="light"] .ov-stats-bar{border-top-color:rgba(0,0,0,.07);}
+
+/* Family status cards */
+[data-theme="light"] .ov-mem-card{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08);}
+[data-theme="light"] .ov-mem-name{color:var(--text);}
+[data-theme="light"] .ov-mem-role{color:var(--text2);}
+[data-theme="light"] .ov-vital-lbl{color:var(--text2);}
