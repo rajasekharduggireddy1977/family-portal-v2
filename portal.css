@@ -1048,77 +1048,18 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 }
 
 /* ── Modules Grid — holographic floating chips ── */
-.wov-modules{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
-  margin-bottom:12px;width:100%;
+.wov-modules-banner{
+  width:100%;margin-bottom:12px;
+  border-radius:12px;overflow:hidden;
+  animation:wovBannerIn .6s cubic-bezier(.34,1.56,.64,1) both .2s;
 }
-.wov-mod{
-  position:relative;overflow:hidden;
-  background:rgba(13,17,38,.9);
-  border-radius:10px;
-  padding:9px 5px 8px;
-  font-size:10.5px;font-weight:600;color:var(--text2);
-  display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.3;
-  font-family:'DM Mono',monospace;
-  /* Floating animation — staggered per chip */
-  animation:wovModFloat var(--fdur,3s) ease-in-out infinite var(--fdly,0s),
-            wovModIn .55s cubic-bezier(.34,1.56,.64,1) both var(--mdly,0s);
-  /* Rotating holo border via conic pseudo */
+.wov-modules-img{
+  width:100%;height:auto;display:block;
+  object-fit:cover;border-radius:12px;
 }
-/* Per-chip float timing */
-.wov-mod:nth-child(1){--fdur:3.1s;--fdly:0s;   --mdly:.04s;--gc1:rgba(79,127,255,.8); --gc2:rgba(124,92,252,.8);}
-.wov-mod:nth-child(2){--fdur:2.9s;--fdly:-.6s;  --mdly:.09s;--gc1:rgba(245,158,11,.8);--gc2:rgba(236,72,153,.8);}
-.wov-mod:nth-child(3){--fdur:3.3s;--fdly:-1.2s; --mdly:.14s;--gc1:rgba(52,211,153,.8);--gc2:rgba(79,127,255,.8);}
-.wov-mod:nth-child(4){--fdur:2.8s;--fdly:-1.8s; --mdly:.19s;--gc1:rgba(251,113,133,.8);--gc2:rgba(245,158,11,.8);}
-.wov-mod:nth-child(5){--fdur:3.2s;--fdly:-2.4s; --mdly:.24s;--gc1:rgba(124,92,252,.8);--gc2:rgba(52,211,153,.8);}
-.wov-mod:nth-child(6){--fdur:3s;  --fdly:-3s;   --mdly:.29s;--gc1:rgba(236,72,153,.8);--gc2:rgba(79,127,255,.8);}
-.wov-mod:nth-child(7){--fdur:2.7s;--fdly:-3.6s; --mdly:.34s;--gc1:rgba(245,158,11,.8);--gc2:rgba(124,92,252,.8);}
-.wov-mod:nth-child(8){--fdur:3.4s;--fdly:-4.2s; --mdly:.39s;--gc1:rgba(79,127,255,.8);--gc2:rgba(251,113,133,.8);}
-@keyframes wovModFloat{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-3px);}
-}
-@keyframes wovModIn{
-  from{opacity:0;transform:scale(.78) translateY(10px);}
+@keyframes wovBannerIn{
+  from{opacity:0;transform:scale(.96) translateY(8px);}
   to{opacity:1;transform:scale(1) translateY(0);}
-}
-/* Rotating conic holo border — spin a square larger than chip behind it */
-.wov-mod::before{
-  content:'';position:absolute;
-  left:50%;top:50%;width:160%;height:160%;
-  margin-left:-80%;margin-top:-80%;
-  background:conic-gradient(
-    rgba(0,0,0,0) 0deg,
-    var(--gc1,rgba(79,127,255,.8)) 60deg,
-    var(--gc2,rgba(124,92,252,.8)) 120deg,
-    rgba(0,0,0,0) 180deg,
-    rgba(0,0,0,0) 360deg
-  );
-  animation:wovHoloSpin 3s linear infinite;
-  z-index:0;border-radius:50%;
-}
-/* Inner chip bg mask — sits above border, below content */
-.wov-mod::after{
-  content:'';position:absolute;
-  inset:1.5px;border-radius:8.5px;
-  background:rgba(11,15,35,.94);
-  z-index:1;
-}
-/* Chip content must be above ::after */
-.wov-mod span,.wov-mod-txt{position:relative;z-index:2;}
-.wov-mod>*{position:relative;z-index:2;}
-@keyframes wovHoloSpin{
-  from{transform:rotate(0deg);}
-  to{transform:rotate(360deg);}
-}
-/* Icon bounce */
-.wov-mod span{
-  font-size:17px;
-  animation:wovIconBounce var(--fdur,3s) ease-in-out infinite var(--fdly,0s);
-}
-@keyframes wovIconBounce{
-  0%,100%{transform:scale(1);}
-  50%{transform:scale(1.18);}
 }
 /* ── Welcome overlay Warp Gate bar ── */
 .wov-progress-wrap{
