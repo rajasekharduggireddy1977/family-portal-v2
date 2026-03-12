@@ -5456,7 +5456,7 @@ body.dash-active #content{
 @media(max-width:480px){.hero-banner-wrap{margin:0 -14px;}.hero-slide{height:180px;}.slide-content{padding:18px 16px 16px 18px;width:68%;}.slide-visual{font-size:88px;right:-12px;}.slide-heading{font-size:17px;}.slide-sub{font-size:10px;}.sf3{display:none;}}
 
 /* ── STATUS ROW (new stat cards) ────────────────────── */
-.home-status-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 14px 16px;}
+.home-status-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 14px 4px;}
 .hsr-card{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:border-color .3s,transform .2s;min-height:100px;}
 .hsr-card:hover{transform:translateY(-2px);}
 .hsr-card.danger{border-color:rgba(255,59,78,.35);background:linear-gradient(145deg,rgba(255,59,78,.07),var(--surface));}
@@ -5546,7 +5546,7 @@ body.dash-active #content{
 @media(max-width:480px){.home-modules-grid{gap:7px;}.home-mod-card{min-height:72px;padding:11px 7px;}.home-mod-icon{font-size:19px;}.home-mod-label{font-size:8px;}.home-mod-num{display:none;}}
 
 /* ── SECTION DIVIDER ────────────────────────────────── */
-.home-section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);margin:20px 14px;}
+.home-section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);margin:10px 14px;}
 
 /* ── FADE-UP ANIMATIONS ─────────────────────────────── */
 .fade-up{opacity:0;animation:fadeUpAnim .5s ease forwards;}
