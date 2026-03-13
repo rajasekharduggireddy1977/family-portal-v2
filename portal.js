@@ -8517,14 +8517,7 @@ function restoreWidgetCollapse() {
 // aiPanelAppendMsg, aiPanelFormatResponse, aiPanelClear, aiPanelSend
 // ████████████████████████████████████████████████████████
 function toggleAIPanel() {
-  /* Close FAB menu if open */
-  if (typeof fabOpen !== 'undefined' && fabOpen) {
-    var fmenu = document.getElementById('fab-menu');
-    var fbtn  = document.getElementById('fab-btn');
-    fabOpen = false;
-    if (fmenu) fmenu.classList.add('hidden');
-    if (fbtn)  { fbtn.textContent = '\uFF0B'; fbtn.style.background = ''; }
-  }
+  /* FAB removed — nothing to close here */
   aiPanelOpen = !aiPanelOpen;
   var panel    = document.getElementById('ai-panel');
   var backdrop = document.getElementById('ai-panel-backdrop');
@@ -8541,9 +8534,6 @@ function toggleAIPanel() {
     aiPanelUpdateChips();
     aiPanelUpdateStatus();
     aiPanelAutoGreet();
-    // Close + menu if open (don't hide the button itself — it's on the left, no overlap)
-    var plusMenu = document.getElementById('fab-menu');
-    if (plusMenu && fabOpen) { plusMenu.classList.add('hidden'); fabOpen=false; }
     if (typeof haptic === 'function') haptic('medium');
   } else {
     panel.classList.add('ai-panel-closed');
@@ -8727,51 +8717,13 @@ async function aiPanelSend() {
   aiPanelBusy = false;
 
 // ████████████████████████████████████████████████████████
-// § FAB           Floating action button + More nav overflow menu
-// toggleFab, fabAction, toggleMoreMenu, moreMenuAction,
-// closeMoreMenuIfOpen, updateFabVisibility
+// § BNAV_MORE      Bottom nav overflow menu
+// toggleMoreMenu, moreMenuAction, closeMoreMenuIfOpen
 // ████████████████████████████████████████████████████████
   if (sendBtn) sendBtn.disabled = false;
 }
 
-// UI IMPROVEMENT 3 — FAB BUTTON
-// ═══════════════════════════════════════════════════════
-let fabOpen = false;
-
-function toggleFab() {
-  haptic('medium');
-  // Close AI panel if open
-  if (aiPanelOpen) toggleAIPanel();
-  fabOpen = !fabOpen;
-  const menu = document.getElementById('fab-menu');
-  const btn = document.getElementById('fab-btn');
-  if (fabOpen) {
-    menu.classList.remove('hidden');
-    btn.textContent = '✕';
-    btn.style.background = 'linear-gradient(135deg,#ff4f4f,#cc1a1a)';
-  } else {
-    menu.classList.add('hidden');
-    btn.textContent = '＋';
-    btn.style.background = '';
-  }
-}
-
-function fabAction(action) {
-  haptic('light');
-  toggleFab();
-  if (action === 'ai') {
-    setTimeout(() => { if (typeof toggleAIPanel === 'function') toggleAIPanel(); }, 80);
-  } else if (action === 'upload') {
-    openSyncModal();
-  } else if (action === 'event') {
-    goPage('calendar');
-    setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200);
-  } else if (action === 'search') {
-    openCommandPalette();
-  } else if (action === 'backup') {
-    openBackupModal();
-  }
-}
+// FAB removed — actions consolidated into three-dot menu (⋮)
 
 // ── BNAV MORE MENU ──────────────────────────────────────
 let moreMenuOpen = false;
@@ -8786,8 +8738,6 @@ function toggleMoreMenu() {
     btn.classList.toggle('active', moreMenuOpen);
     if (moreMenuOpen) moveBnavSelector(btn);
   }
-  // Close FAB if open
-  if (moreMenuOpen && fabOpen) toggleFab();
 }
 
 function moreMenuAction(page) {
@@ -8824,19 +8774,8 @@ document.addEventListener('touchstart', function(e) {
 }, {passive: true});
 // ────────────────────────────────────────────────────────
 
-// Update FAB visibility per page — hide on search/dashboard
-function updateFabVisibility(page) {
-  const fab = document.getElementById('fab-btn');
-  const menu = document.getElementById('fab-menu');
-  if (!fab) return;
-  if (page === 'search') {
-    fab.classList.add('hidden');
-  } else {
-    fab.classList.remove('hidden');
-  }
-  // Close menu on page change
-  if (fabOpen) toggleFab();
-}
+// FAB removed — updateFabVisibility no longer needed
+function updateFabVisibility(page) { /* noop */ }
 
 // ═══════════════════════════════════════════════════════
 
