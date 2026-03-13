@@ -5059,6 +5059,12 @@ body.dash-active #content{
   pointer-events: none;
   transform: translateY(10px) scale(0.94);
 }
+/* Explicitly kill pointer-events on children when menu is hidden.
+   pointer-events:none on a parent does NOT block children that have
+   pointer-events:all — they can still receive taps even at opacity:0. */
+#bnav-more-menu.hidden .more-menu-item {
+  pointer-events: none;
+}
 .more-menu-item {
   display: flex;
   align-items: center;
