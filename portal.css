@@ -5257,7 +5257,7 @@ body.dash-active #content{
 .greeting-left{display:flex;flex-direction:column;gap:5px;min-width:0;}
 .gb-date-label{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:.18em;color:rgba(180,150,255,.58);text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:2px;}
 .gb-date-label::before{content:'';display:inline-block;width:22px;height:1px;background:rgba(180,150,255,.35);}
-.gb-clock{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;color:rgba(180,150,255,.52);letter-spacing:.06em;}
+.gb-clock{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;color:rgba(180,150,255,.88);letter-spacing:.06em;}
 .gb-greeting-text{font-family:'DM Serif Display',serif;font-size:clamp(17px,4.5vw,24px);color:#f0ecff;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;line-height:1.2;}
 .gb-greeting-icon{width:56px;height:56px;background:linear-gradient(135deg,#6c47ff,#a070ff);border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(108,71,255,.45);flex-shrink:0;}
 .greeting-emoji{display:inline-block;}
@@ -5266,9 +5266,9 @@ body.dash-active #content{
 /* RIGHT — Property Card */
 .gb-property-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.03);border:1px solid rgba(180,150,255,.1);border-radius:14px;padding:10px 16px 10px 10px;min-width:260px;max-width:360px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;cursor:pointer;flex-shrink:0;}
 .gb-property-card:hover{border-color:rgba(180,150,255,.25);box-shadow:0 4px 24px rgba(108,71,255,.15);}
-.gb-property-img-wrap{width:96px;height:78px;border-radius:9px;overflow:hidden;flex-shrink:0;position:relative;}
+.gb-property-img-wrap{width:96px;align-self:stretch;height:auto;margin:4px 0;border-radius:9px;overflow:hidden;flex-shrink:0;position:relative;}
 .gb-property-img-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(13,13,26,.35) 100%);pointer-events:none;}
-.gb-property-img-wrap img{transition:transform .4s ease;}
+.gb-property-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;}
 .gb-property-card:hover .gb-property-img-wrap img{transform:scale(1.07);}
 .gb-property-info{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
 .gb-property-tag{font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(160,120,255,.72);}
@@ -5285,7 +5285,7 @@ body.dash-active #content{
   .greeting-block{flex-direction:column;align-items:stretch;gap:12px;padding:16px;}
   .gb-greeting-icon{width:48px;height:48px;}
   .gb-property-card{min-width:0;width:100%;max-width:none;}
-  .gb-property-img-wrap{width:88px;height:72px;}
+  .gb-property-img-wrap{width:88px;align-self:stretch;height:auto;margin:4px 0;}
 }
 
 /* ── HERO BANNER CAROUSEL ───────────────────────────── */
@@ -5580,7 +5580,7 @@ body.dash-active #content{
 @media(max-width:430px){
   /* Greeting block: tighter padding + smaller property image */
   .greeting-block{padding:10px 14px;gap:8px;}
-  .gb-property-img-wrap{width:70px;height:52px;}
+  .gb-property-img-wrap{width:70px;align-self:stretch;height:auto;margin:3px 0;}
   /* Hero banner: shorter on narrow phones */
   .hero-slide{height:130px;}
   .slide-content{padding:12px 14px 10px 16px;}
