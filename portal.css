@@ -1038,7 +1038,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .wov-sub{
-  font-size:11.5px;color:var(--text2);line-height:1.6;
+  font-size:11.5px;color:rgba(201,168,76,.8);line-height:1.6;
   margin-top:0;margin-bottom:10px;max-width:340px;
 }
 
