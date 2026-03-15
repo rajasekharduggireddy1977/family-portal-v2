@@ -11077,3 +11077,223 @@ function _bgtFields(type, row) {
     if (mouseDown) { mouseDown = false; setSlide(current); startAuto(); }
   });
 })();
+
+// ████████████████████████████████████████████████████████
+// § VEHICLE_SERVICE_MODAL
+// Full-screen vehicle service tracker — topbar three-dot menu entry
+// openVsvcModal, closeVsvcModal, vsvcSelectVeh, vsvcRenderAll,
+// vsvcRenderTabs, vsvcRenderRibbon, vsvcRenderTimeline,
+// openVsvcAddSheet, closeVsvcAddSheet, vsvcSelectChip, vsvcSave
+// ████████████████████████████████████████████████████████
+
+var VSVC_SEED = {
+  'i10': {
+    history: [
+      { id:'s1', date:'2025-12-10', type:'Full Service',   workshop:'Hyundai Khivansons KPHB', km:44250, cost:3800, nextKm:50000, nextDate:'', notes:'Engine oil 5W-30, air filter, coolant top-up, brake inspection' },
+      { id:'s2', date:'2025-08-05', type:'Oil Change',     workshop:'Quick Service Centre',    km:40100, cost:1200, nextKm:44000, nextDate:'', notes:'Mobil 1 5W-30 synthetic' },
+      { id:'s3', date:'2025-02-14', type:'Tyre Rotation',  workshop:'Hyundai Khivansons KPHB', km:36800, cost:800,  nextKm:0,     nextDate:'', notes:'Rotation + tyre pressure check' }
+    ]
+  },
+  'activa': {
+    history: [
+      { id:'s4', date:'2025-11-20', type:'Oil Change',    workshop:'Honda KPHB',         km:18200, cost:850,  nextKm:22000, nextDate:'', notes:'Honda Genuine oil, chain lube' },
+      { id:'s5', date:'2025-04-10', type:'Full Service',  workshop:'Honda Autoriders',   km:14500, cost:2100, nextKm:18000, nextDate:'', notes:'Full service + brake pads + coolant' }
+    ]
+  }
+};
+
+function vsvcSeedData() {
+  var data = getVehData();
+  var changed = false;
+  Object.keys(VSVC_SEED).forEach(function(vid) {
+    if (!data[vid] || !data[vid].history || data[vid].history.length === 0) {
+      data[vid] = JSON.parse(JSON.stringify(VSVC_SEED[vid]));
+      changed = true;
+    }
+  });
+  if (changed) saveVehData(data);
+}
+
+var _vsvcActiveVeh = 'i10';
+
+function openVsvcModal() {
+  vsvcSeedData();
+  _vsvcActiveVeh = 'i10';
+  vsvcRenderAll();
+  var modal = document.getElementById('vsvc-modal');
+  if (modal) modal.classList.remove('hidden');
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function closeVsvcModal() {
+  var modal = document.getElementById('vsvc-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function vsvcSelectVeh(id) {
+  _vsvcActiveVeh = id;
+  vsvcRenderAll();
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function vsvcRenderAll() {
+  vsvcRenderTabs();
+  vsvcRenderRibbon();
+  vsvcRenderTimeline();
+}
+
+function vsvcRenderTabs() {
+  var el = document.getElementById('vsvc-vtabs');
+  if (!el) return;
+  var html = '';
+  VEHICLES_DEF.forEach(function(v) {
+    var active = v.id === _vsvcActiveVeh ? ' active' : '';
+    html += '<div class="vsvc-vtab' + active + '" onclick="vsvcSelectVeh(\'' + v.id + '\')">'
+      + '<div class="vsvc-vtab-icon">' + v.icon + '</div>'
+      + '<div class="vsvc-vtab-name">' + v.name + '</div>'
+      + '<div class="vsvc-vtab-reg">' + v.reg + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function vsvcRenderRibbon() {
+  var el = document.getElementById('vsvc-ribbon');
+  if (!el) return;
+  var data = getVehData();
+  var vdata = data[_vsvcActiveVeh] || {};
+  var history = (vdata.history || []).slice().sort(function(a, b) { return b.date.localeCompare(a.date); });
+  var last = history[0] || null;
+
+  var lastDateStr = last ? (typeof fmtDate === 'function' ? fmtDate(last.date) : last.date) : '—';
+  var lastKmStr   = last && last.km ? Number(last.km).toLocaleString() + ' km' : '—';
+
+  var nextStr = '—', nextClass = '';
+  if (last) {
+    if (last.nextKm) {
+      nextStr = Number(last.nextKm).toLocaleString() + ' km';
+      nextClass = (last.nextKm - (last.km || 0)) <= 2000 ? 'warn' : 'ok';
+    } else if (last.nextDate) {
+      nextStr = typeof fmtDate === 'function' ? fmtDate(last.nextDate) : last.nextDate;
+      var dLeft = typeof daysUntil === 'function' ? daysUntil(last.nextDate) : null;
+      nextClass = dLeft !== null ? (dLeft < 0 ? 'overdue' : dLeft <= 30 ? 'warn' : 'ok') : 'ok';
+    }
+  }
+
+  el.innerHTML =
+    '<div class="vsvc-rstat"><div class="vsvc-rstat-val">' + lastDateStr + '</div><div class="vsvc-rstat-lbl">Last Service</div></div>'
+  + '<div class="vsvc-rstat"><div class="vsvc-rstat-val">' + lastKmStr   + '</div><div class="vsvc-rstat-lbl">Last Odometer</div></div>'
+  + '<div class="vsvc-rstat"><div class="vsvc-rstat-val ' + nextClass + '">' + nextStr + '</div><div class="vsvc-rstat-lbl">Next Service</div></div>';
+}
+
+function vsvcRenderTimeline() {
+  var el = document.getElementById('vsvc-timeline');
+  if (!el) return;
+  var data = getVehData();
+  var vdata = data[_vsvcActiveVeh] || {};
+  var history = (vdata.history || []).slice().sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+  if (!history.length) {
+    el.innerHTML = '<div class="vsvc-tl-empty"><strong>🔧</strong>No service records yet.<br>Tap <b>+ Log Service</b> to add your first entry.</div>';
+    return;
+  }
+
+  var html = '';
+  history.forEach(function(h, idx) {
+    var isLast = idx === history.length - 1;
+    var metaParts = [];
+    if (h.date)     metaParts.push(typeof fmtDate === 'function' ? fmtDate(h.date) : h.date);
+    if (h.km)       metaParts.push(Number(h.km).toLocaleString() + ' km');
+    if (h.workshop) metaParts.push(h.workshop);
+    if (h.cost)     metaParts.push('\u20B9' + Number(h.cost).toLocaleString());
+
+    var nextParts = [];
+    if (h.nextKm)   nextParts.push('Next: ' + Number(h.nextKm).toLocaleString() + ' km');
+    if (h.nextDate) nextParts.push((nextParts.length ? ' \u00B7 ' : 'Next: ') + (typeof fmtDate === 'function' ? fmtDate(h.nextDate) : h.nextDate));
+
+    html += '<div class="vsvc-tl-entry">'
+      + '<div class="vsvc-tl-line">'
+      +   '<div class="vsvc-tl-dot"></div>'
+      +   (isLast ? '' : '<div class="vsvc-tl-track"></div>')
+      + '</div>'
+      + '<div class="vsvc-tl-body">'
+      +   '<div class="vsvc-tl-type">' + (h.type || 'Service') + '</div>'
+      +   (metaParts.length ? '<div class="vsvc-tl-meta">' + metaParts.join(' \u00B7 ') + '</div>' : '')
+      +   (h.notes ? '<div class="vsvc-tl-note">' + h.notes + '</div>' : '')
+      +   (nextParts.length ? '<div class="vsvc-tl-next">\uD83D\uDCCD ' + nextParts.join('') + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function openVsvcAddSheet() {
+  var sel = document.getElementById('vsvc-add-veh');
+  if (sel) sel.value = _vsvcActiveVeh;
+  var dateEl = document.getElementById('vsvc-add-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
+  document.querySelectorAll('.vsvc-chip').forEach(function(c, i) { c.classList.toggle('selected', i === 0); });
+  ['vsvc-add-workshop','vsvc-add-km','vsvc-add-cost','vsvc-add-next-km','vsvc-add-next-date','vsvc-add-notes'].forEach(function(id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  var btn = document.getElementById('vsvc-save-btn');
+  if (btn) { btn.textContent = 'SAVE SERVICE ENTRY'; btn.classList.remove('saved'); btn.disabled = false; }
+  var sheet = document.getElementById('vsvc-add-sheet');
+  if (sheet) sheet.classList.remove('hidden');
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function closeVsvcAddSheet() {
+  var sheet = document.getElementById('vsvc-add-sheet');
+  if (sheet) sheet.classList.add('hidden');
+}
+
+function vsvcSelectChip(el) {
+  document.querySelectorAll('.vsvc-chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function vsvcSave() {
+  var vehEl  = document.getElementById('vsvc-add-veh');
+  var dateEl = document.getElementById('vsvc-add-date');
+  if (!dateEl || !dateEl.value) {
+    if (typeof showToast === 'function') showToast('\u26A0\uFE0F Please enter a service date');
+    return;
+  }
+  var vehId    = vehEl ? vehEl.value : _vsvcActiveVeh;
+  var dateVal  = dateEl.value;
+  var chip     = document.querySelector('.vsvc-chip.selected');
+  var type     = chip ? chip.textContent : 'Service';
+  var workshop = (document.getElementById('vsvc-add-workshop') || {}).value || '';
+  var km       = parseInt((document.getElementById('vsvc-add-km')      || {}).value) || 0;
+  var cost     = parseFloat((document.getElementById('vsvc-add-cost')  || {}).value) || 0;
+  var nextKm   = parseInt((document.getElementById('vsvc-add-next-km') || {}).value) || 0;
+  var nextDate = ((document.getElementById('vsvc-add-next-date') || {}).value) || '';
+  var notes    = ((document.getElementById('vsvc-add-notes')     || {}).value || '').trim();
+
+  var entry = { id: 's' + Date.now(), date: dateVal, type: type, workshop: workshop.trim(),
+                km: km, cost: cost, nextKm: nextKm, nextDate: nextDate, notes: notes };
+
+  var data = getVehData();
+  if (!data[vehId])          data[vehId] = { history: [] };
+  if (!data[vehId].history)  data[vehId].history = [];
+  data[vehId].history.push(entry);
+  data[vehId].lastService = dateVal;
+  if (nextDate) data[vehId].nextService = nextDate;
+  saveVehData(data);
+
+  _vsvcActiveVeh = vehId;
+
+  var btn = document.getElementById('vsvc-save-btn');
+  if (btn) { btn.textContent = '\u2713 SAVED'; btn.classList.add('saved'); btn.disabled = true; }
+
+  var vObj = VEHICLES_DEF.find(function(v) { return v.id === vehId; }) || { name: vehId };
+  if (typeof showToast === 'function') showToast('\uD83D\uDD27 Service logged for ' + vObj.name);
+  if (typeof haptic === 'function') haptic('success');
+
+  setTimeout(function() {
+    closeVsvcAddSheet();
+    vsvcRenderAll();
+    if (typeof initWidgetDynamic === 'function') setTimeout(initWidgetDynamic, 150);
+  }, 900);
+}
