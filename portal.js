@@ -10215,22 +10215,23 @@ function initBankVault() {
   setTimeout(bvLayout, 500);
   if (_bvReady) return;
   _bvReady = true;
-  // Swipe handler on each card
+  // Tap-to-navigate — no swipe, no preventDefault → vertical scroll stays natural
   document.querySelectorAll('.bv-card').forEach(function(card) {
-    var sx = null, sy = null;
-    function bvStart(x, y) { sx = x; sy = y; }
-    function bvEnd(x, y) {
-      if (sx === null) return;
-      var dx = sx - x, dy = sy - y;
-      if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy)) {
-        bvGoTo(dx > 0 ? _bvActive + 1 : _bvActive - 1);
+    card.addEventListener('click', function(e) {
+      // Ignore taps on the copy button
+      if (e.target.closest('.bv-copy-btn')) return;
+      var pos = parseInt(card.getAttribute('data-pos'), 10);
+      var idx = parseInt(card.getAttribute('data-idx'), 10);
+      // Back cards: tap anywhere → bring to front
+      if (pos !== 0) { bvGoTo(idx); return; }
+      // Front card: left half → prev, right half → next
+      var rect = card.getBoundingClientRect();
+      if ((e.clientX - rect.left) < rect.width / 2) {
+        bvGoTo(_bvActive - 1);
+      } else {
+        bvGoTo(_bvActive + 1);
       }
-      sx = null; sy = null;
-    }
-    card.addEventListener('mousedown', function(e){ e.preventDefault(); bvStart(e.clientX, e.clientY); });
-    window.addEventListener('mouseup', function(e){ bvEnd(e.clientX, e.clientY); });
-    card.addEventListener('touchstart', function(e){ e.preventDefault(); bvStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
-    card.addEventListener('touchend',   function(e){ e.preventDefault(); bvEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY); }, {passive:false});
+    });
   });
 }
 
