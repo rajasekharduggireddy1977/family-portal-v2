@@ -10087,10 +10087,16 @@ function bgtInr(n) {
 // ── Budget Rail & Panel Switching ──
 let _bgtPanel = 0;
 
-function bgtGoPanel(idx) {
+function bgtGoPanel(idx, vel) {
   _bgtPanel = idx;
-  const track = document.getElementById('budget-track');
-  if (track) track.style.transform = 'translateX(' + (-idx * 100) + 'vw)';
+  var track = document.getElementById('budget-track');
+  if (!track) return;
+  var w = window.innerWidth;
+  // Velocity-matched duration: fast flick snaps quicker (iOS feel)
+  var spd = Math.abs(vel || 0); // px/ms
+  var dur = spd > 0.5 ? Math.max(200, 340 - Math.round(spd * 60)) : 340;
+  track.style.transition = 'transform ' + dur + 'ms cubic-bezier(0.32,0.72,0,1)';
+  track.style.transform = 'translateX(' + (-idx * w) + 'px)';
   document.querySelectorAll('.bgt-cat').forEach(function(c, i) {
     c.classList.toggle('bgt-active', i === idx);
   });
@@ -10130,38 +10136,52 @@ function bgtInitSwipe() {
   var track = document.getElementById('budget-track');
   if (!stage || !track) return;
   var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, intentLocked=false, intentH=false;
-  function vw() { return window.innerWidth; }
+
+  function baseX() { return -_bgtPanel * window.innerWidth; }
+
   stage.addEventListener('touchstart', function(e) {
-    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
+    var t = e.touches[0];
+    tx0=t.clientX; ty0=t.clientY;
     t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
-    track.classList.add('bgt-live');
+    // Immediately freeze any in-flight transition at its current pixel position
+    // so a new drag starts from exactly where the card stopped (no jump)
+    var cs = window.getComputedStyle(track);
+    var mat = new (window.DOMMatrix || window.WebKitCSSMatrix)(cs.transform);
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(' + mat.m41 + 'px)';
   }, {passive:true});
+
   stage.addEventListener('touchmove', function(e) {
     var dx=e.touches[0].clientX-tx0, dy=e.touches[0].clientY-ty0;
-    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
-      intentLocked=true;
-      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
+    if (!intentLocked && (Math.abs(dx)>5 || Math.abs(dy)>5)) {
+      intentLocked = true;
+      // Stricter: dx must dominate dy by 1.5x before we claim horizontal intent
+      intentH = Math.abs(dx) > Math.abs(dy) * 1.5;
     }
     if (!intentH) return;
     e.preventDefault();
-    if (!dragging && Math.abs(dx)>6) dragging=true;
-    if (dragging) {
-      ddx=dx;
-      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0)?.15:1;
-      track.style.transform='translateX('+((-_bgtPanel*vw())+dx*resist)+'px)';
-    }
+    dragging = true;
+    ddx = dx;
+    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0) ? 0.12 : 1;
+    track.style.transform = 'translateX(' + (baseX() + dx * resist) + 'px)';
   }, {passive:false});
-  stage.addEventListener('touchend', function() {
-    track.classList.remove('bgt-live');
-    if (!dragging) { bgtGoPanel(_bgtPanel); return; }
-    var elapsed=Math.max(1, Date.now()-t0);
-    var velocity=Math.abs(ddx)/elapsed;
-    var th=velocity>0.3 ? vw()*.12 : vw()*.22;
-    if (ddx<-th && _bgtPanel<3) bgtGoPanel(_bgtPanel+1);
-    else if (ddx>th && _bgtPanel>0) bgtGoPanel(_bgtPanel-1);
-    else bgtGoPanel(_bgtPanel);
-    dragging=false;
-  }, {passive:true});
+
+  function onRelease() {
+    if (!dragging) { bgtGoPanel(_bgtPanel, 0); return; }
+    var elapsed = Math.max(1, Date.now()-t0);
+    var velocity = ddx / elapsed; // signed px/ms
+    var spd = Math.abs(velocity);
+    var w = window.innerWidth;
+    // Lower threshold for fast flicks, higher for slow drags
+    var th = spd > 0.35 ? w * 0.10 : w * 0.20;
+    if (ddx < -th && _bgtPanel < 3) bgtGoPanel(_bgtPanel+1, spd);
+    else if (ddx > th && _bgtPanel > 0) bgtGoPanel(_bgtPanel-1, spd);
+    else bgtGoPanel(_bgtPanel, spd * 0.4); // snap back — use partial speed for feel
+    dragging = false;
+  }
+
+  stage.addEventListener('touchend',    onRelease, {passive:true});
+  stage.addEventListener('touchcancel', onRelease, {passive:true});
 }
 
 // ████████████████████████████████████████████████████████
