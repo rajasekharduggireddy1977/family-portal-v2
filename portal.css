@@ -5749,7 +5749,14 @@ body.dash-active #content{
 .bv-carousel{position:relative;margin:0 14px;transition:height 0.5s cubic-bezier(.4,0,.2,1);}
 
 /* Card */
-.bv-card{position:absolute;width:100%;border-radius:20px;overflow:hidden;cursor:pointer;touch-action:none;transition:all 0.65s cubic-bezier(.34,1.15,.64,1);will-change:transform,top,opacity;}
+.bv-card{position:absolute;width:100%;border-radius:20px;overflow:hidden;cursor:pointer;transition:all 0.65s cubic-bezier(.34,1.15,.64,1);will-change:transform,top,opacity;}
+
+/* Tap chevron hints — only visible on front card */
+.bv-tap-prev,.bv-tap-next{position:absolute;top:50%;transform:translateY(-50%);z-index:20;font-size:20px;color:rgba(255,255,255,0.18);pointer-events:none;transition:opacity 0.3s;user-select:none;line-height:1;}
+.bv-tap-prev{left:10px;}
+.bv-tap-next{right:10px;}
+.bv-card[data-pos="0"] .bv-tap-prev,.bv-card[data-pos="0"] .bv-tap-next{opacity:1;}
+.bv-card:not([data-pos="0"]) .bv-tap-prev,.bv-card:not([data-pos="0"]) .bv-tap-next{opacity:0;}
 .bv-card::before{content:'';position:absolute;inset:0;border-radius:20px;z-index:30;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.2) 0%,rgba(255,255,255,0.02) 50%,rgba(255,255,255,0.1) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:1px;}
 .bv-card[data-pos="0"]{top:0;z-index:4;transform:scale(1) rotateX(0deg);opacity:1;box-shadow:0 28px 70px rgba(0,0,0,0.75);}
 .bv-card[data-pos="1"]{top:14px;z-index:3;transform:scale(0.93) rotateX(3deg);opacity:0.78;}
