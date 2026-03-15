@@ -1153,7 +1153,7 @@
         <div class="budget-panel" id="bgt-p2">
           <div class="bgt-sec-row">
             <div class="bgt-sec-lbl">🏦 Assets &amp; Investments</div>
-            <button class="bgt-add-btn" onclick="bgtAdd('assets')">＋ Add</button>
+            <button class="bgt-add-btn" onclick="bvOpenAddSheet()">＋ Add</button>
           </div>
           <!-- Banking Vault Carousel -->
           <div class="bv-wrap">
@@ -1188,186 +1188,8 @@
               <div class="bv-stage-lbl">Vault · swipe to browse</div>
             </div>
 
-            <!-- Card carousel -->
-            <div class="bv-carousel" id="bv-carousel">
-
-              <!-- NPS -->
-              <div class="bv-card bv-bg-nps" id="bvc3" data-idx="3" data-pos="3">
-                <div class="bv-blob" style="width:160px;height:160px;background:rgba(0,180,60,0.22);top:-50px;right:-20px;--bd:9s;"></div>
-                <div class="bv-blob" style="width:90px;height:90px;background:rgba(255,200,0,0.07);bottom:20px;left:-10px;--bd:12s;"></div>
-                <div class="bv-sweep"></div><div class="bv-refl"></div>
-                <div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>
-                <div class="bv-copy-toast" id="bv-toast3">Copied!</div>
-                <div class="bv-cc">
-                  <div class="bv-card-top">
-                    <div>
-                      <div class="bv-bank-name">NPS</div>
-                      <div class="bv-bank-sub">National Pension System · PFRDA</div>
-                    </div>
-                    <div class="bv-ct-badge">₹50K</div>
-                  </div>
-                  <div class="bv-chip-r">
-                    <div class="bv-chip"><div class="bv-chip-i"></div></div>
-                    <div class="bv-acct-wrap">
-                      <div class="bv-acct-num">110141031812</div>
-                      <div class="bv-copy-btn" onclick="bvCopyAcct('110141031812','bv-toast3')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bv-cdiv"></div>
-                <div class="bv-cassets">
-                  <div class="bv-ca-slbl">National Pension Scheme</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-n">🏦</div><div><div class="bv-ca-name">NPS Corpus</div><div class="bv-ca-type">Retirement · Active</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:100%;background:rgba(255,255,255,0.6);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹50K</div><div class="bv-ca-pct">100%</div></div>
-                  </div>
-                </div>
-                <div class="bv-cbot">
-                  <div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">RAJASEKHAR REDDY D</div></div>
-                  <div class="bv-rupay">RuPay</div>
-                </div>
-              </div>
-
-              <!-- AXIS -->
-              <div class="bv-card bv-bg-axis" id="bvc2" data-idx="2" data-pos="2">
-                <div class="bv-blob" style="width:180px;height:180px;background:rgba(220,30,100,0.28);top:-60px;right:-20px;--bd:8s;"></div>
-                <div class="bv-blob" style="width:100px;height:100px;background:rgba(255,100,160,0.1);bottom:20px;left:-10px;--bd:11s;"></div>
-                <div class="bv-sweep"></div><div class="bv-refl"></div>
-                <div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>
-                <div class="bv-copy-toast" id="bv-toast2">Copied!</div>
-                <div class="bv-cc">
-                  <div class="bv-card-top">
-                    <div>
-                      <div class="bv-bank-name">AXIS Bank</div>
-                      <div class="bv-bank-sub">Private Sector · Savings &amp; FD</div>
-                    </div>
-                    <div class="bv-ct-badge">₹10.82L</div>
-                  </div>
-                  <div class="bv-chip-r">
-                    <div class="bv-chip"><div class="bv-chip-i"></div></div>
-                    <div class="bv-acct-wrap">
-                      <div class="bv-acct-num">008010101337901</div>
-                      <div class="bv-copy-btn" onclick="bvCopyAcct('008010101337901','bv-toast2')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bv-cdiv"></div>
-                <div class="bv-cassets">
-                  <div class="bv-ca-slbl">Savings</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-s">💳</div><div><div class="bv-ca-name">Savings Account</div><div class="bv-ca-type">Current Balance</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:3%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹32K</div><div class="bv-ca-pct">3%</div></div>
-                  </div>
-                  <div class="bv-ca-slbl" style="padding-top:4px;">Fixed Deposit</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-f">🔒</div><div><div class="bv-ca-name">Fixed Deposit</div><div class="bv-ca-type">Locked Deposit</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:97%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹10.5L</div><div class="bv-ca-pct">97%</div></div>
-                  </div>
-                </div>
-                <div class="bv-cbot">
-                  <div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">RAJASEKHAR REDDY D</div></div>
-                  <svg width="36" height="14" viewBox="0 0 36 14"><text x="0" y="13" fill="white" font-size="15" font-style="italic" font-weight="800" font-family="Arial,sans-serif" letter-spacing="-0.5">VISA</text></svg>
-                </div>
-              </div>
-
-              <!-- HDFC -->
-              <div class="bv-card bv-bg-hdfc" id="bvc1" data-idx="1" data-pos="1">
-                <div class="bv-blob" style="width:190px;height:190px;background:rgba(0,100,200,0.3);top:-60px;right:-20px;--bd:7s;"></div>
-                <div class="bv-blob" style="width:110px;height:110px;background:rgba(237,35,42,0.18);bottom:10px;left:-15px;--bd:10s;"></div>
-                <div class="bv-sweep"></div><div class="bv-refl"></div>
-                <div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>
-                <div class="bv-copy-toast" id="bv-toast1">Copied!</div>
-                <div class="bv-cc">
-                  <div class="bv-card-top">
-                    <div>
-                      <div class="bv-bank-name">HDFC Bank</div>
-                      <div class="bv-bank-sub">Private Sector · Savings, FD &amp; Life</div>
-                    </div>
-                    <div class="bv-ct-badge">₹15.67L</div>
-                  </div>
-                  <div class="bv-chip-r">
-                    <div class="bv-chip"><div class="bv-chip-i"></div></div>
-                    <div class="bv-acct-wrap">
-                      <div class="bv-acct-num">50100245463742</div>
-                      <div class="bv-copy-btn" onclick="bvCopyAcct('50100245463742','bv-toast1')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bv-cdiv"></div>
-                <div class="bv-cassets">
-                  <div class="bv-ca-slbl">Savings</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-s">💳</div><div><div class="bv-ca-name">Savings Account</div><div class="bv-ca-type">Current Balance</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:51%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹7.97L</div><div class="bv-ca-pct">51%</div></div>
-                  </div>
-                  <div class="bv-ca-slbl" style="padding-top:4px;">Fixed Deposit</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-f">🔒</div><div><div class="bv-ca-name">Fixed Deposit</div><div class="bv-ca-type">Locked Deposit</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:32%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹5L</div><div class="bv-ca-pct">32%</div></div>
-                  </div>
-                  <div class="bv-ca-slbl" style="padding-top:4px;">Life Insurance</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-l">🛡️</div><div><div class="bv-ca-name">HDFC Life</div><div class="bv-ca-type">Insurance · Active</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:17%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹2.7L</div><div class="bv-ca-pct">17%</div></div>
-                  </div>
-                </div>
-                <div class="bv-cbot">
-                  <div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">RAJASEKHAR REDDY D</div></div>
-                  <div class="bv-mc"><div class="bv-mc1"></div><div class="bv-mc2"></div></div>
-                </div>
-              </div>
-
-              <!-- ICICI -->
-              <div class="bv-card bv-bg-icici" id="bvc0" data-idx="0" data-pos="0">
-                <div class="bv-blob" style="width:200px;height:200px;background:rgba(255,140,0,0.22);top:-60px;right:-20px;--bd:7.5s;"></div>
-                <div class="bv-blob" style="width:110px;height:110px;background:rgba(255,220,80,0.1);bottom:15px;left:-15px;--bd:9.5s;"></div>
-                <div class="bv-sweep"></div><div class="bv-refl"></div>
-                <div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>
-                <div class="bv-copy-toast" id="bv-toast0">Copied!</div>
-                <div class="bv-cc">
-                  <div class="bv-card-top">
-                    <div>
-                      <div class="bv-bank-name">ICICI Bank</div>
-                      <div class="bv-bank-sub">Private Sector · Savings &amp; FD</div>
-                    </div>
-                    <div class="bv-ct-badge">₹9.12L</div>
-                  </div>
-                  <div class="bv-chip-r">
-                    <div class="bv-chip"><div class="bv-chip-i"></div></div>
-                    <div class="bv-acct-wrap">
-                      <div class="bv-acct-num">020201506595</div>
-                      <div class="bv-copy-btn" onclick="bvCopyAcct('020201506595','bv-toast0')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bv-cdiv"></div>
-                <div class="bv-cassets">
-                  <div class="bv-ca-slbl">Savings</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-s">💳</div><div><div class="bv-ca-name">Savings Account</div><div class="bv-ca-type">Current Balance</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:3%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹29K</div><div class="bv-ca-pct">3%</div></div>
-                  </div>
-                  <div class="bv-ca-slbl" style="padding-top:4px;">Fixed Deposit</div>
-                  <div class="bv-ca-item">
-                    <div class="bv-ca-left"><div class="bv-ca-ico bv-ico-f">🔒</div><div><div class="bv-ca-name">Fixed Deposit</div><div class="bv-ca-type">Locked Deposit</div><div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:97%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>
-                    <div class="bv-ca-right"><div class="bv-ca-amt">₹8.83L</div><div class="bv-ca-pct">97%</div></div>
-                  </div>
-                </div>
-                <div class="bv-cbot">
-                  <div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">RAJASEKHAR REDDY D</div></div>
-                  <svg width="36" height="14" viewBox="0 0 36 14"><text x="0" y="13" fill="white" font-size="15" font-style="italic" font-weight="800" font-family="Arial,sans-serif" letter-spacing="-0.5">VISA</text></svg>
-                </div>
-              </div>
-
-            </div><!-- /bv-carousel -->
+            <!-- Card carousel — populated dynamically by initBankVault() -->
+            <div class="bv-carousel" id="bv-carousel"></div><!-- /bv-carousel -->
 
             <div class="bv-dots" id="bv-dots">
               <div class="bv-dot bv-dot-on"></div>
@@ -1375,7 +1197,7 @@
               <div class="bv-dot"></div>
               <div class="bv-dot"></div>
             </div>
-            <div class="bv-shint">← swipe left · right to browse →</div>
+            <div class="bv-shint">‹ tap left · right to browse ›</div>
           </div><!-- /bv-wrap -->
           <!-- Non-Banking sub-section -->
           <div class="bgt-asset-sub-hdr" style="margin-top:14px;">📊 Non-Banking</div>
