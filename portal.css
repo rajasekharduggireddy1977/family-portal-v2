@@ -5890,3 +5890,70 @@ body.dash-active #content{
 .bv-bg-new1{background:linear-gradient(150deg,#1a0060 0%,#3a00b0 35%,#6415e0 60%,#4400c0 85%,#1a0060 100%);}
 .bv-bg-new2{background:linear-gradient(150deg,#003030 0%,#006060 35%,#009090 60%,#007070 85%,#002020 100%);}
 .bv-bg-new3{background:linear-gradient(150deg,#300000 0%,#700000 35%,#a00000 60%,#700000 85%,#200000 100%);}
+
+/* ═══════════════════════════════════════════════════════
+   NON-BANKING  Liquid Glass Card Grid  (.nb-*)
+   ═══════════════════════════════════════════════════════ */
+
+/* Grid */
+.nb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+
+/* Card — liquid glass base */
+.nb-card{
+  position:relative;border-radius:20px;padding:14px 13px 12px;
+  overflow:hidden;cursor:default;
+  background:linear-gradient(145deg,rgba(var(--nb-r),0.14) 0%,rgba(var(--nb-r),0.06) 100%);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(var(--nb-r),0.22);
+  box-shadow:0 8px 32px rgba(0,0,0,0.35),0 2px 8px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(0,0,0,0.15);
+}
+
+/* Top shimmer reflection line */
+.nb-card::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);z-index:3;pointer-events:none;}
+
+/* Bottom depth line */
+.nb-card::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);z-index:3;pointer-events:none;}
+
+/* Colored radial glow at top — driven by --nb-r */
+.nb-card-glow{position:absolute;top:-30px;left:-20px;right:-20px;height:110px;background:radial-gradient(ellipse at 50% 0%,rgba(var(--nb-r),0.30) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* Shimmer sweep animation */
+.nb-card-shimmer{position:absolute;inset:0;background:linear-gradient(110deg,transparent 28%,rgba(255,255,255,0.05) 47%,rgba(255,255,255,0.10) 50%,rgba(255,255,255,0.04) 53%,transparent 72%);animation:nb-sw 8s ease-in-out infinite;pointer-events:none;z-index:1;}
+@keyframes nb-sw{0%,100%{transform:translateX(-120%) skewX(-8deg)}65%{transform:translateX(200%) skewX(-8deg)}}
+
+/* Icon bubble */
+.nb-ico-wrap{position:relative;z-index:2;width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:9px;background:rgba(var(--nb-r),0.18);border:1px solid rgba(var(--nb-r),0.30);box-shadow:0 4px 12px rgba(var(--nb-r),0.20),inset 0 1px 0 rgba(255,255,255,0.15);}
+
+/* Name */
+.nb-name{position:relative;z-index:2;font-size:13px;font-weight:700;color:#fff;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+
+/* Type label */
+.nb-type-lbl{position:relative;z-index:2;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.42);margin-bottom:9px;}
+
+/* Amount — hero number */
+.nb-amt{position:relative;z-index:2;font-size:22px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;line-height:1.1;margin-bottom:7px;text-shadow:0 2px 10px rgba(0,0,0,0.35);}
+
+/* % of total pill */
+.nb-pct-pill{position:relative;z-index:2;display:inline-block;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.13);border-radius:20px;padding:2px 8px;font-size:9px;color:rgba(255,255,255,0.55);font-family:'DM Mono',monospace;margin-bottom:10px;backdrop-filter:blur(6px);}
+
+/* Action pills row */
+.nb-actions{position:relative;z-index:2;display:flex;gap:6px;}
+.nb-act-btn{padding:4px 10px;border-radius:8px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(8px);transition:background 0.18s,border-color 0.18s;-webkit-tap-highlight-color:transparent;user-select:none;}
+.nb-edit-btn{background:rgba(255,255,255,0.10);color:rgba(255,255,255,0.85);}
+.nb-edit-btn:active{background:rgba(255,255,255,0.20);}
+.nb-del-btn{background:rgba(239,68,68,0.10);border-color:rgba(239,68,68,0.22);color:rgba(239,68,68,0.80);}
+.nb-del-btn:active{background:rgba(239,68,68,0.24);}
+
+/* Empty state */
+.nb-empty{text-align:center;padding:24px 12px;color:var(--text3);font-size:12px;line-height:1.6;border:1px dashed var(--border2);border-radius:14px;margin-bottom:8px;}
+.nb-empty strong{color:var(--text2);}
+
+/* Light theme adjustments */
+[data-theme="light"] .nb-card{background:linear-gradient(145deg,rgba(var(--nb-r),0.10) 0%,rgba(var(--nb-r),0.04) 100%);border-color:rgba(var(--nb-r),0.20);box-shadow:0 4px 20px rgba(0,0,0,0.10),inset 0 1px 0 rgba(255,255,255,0.8);}
+[data-theme="light"] .nb-name{color:#111;text-shadow:none;}
+[data-theme="light"] .nb-type-lbl{color:rgba(0,0,0,0.4);}
+[data-theme="light"] .nb-amt{color:#111;text-shadow:none;}
+[data-theme="light"] .nb-pct-pill{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.10);color:rgba(0,0,0,0.45);}
+[data-theme="light"] .nb-edit-btn{background:rgba(0,0,0,0.05);color:rgba(0,0,0,0.7);border-color:rgba(0,0,0,0.12);}
+[data-theme="light"] .nb-del-btn{background:rgba(239,68,68,0.07);border-color:rgba(239,68,68,0.18);}
