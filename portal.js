@@ -4023,8 +4023,20 @@ function auraRenderGreeting() {
     '🌤️ Good Afternoon','🌤️ Good Afternoon','🌆 Good Evening','🌆 Good Evening','🌆 Good Evening',
     '🌆 Good Evening','🌙 Good Night','🌙 Good Night','🌙 Good Night'];
   var greet = greets[hour] || '☀️ Good Morning';
+  // Strip leading emoji from greet for the new greeting-block icon layout
+  var greetText = greet.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F ]+/u, '').trim();
   var el = document.getElementById('aura-greeting');
-  if (el) el.textContent = greet + ', Rajasekhar.';
+  if (el) {
+    // greeting-block layout: .gb-greeting-icon (has class greeting-emoji) is first child; inject text after it
+    var emojiSpan = el.querySelector('.greeting-emoji');
+    if (emojiSpan) {
+      // Keep first child (icon image), rebuild text node after it
+      while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+      el.appendChild(document.createTextNode(' ' + greetText + ', Rajasekhar.'));
+    } else {
+      el.textContent = greetText + ', Rajasekhar.';
+    }
+  }
   var DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var MONS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var now = new Date();
@@ -4110,36 +4122,46 @@ function auraRenderHome() {
         .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
       for (var i=0; i<todayEvts.length; i++) {
         var ev = todayEvts[i];
-        var catColors = { health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6', government:'var(--orange,#fb923c)', education:'#a78bfa', other:'var(--blue2)' };
-        var col = catColors[ev.cat] || 'var(--blue2)';
-        todayRows.push({ ts: ev.start || '\u2014', name: ev.title, meta: ev.notes||'', color: col });
+        todayRows.push({ ts: ev.start || '', name: ev.title, meta: ev.notes||'', cat: ev.cat||'other', members: ev.members||[] });
       }
     } catch(e){}
   }
 
   var todayEl = document.getElementById('aura-today-timeline');
   if (todayEl) {
+    var CW_AVATARS = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
     if (todayRows.length === 0) {
-      todayEl.innerHTML = '<div style="padding:10px 20px 14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">Nothing scheduled today</div>';
+      todayEl.innerHTML = '<div class="cw-today-empty"><div class="cw-empty-moon">🌙</div><div class="cw-empty-text">Clear schedule today</div></div>';
     } else {
       var html = '';
       for (var r=0; r<todayRows.length; r++) {
         var row = todayRows[r];
-        var isLast = r === todayRows.length-1;
-        html += '<div class="tc-tl-row">'
-          + '<div class="tc-tl-ts">' + row.ts + '</div>'
-          + '<div class="tc-tl-col">'
-          + '<div class="tc-tl-dot" style="background:' + row.color + ';box-shadow:0 0 6px ' + row.color + ';"></div>'
-          + (!isLast ? '<div class="tc-tl-wire"></div>' : '')
+        var tp = (row.ts||'').split(':');
+        var timeH = tp[0] || '—';
+        var timeM = tp[1] || '';
+        var memberKey = (row.members[0]||'').toLowerCase();
+        var av = CW_AVATARS[memberKey] || null;
+        var memberHtml = av ? '<div class="cw-person-avatar" style="background:' + av.b + '">' + av.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+        var tagHtml = '<span class="cw-event-tag">' + (row.cat||'other') + '</span>';
+        html += '<div class="cw-event-item cw-today-event cat-' + (row.cat||'other') + '" onclick="goPage(\'calendar\')">'
+          + '<div class="cw-event-stripe"></div>'
+          + '<div class="cw-event-date-col">'
+          + '<div class="cw-event-day-num">' + timeH + '</div>'
+          + '<div class="cw-event-day-name">' + (timeM ? ':'+timeM : 'all day') + '</div>'
           + '</div>'
-          + '<div class="tc-tl-body">'
-          + '<div class="tc-tl-name">' + row.name + '</div>'
-          + (row.meta ? '<div class="tc-tl-meta">' + row.meta.slice(0,50) + '</div>' : '')
-          + '</div></div>';
+          + '<div class="cw-event-body">'
+          + '<div class="cw-event-name">' + row.name + '</div>'
+          + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
+          + '</div>'
+          + '<div class="cw-event-arrow">&#8250;</div>'
+          + '</div>';
       }
       todayEl.innerHTML = html;
     }
   }
+
+  // Init calendar widget date display + mini cal
+  if (typeof cwInitWidget === 'function') cwInitWidget();
 
   // GRAVITY RAIL: overdue + today + all upcoming events (no cap)
   var upcoming = [];
@@ -4266,41 +4288,154 @@ function ovRenderMonthEvents() {
     .filter(function(e) { return (e.date || '').slice(0, 7) === moStr && e.cat !== 'education'; })
     .sort(function(a, b) { return a.date.localeCompare(b.date); });
 
+  var cntEl = document.getElementById('cw-evt-count');
+  if (cntEl) cntEl.textContent = monthEvts.length;
+
   if (monthEvts.length === 0) {
-    eventsEl.innerHTML = '<div class="ov-month-empty">&#9728;&#65039; No events this month</div>';
+    eventsEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px 0;text-align:center;"><div style="font-size:28px;opacity:.3;">📭</div><div style="font-size:11px;color:rgba(122,130,153,.65);font-style:italic;">No events this month</div></div>';
     return;
   }
 
-  var CAT_COLORS = {
-    health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6',
-    government:'#fb923c', education:'#a78bfa', travel:'var(--teal,#06b6d4)',
-    family:'var(--green)', other:'var(--blue2)'
-  };
-  var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+  var CW_AVATARS2 = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
 
-  var html = '<div class="ov-month-list">';
+  var html = '';
   monthEvts.forEach(function(e) {
     var d   = new Date(e.date + 'T12:00:00');
-    var day = d.getDate();
+    var day = String(d.getDate()).padStart(2,'0');
     var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-    var col = CAT_COLORS[e.cat] || 'var(--blue2)';
-    var isToday = e.date === (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
-    var isPast  = d < now && !isToday;
-    var members = (e.members || []).map(function(m) { return MEMBER_LABELS[m] || m; }).join(', ') || '';
-    html += '<div class="ov-mon-evt' + (isPast ? ' ov-mon-evt-past' : '') + '" onclick="goPage(\'calendar\')">'
-      + '<div class="ov-mon-evt-date' + (isToday ? ' ov-mon-evt-today' : '') + '">'
-      + '<div class="ov-mon-day">' + day + '</div>'
-      + '<div class="ov-mon-dow">' + dow + '</div>'
+    var isPast = d < now && e.date !== (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
+    var memberKey = ((e.members||[])[0]||'').toLowerCase();
+    var av2 = CW_AVATARS2[memberKey] || null;
+    var memberHtml = av2 ? '<div class="cw-person-avatar" style="background:' + av2.b + '">' + av2.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+    var tagHtml = e.cat ? '<span class="cw-event-tag">' + e.cat + '</span>' : '';
+    html += '<div class="cw-event-item cat-' + (e.cat||'other') + '" style="' + (isPast ? 'opacity:.45;' : '') + '" onclick="goPage(\'calendar\')">'
+      + '<div class="cw-event-stripe"></div>'
+      + '<div class="cw-event-date-col">'
+      + '<div class="cw-event-day-num">' + day + '</div>'
+      + '<div class="cw-event-day-name">' + dow + '</div>'
       + '</div>'
-      + '<div class="ov-mon-evt-bar" style="background:' + col + ';"></div>'
-      + '<div class="ov-mon-evt-body">'
-      + '<div class="ov-mon-evt-title">' + (e.title || '') + '</div>'
-      + (members ? '<div class="ov-mon-evt-meta">' + members + (e.cat ? ' · ' + e.cat : '') + '</div>' : '')
+      + '<div class="cw-event-body">'
+      + '<div class="cw-event-name">' + (e.title||'') + '</div>'
+      + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
       + '</div>'
+      + '<div class="cw-event-arrow">&#8250;</div>'
       + '</div>';
   });
-  html += '</div>';
   eventsEl.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════
+// Calendar Widget — Today/Upcoming two-panel (cwInitWidget)
+// ════════════════════════════════════════════════════════
+var cwCalOffset = 0;
+
+function cwInitWidget() {
+  var now = new Date();
+  var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNumEl   = document.getElementById('cwDayNum');
+  var dayNameEl  = document.getElementById('cwDayName');
+  var monthYrEl  = document.getElementById('cwMonthYear');
+  if (dayNumEl)  dayNumEl.textContent  = now.getDate();
+  if (dayNameEl) dayNameEl.textContent = DAYS_FULL[now.getDay()];
+  if (monthYrEl) monthYrEl.textContent = MONTHS[now.getMonth()] + ' · ' + now.getFullYear();
+  cwRenderMiniCal();
+  cwInitMobileTabs();
+}
+
+function cwRenderMiniCal() {
+  var gridEl     = document.getElementById('cwMiniCalGrid');
+  var monthLabel = document.getElementById('cwMiniCalMonth');
+  if (!gridEl) return;
+  var MONTHS_S = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_S    = ['S','M','T','W','T','F','S'];
+  var now      = new Date();
+  var calDate  = new Date(now.getFullYear(), now.getMonth() + cwCalOffset, 1);
+  var yr = calDate.getFullYear(), mo = calDate.getMonth();
+  if (monthLabel) monthLabel.textContent = MONTHS_S[mo] + ' ' + yr;
+  var pad2 = function(n){ return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad2(mo+1);
+  var eventDays = new Set();
+  try {
+    var raw = localStorage.getItem('fp_cal_events');
+    if (raw) JSON.parse(raw).filter(function(e){ return (e.date||'').slice(0,7)===moStr && e.cat!=='education'; })
+      .forEach(function(e){ eventDays.add(parseInt(e.date.slice(8),10)); });
+  } catch(ex){}
+  var firstDay    = new Date(yr, mo, 1).getDay();
+  var daysInMonth = new Date(yr, mo+1, 0).getDate();
+  var daysInPrev  = new Date(yr, mo, 0).getDate();
+  var isCurMonth  = yr===now.getFullYear() && mo===now.getMonth();
+  var html = DOW_S.map(function(d){ return '<div class="cw-cal-dow">'+d+'</div>'; }).join('');
+  for (var i=firstDay-1; i>=0; i--) html += '<div class="cw-cal-day cw-cal-other">'+(daysInPrev-i)+'</div>';
+  for (var d=1; d<=daysInMonth; d++) {
+    var isToday  = isCurMonth && d===now.getDate();
+    var hasEvt   = eventDays.has(d);
+    var cls = 'cw-cal-day' + (isToday ? ' cw-cal-today' : '') + (hasEvt && !isToday ? ' cw-cal-has-evt' : '');
+    html += '<div class="'+cls+'">'+d+'</div>';
+  }
+  var remaining = (firstDay+daysInMonth)%7===0 ? 0 : 7-(firstDay+daysInMonth)%7;
+  for (var nd=1; nd<=remaining; nd++) html += '<div class="cw-cal-day cw-cal-other">'+nd+'</div>';
+  gridEl.innerHTML = html;
+}
+
+function cwMonthNav(delta) {
+  cwCalOffset += delta;
+  ovMonthOffset += delta;
+  cwRenderMiniCal();
+  ovRenderMonthEvents();
+}
+
+function cwSwitchTab(tab) {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  var tabT      = document.getElementById('cw-tab-today');
+  var tabU      = document.getElementById('cw-tab-upcoming');
+  if (!todayP || !upcomingP) return;
+  if (tab === 'today') {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+    if (tabT) { tabT.classList.add('cw-tab-active'); }
+    if (tabU) { tabU.classList.remove('cw-tab-active'); }
+  } else {
+    upcomingP.classList.remove('cw-hidden');
+    todayP.classList.add('cw-hidden');
+    if (tabU) { tabU.classList.add('cw-tab-active'); }
+    if (tabT) { tabT.classList.remove('cw-tab-active'); }
+  }
+}
+
+function cwInitMobileTabs() {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  if (!todayP || !upcomingP) return;
+  if (window.innerWidth <= 640) {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+  } else {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.remove('cw-hidden');
+  }
+}
+
+if (!window._cwResizeBound) {
+  window._cwResizeBound = true;
+  window.addEventListener('resize', function(){ if (document.getElementById('cwPanelToday')) cwInitMobileTabs(); });
+  (function(){
+    var sx=0, sy=0;
+    document.addEventListener('touchstart', function(e){
+      if (!e.target.closest('.cw-widget')) return;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if (!e.target.closest('.cw-widget') || window.innerWidth>640) return;
+      var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) {
+        var hidden=document.getElementById('cwPanelToday').classList.contains('cw-hidden');
+        if (dx<0 && !hidden) cwSwitchTab('upcoming');
+        if (dx>0 &&  hidden) cwSwitchTab('today');
+      }
+    }, {passive:true});
+  })();
 }
 
 // ════════════════════════════════════════════════════════
@@ -4374,33 +4509,40 @@ function auraRenderOverview() {
     });
   } catch(e4){}
 
-  // ════ ① 3-GAUGE STRIP ════
+  // ════ ① 3-GAUGE STRIP (legacy hidden div — kept for compat) ════
   var gaugesEl = document.getElementById('ov-gauges');
-  if (gaugesEl) {
-    var overdueStatus = overdueCnt > 0 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Action Now</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; All Clear</span>';
-    var bgtStatus = bgtPct === null ? '' : bgtPct >= 90 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Near Limit</span>' : bgtPct >= 70 ? '<span class="ov-gauge-status ov-gs-amber">&#9679; Watch</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; Healthy</span>';
-    gaugesEl.innerHTML =
-      '<div class="ov-gauge ov-red pressable" onclick="goPage(\'expiry\')">'
-      + '<span class="ov-gauge-icon">&#x23F0;</span>'
-      + '<span class="ov-gauge-val ov-gv-red">' + (overdueCnt > 0 ? overdueCnt : urgentCnt) + '</span>'
-      + '<span class="ov-gauge-lbl">' + (overdueCnt > 0 ? 'Overdue' : 'Upcoming') + '</span>'
-      + overdueStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-amber pressable" onclick="goPage(\'budget\')">'
-      + '<span class="ov-gauge-icon">&#x1F4CA;</span>'
-      + '<span class="ov-gauge-val ov-gv-amber">' + bgtLabel + '</span>'
-      + '<span class="ov-gauge-lbl">Budget</span>'
-      + bgtStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-green pressable" onclick="goPage(\'documents\')">'
-      + '<span class="ov-gauge-icon">&#x1F6E1;&#xFE0F;</span>'
-      + '<span class="ov-gauge-val ov-gv-green">' + docCount + '</span>'
-      + '<span class="ov-gauge-lbl">Docs Safe</span>'
-      + '<span class="ov-gauge-status ov-gs-green">&#9679; All Secure</span>'
-      + '</div>';
-  }
+  if (gaugesEl) { gaugesEl.innerHTML = ''; } // hidden, no rendering needed
 
-  // ════ ② CRITICAL ALERTS scroll ════
+  // ════ ① NEW STAT CARDS (home-status-row) ════
+  var hsrOverdueNum = document.getElementById('hsr-overdue-num');
+  var hsrOverdueCta = document.getElementById('hsr-overdue-cta');
+  var hsrBudgetNum  = document.getElementById('hsr-budget-num');
+  var hsrDocsNum    = document.getElementById('hsr-docs-num');
+  if (hsrOverdueNum) hsrOverdueNum.textContent = overdueCnt > 0 ? overdueCnt : urgentCnt;
+  if (hsrOverdueCta) hsrOverdueCta.textContent = overdueCnt > 0 ? 'Action Now' : (urgentCnt > 0 ? 'Upcoming' : 'All Clear');
+  if (hsrBudgetNum)  hsrBudgetNum.textContent  = bgtLabel || '—';
+  if (hsrDocsNum)    hsrDocsNum.textContent     = docCount;
+  // Overdue stat card: toggle danger class
+  var hsrOverdueCard = hsrOverdueNum ? hsrOverdueNum.closest('.hsr-card') : null;
+  if (hsrOverdueCard) {
+    hsrOverdueCard.classList.toggle('danger', overdueCnt > 0);
+  }
+  // Greeting attention text (gb-attention-text)
+  var greetSub = document.getElementById('greeting-sub');
+  if (greetSub) {
+    if (overdueCnt > 0) {
+      greetSub.innerHTML = '<span>' + overdueCnt + ' item' + (overdueCnt > 1 ? 's' : '') + '</span> need your attention';
+    } else {
+      greetSub.innerHTML = '<span>All clear</span> \u2014 your family is covered today';
+    }
+  }
+  // Quick access expiry badge
+  var qaExpiryNum = document.getElementById('qa-expiry-num');
+  if (qaExpiryNum) qaExpiryNum.textContent = (overdueCnt + urgentCnt) || expiry.length;
+  var qaDocsNum = document.getElementById('qa-docs-num');
+  if (qaDocsNum) qaDocsNum.textContent = docCount;
+
+  // ════ ② CRITICAL ALERTS scroll (new home-alert-card design) ════
   var alertBadge = document.getElementById('ov-alerts-badge');
   var alertScroll = document.getElementById('ov-alerts-scroll');
   if (alertBadge) {
@@ -4420,29 +4562,23 @@ function auraRenderOverview() {
     sorted.slice(0, 2).forEach(function(e) {
       var d = du(e.date);
       var isOverdue = d < 0;
-      var isUrgent  = !isOverdue && d <= 90;
-      var cls = isOverdue ? 'ov-ac-red' : isUrgent ? 'ov-ac-amber' : 'ov-ac-green';
-      var stripCls = isOverdue ? 'ov-ac-strip-red' : isUrgent ? 'ov-ac-strip-amber' : 'ov-ac-strip-green';
-      var catCls = isOverdue ? 'ov-ac-cat-red' : isUrgent ? 'ov-ac-cat-amber' : 'ov-ac-cat-green';
-      var chipCls = isOverdue ? 'ov-chip-red' : isUrgent ? 'ov-chip-amber' : 'ov-chip-green';
       var chipLabel = isOverdue ? 'Overdue' : ('~'+d+' days');
       var catLabel = e.policy ? e.policy.split('/')[0] : (e.sub||'').split('·')[0].trim();
       var grad = PERSON_GRADS[e.person] || 'linear-gradient(135deg,#334,#556)';
-      html += '<div class="ov-alert-card ' + cls + '" onclick="goPage(\'expiry\')">'
-        + '<div class="ov-ac-strip ' + stripCls + '"></div>'
-        + '<div class="ov-ac-top">'
-        + '<span class="ov-ac-cat ' + catCls + '">' + e.icon + ' ' + catLabel + '</span>'
-        + '<span class="ov-ac-chip ' + chipCls + '">' + chipLabel + '</span>'
+      html += '<div class="home-alert-card" onclick="goPage(\'expiry\')">'
+        + '<div class="home-alert-meta">'
+        + '<span class="home-alert-id">' + catLabel + '</span>'
+        + '<span class="home-alert-badge">' + chipLabel + '</span>'
         + '</div>'
-        + '<div class="ov-ac-name">' + e.label + '</div>'
-        + '<div class="ov-ac-meta">Due: ' + e.date + '</div>'
-        + '<div class="ov-ac-member">'
-        + '<div class="ov-ac-av" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
-        + e.person
+        + '<div class="home-alert-title">' + e.label + '</div>'
+        + '<div class="home-alert-due">📅 Due: ' + e.date + '</div>'
+        + '<div class="home-alert-person">'
+        + '<div class="home-person-dot" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
+        + '<span class="home-person-name">' + (e.person||'Family') + '</span>'
         + '</div>'
         + '</div>';
     });
-    alertScroll.innerHTML = html || '<div style="padding:10px 0;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">All items are safe &#x2705;</div>';
+    alertScroll.innerHTML = html || '<div style="padding:14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);text-align:center;">All items are safe &#x2705;</div>';
   }
 
   // ════ ③ COMMAND STATIONS ════
@@ -7379,7 +7515,15 @@ function closeGmDropdown() {
 // Close dropdown on outside tap
 document.addEventListener('click', e => {
   if (!e.target.closest('#gm-pill') && !e.target.closest('#gm-dropdown')) closeGmDropdown();
+  if (!e.target.closest('#tb-more-wrap')) closeTbMore();
 }, true);
+
+function toggleTbMore() {
+  document.getElementById('tb-more-popup').classList.toggle('open');
+}
+function closeTbMore() {
+  document.getElementById('tb-more-popup')?.classList.remove('open');
+}
 
 // ── Context banner builder ──
 function gmContextBanner(pageId) {
@@ -7618,7 +7762,7 @@ function syncSidebarNav(page) {
 // ═══════════════════════════════════════
 var _wovAnimId = null;
 var _wovStartTime = null;
-var WOV_DURATION = 6000; // ms
+var WOV_DURATION = 15000; // ms
 
 function startWelcomeTimer() {
   _wovStartTime = Date.now();
@@ -7640,6 +7784,24 @@ function startWelcomeTimer() {
   // FAB has z-index:9100 — hide it while overlay is visible
   var fab = document.getElementById('fab-btn-wrap');
   if (fab) fab.style.display = 'none';
+  // Inject actual member photos into constellation badges (fallback: emoji stays if no photo)
+  var wovMemMap = [
+    {sel:'.wov-m1 span',id:'rajasekhar'},
+    {sel:'.wov-m2 span',id:'vasundhara'},
+    {sel:'.wov-m3 span',id:'josritha'},
+    {sel:'.wov-m4 span',id:'jeevan'}
+  ];
+  wovMemMap.forEach(function(entry){
+    var span = document.querySelector(entry.sel);
+    if (span && MEMBER_PHOTOS[entry.id]) {
+      span.textContent = '';
+      var img = document.createElement('img');
+      img.src = MEMBER_PHOTOS[entry.id];
+      img.alt = entry.id;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;display:block;';
+      span.appendChild(img);
+    }
+  });
   // Timer starts in showWelcomeOverlay() — called after the loader screen fades out
 })();
 
@@ -7831,7 +7993,8 @@ const BACKUP_KEYS = [
   'fp_widgets','fp_widgets_ver',
   'fp_theme','fp_active_member','fp_pin','emg_collapsed',
   'fp_groq_key',  // ← AI key — included in backup so it survives redeployment
-  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap'
+  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap',
+  'fp_budget_v1'  // ← Budget data (Monthly, Yearly, Assets, Income)
 ];
 
 
@@ -8354,14 +8517,7 @@ function restoreWidgetCollapse() {
 // aiPanelAppendMsg, aiPanelFormatResponse, aiPanelClear, aiPanelSend
 // ████████████████████████████████████████████████████████
 function toggleAIPanel() {
-  /* Close FAB menu if open */
-  if (typeof fabOpen !== 'undefined' && fabOpen) {
-    var fmenu = document.getElementById('fab-menu');
-    var fbtn  = document.getElementById('fab-btn');
-    fabOpen = false;
-    if (fmenu) fmenu.classList.add('hidden');
-    if (fbtn)  { fbtn.textContent = '\uFF0B'; fbtn.style.background = ''; }
-  }
+  /* FAB removed — nothing to close here */
   aiPanelOpen = !aiPanelOpen;
   var panel    = document.getElementById('ai-panel');
   var backdrop = document.getElementById('ai-panel-backdrop');
@@ -8378,9 +8534,6 @@ function toggleAIPanel() {
     aiPanelUpdateChips();
     aiPanelUpdateStatus();
     aiPanelAutoGreet();
-    // Close + menu if open (don't hide the button itself — it's on the left, no overlap)
-    var plusMenu = document.getElementById('fab-menu');
-    if (plusMenu && fabOpen) { plusMenu.classList.add('hidden'); fabOpen=false; }
     if (typeof haptic === 'function') haptic('medium');
   } else {
     panel.classList.add('ai-panel-closed');
@@ -8564,51 +8717,13 @@ async function aiPanelSend() {
   aiPanelBusy = false;
 
 // ████████████████████████████████████████████████████████
-// § FAB           Floating action button + More nav overflow menu
-// toggleFab, fabAction, toggleMoreMenu, moreMenuAction,
-// closeMoreMenuIfOpen, updateFabVisibility
+// § BNAV_MORE      Bottom nav overflow menu
+// toggleMoreMenu, moreMenuAction, closeMoreMenuIfOpen
 // ████████████████████████████████████████████████████████
   if (sendBtn) sendBtn.disabled = false;
 }
 
-// UI IMPROVEMENT 3 — FAB BUTTON
-// ═══════════════════════════════════════════════════════
-let fabOpen = false;
-
-function toggleFab() {
-  haptic('medium');
-  // Close AI panel if open
-  if (aiPanelOpen) toggleAIPanel();
-  fabOpen = !fabOpen;
-  const menu = document.getElementById('fab-menu');
-  const btn = document.getElementById('fab-btn');
-  if (fabOpen) {
-    menu.classList.remove('hidden');
-    btn.textContent = '✕';
-    btn.style.background = 'linear-gradient(135deg,#ff4f4f,#cc1a1a)';
-  } else {
-    menu.classList.add('hidden');
-    btn.textContent = '＋';
-    btn.style.background = '';
-  }
-}
-
-function fabAction(action) {
-  haptic('light');
-  toggleFab();
-  if (action === 'ai') {
-    setTimeout(() => { if (typeof toggleAIPanel === 'function') toggleAIPanel(); }, 80);
-  } else if (action === 'upload') {
-    openSyncModal();
-  } else if (action === 'event') {
-    goPage('calendar');
-    setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200);
-  } else if (action === 'search') {
-    openCommandPalette();
-  } else if (action === 'backup') {
-    openBackupModal();
-  }
-}
+// FAB removed — actions consolidated into three-dot menu (⋮)
 
 // ── BNAV MORE MENU ──────────────────────────────────────
 let moreMenuOpen = false;
@@ -8623,8 +8738,6 @@ function toggleMoreMenu() {
     btn.classList.toggle('active', moreMenuOpen);
     if (moreMenuOpen) moveBnavSelector(btn);
   }
-  // Close FAB if open
-  if (moreMenuOpen && fabOpen) toggleFab();
 }
 
 function moreMenuAction(page) {
@@ -8661,19 +8774,8 @@ document.addEventListener('touchstart', function(e) {
 }, {passive: true});
 // ────────────────────────────────────────────────────────
 
-// Update FAB visibility per page — hide on search/dashboard
-function updateFabVisibility(page) {
-  const fab = document.getElementById('fab-btn');
-  const menu = document.getElementById('fab-menu');
-  if (!fab) return;
-  if (page === 'search') {
-    fab.classList.add('hidden');
-  } else {
-    fab.classList.remove('hidden');
-  }
-  // Close menu on page change
-  if (fabOpen) toggleFab();
-}
+// FAB removed — updateFabVisibility no longer needed
+function updateFabVisibility(page) { /* noop */ }
 
 // ═══════════════════════════════════════════════════════
 
@@ -9876,16 +9978,16 @@ function initUploadHub() {
 
 const BGT_DEFAULTS = {
   monthly: [
-    {item:'Maintenance', amount:4400,  balance:0},
-    {item:'Maid',        amount:6000,  balance:6000},
-    {item:'Milk',        amount:1000,  balance:1000},
-    {item:'Current',     amount:2500,  balance:0},
-    {item:'TV/Mobile',   amount:3000,  balance:500},
-    {item:'Rice/Gas',    amount:2000,  balance:1500},
-    {item:'Nanna',       amount:14000, balance:0},
-    {item:'Vasundhara',  amount:14000, balance:4000},
-    {item:'Petrol',      amount:3000,  balance:3000},
-    {item:'Food',        amount:24000, balance:24000}
+    {item:'Maintenance', amount:4400,  paid:4400,  balance:0},
+    {item:'Maid',        amount:6000,  paid:0,     balance:6000},
+    {item:'Milk',        amount:1000,  paid:0,     balance:1000},
+    {item:'Current',     amount:2500,  paid:2500,  balance:0},
+    {item:'TV/Mobile',   amount:3000,  paid:2500,  balance:500},
+    {item:'Rice/Gas',    amount:2000,  paid:500,   balance:1500},
+    {item:'Nanna',       amount:14000, paid:14000, balance:0},
+    {item:'Vasundhara',  amount:14000, paid:10000, balance:4000},
+    {item:'Petrol',      amount:3000,  paid:0,     balance:3000},
+    {item:'Food',        amount:24000, paid:0,     balance:24000}
   ],
   yearly: [
     {item:'Health Insurance',      amount:74000, balance:74000, next:''},
@@ -9907,7 +10009,22 @@ const BGT_DEFAULTS = {
     {source:'Salary',      amount:166000},
     {source:'FD Interest', amount:15000},
     {source:'Rent',        amount:20700}
-  ]
+  ],
+  assets: {
+    banking: [
+      {item:'ICICI Bank', amount:912000},
+      {item:'HDFC Bank',  amount:1567000},
+      {item:'AXIS Bank',  amount:1082000},
+      {item:'NPS',        amount:50000}
+    ],
+    nonBanking: [
+      {item:'HDFC Life', amount:270000},
+      {item:'Babai',     amount:500000},
+      {item:'Murali',    amount:22200},
+      {item:'Krishna',   amount:25000},
+      {item:'NPS',       amount:50000}
+    ]
+  }
 };
 
 
@@ -9921,7 +10038,14 @@ const BGT_DEFAULTS = {
 function bgtGetData() {
   try {
     const s = localStorage.getItem('fp_budget_v1');
-    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    const d = s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    // Migrate old flat assets array → {banking, nonBanking}
+    if (Array.isArray(d.assets)) {
+      d.assets = { banking: [], nonBanking: d.assets };
+      bgtSaveData(d);
+    }
+    if (!d.assets) d.assets = { banking: [], nonBanking: [] };
+    return d;
   } catch(e) { return JSON.parse(JSON.stringify(BGT_DEFAULTS)); }
 }
 function bgtSaveData(d) { localStorage.setItem('fp_budget_v1', JSON.stringify(d)); }
@@ -9933,10 +10057,14 @@ function bgtCalc(d) {
   const yBal   = d.yearly.reduce((s,r)=>s+r.balance, 0);
   const yAvg   = Math.round(yTotal / 12);
   const iTotal = d.income.reduce((s,r)=>s+r.amount, 0);
-  const totalMonthly  = mTotal + yAvg;
-  const monthlySaving = iTotal - mTotal;
-  const yearlySaving  = (monthlySaving * 12) - yTotal;
-  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,totalMonthly,monthlySaving,yearlySaving};
+  const bTotal  = (d.assets?.banking||[]).reduce((s,r)=>s+r.amount, 0);
+  const nbTotal = (d.assets?.nonBanking||[]).reduce((s,r)=>s+r.amount, 0);
+  const aTotal  = bTotal + nbTotal;
+  const totalMonthly   = mTotal + yAvg;
+  const monthlySaving  = iTotal - mTotal;
+  const yearlySaving   = (monthlySaving * 12) - yTotal;
+  const currentBalance = aTotal - (mBal + yBal);
+  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,bTotal,nbTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
 }
 
 function bgtInr(n) {
@@ -10006,7 +10134,7 @@ function bgtInitSwipe() {
     if (!dragging && Math.abs(dx)>6) dragging=true;
     if (dragging) {
       ddx=dx;
-      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===2&&dx<0)?.15:1;
+      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0)?.15:1;
       track.style.transform='translateX('+((-_bgtPanel*vw())+dx*resist)+'px)';
     }
   }, {passive:false});
@@ -10016,11 +10144,95 @@ function bgtInitSwipe() {
     var elapsed=Math.max(1, Date.now()-t0);
     var velocity=Math.abs(ddx)/elapsed;
     var th=velocity>0.3 ? vw()*.12 : vw()*.22;
-    if (ddx<-th && _bgtPanel<2) bgtGoPanel(_bgtPanel+1);
+    if (ddx<-th && _bgtPanel<3) bgtGoPanel(_bgtPanel+1);
     else if (ddx>th && _bgtPanel>0) bgtGoPanel(_bgtPanel-1);
     else bgtGoPanel(_bgtPanel);
     dragging=false;
   }, {passive:true});
+}
+
+// ── Bank Vault Carousel ──
+function bvCopyAcct(num, toastId) {
+  navigator.clipboard.writeText(num).catch(function(){});
+  var t = document.getElementById(toastId);
+  if (!t) return;
+  t.classList.add('bv-show');
+  setTimeout(function(){ t.classList.remove('bv-show'); }, 1800);
+}
+
+var _bvActive = 0;
+var _bvN = 4;
+var _bvReady = false;
+var _bvSS = [
+  {top:'0px',   tr:'scale(1) rotateX(0deg)',   op:'1',    zi:'4', pe:'auto', sh:'0 28px 70px rgba(0,0,0,0.75)'},
+  {top:'14px',  tr:'scale(0.93) rotateX(3deg)', op:'0.78', zi:'3', pe:'auto', sh:'0 14px 35px rgba(0,0,0,0.5)'},
+  {top:'25px',  tr:'scale(0.86) rotateX(6deg)', op:'0.45', zi:'2', pe:'none', sh:'0 8px 20px rgba(0,0,0,0.3)'},
+  {top:'33px',  tr:'scale(0.79) rotateX(9deg)', op:'0.18', zi:'1', pe:'none', sh:'none'}
+];
+
+function bvPos(i) { return ((i - _bvActive) + _bvN) % _bvN; }
+
+function bvLayout() {
+  var front = document.getElementById('bvc' + _bvActive);
+  var h = front ? front.offsetHeight : 420;
+  var carousel = document.getElementById('bv-carousel');
+  if (carousel) carousel.style.height = Math.max(h + 20, 350) + 'px';
+  for (var i = 0; i < _bvN; i++) {
+    var el = document.getElementById('bvc' + i);
+    if (!el) continue;
+    var p = bvPos(i);
+    var s = _bvSS[p];
+    el.style.top = s.top; el.style.transform = s.tr; el.style.opacity = s.op;
+    el.style.zIndex = s.zi; el.style.pointerEvents = s.pe; el.style.boxShadow = s.sh;
+    el.setAttribute('data-pos', p);
+  }
+  document.querySelectorAll('.bv-dot').forEach(function(d, i) {
+    d.classList.toggle('bv-dot-on', i === _bvActive);
+  });
+}
+
+function bvGoTo(idx) {
+  _bvActive = ((idx % _bvN) + _bvN) % _bvN;
+  bvLayout();
+  setTimeout(bvLayout, 300);
+}
+
+function initBankVault() {
+  if (_bvReady) return;
+  // Spawn twinkling stars inside vault
+  var sf = document.getElementById('bv-sf');
+  if (sf && sf.children.length === 0) {
+    for (var k = 0; k < 55; k++) {
+      var s = document.createElement('div');
+      var z = Math.random() * 1.4 + 0.3;
+      s.className = 'bv-st';
+      s.style.cssText = 'width:' + z + 'px;height:' + z + 'px;top:' + (Math.random()*100) + '%;left:' + (Math.random()*100) + '%;--d:' + (2 + Math.random()*5) + 's;--dl:' + (Math.random()*5) + 's';
+      sf.appendChild(s);
+    }
+  }
+  bvLayout();
+  setTimeout(bvLayout, 200);
+  setTimeout(bvLayout, 500);
+  if (_bvReady) return;
+  _bvReady = true;
+  // Tap-to-navigate — no swipe, no preventDefault → vertical scroll stays natural
+  document.querySelectorAll('.bv-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      // Ignore taps on the copy button
+      if (e.target.closest('.bv-copy-btn')) return;
+      var pos = parseInt(card.getAttribute('data-pos'), 10);
+      var idx = parseInt(card.getAttribute('data-idx'), 10);
+      // Back cards: tap anywhere → bring to front
+      if (pos !== 0) { bvGoTo(idx); return; }
+      // Front card: left half → prev, right half → next
+      var rect = card.getBoundingClientRect();
+      if ((e.clientX - rect.left) < rect.width / 2) {
+        bvGoTo(_bvActive - 1);
+      } else {
+        bvGoTo(_bvActive + 1);
+      }
+    });
+  });
 }
 
 function initBudget() {
@@ -10028,7 +10240,9 @@ function initBudget() {
   const c = bgtCalc(d);
   renderBgtMonthly(d, c);
   renderBgtYearly(d, c);
+  renderBgtAssets(d, c);
   renderBgtSummary(d, c);
+  initBankVault();
   bgtInitSwipe();
   // Move selector and animate bars after render
   setTimeout(function() {
@@ -10062,20 +10276,6 @@ function renderBgtMonthly(d, c) {
         '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.monthlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + sPct + '"></div></div>' +
       '</div>';
   }
-  // Income list
-  const incList = document.getElementById('bgt-inc-list');
-  if (incList) {
-    incList.innerHTML = d.income.map(function(r, i) {
-      return '<div class="bgt-inc-row">' +
-        '<div class="bgt-inc-name">' + r.source + '</div>' +
-        '<div class="bgt-inc-amt">' + bgtFmt(r.amount) + '</div>' +
-        '<div class="bgt-row-acts">' +
-          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
-          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
-  }
   // Monthly 2-col grid
   const mgrid = document.getElementById('bgt-m-grid');
   if (mgrid) {
@@ -10097,6 +10297,50 @@ function renderBgtMonthly(d, c) {
   // Monthly total
   const mt = document.getElementById('bgt-m-total');
   if (mt) mt.textContent = bgtFmt(c.mTotal);
+}
+
+function renderBgtAssets(d, c) {
+  function assetRow(r, i, type) {
+    return '<div class="bgt-inc-row">' +
+      '<div class="bgt-inc-name">' + r.item + '</div>' +
+      '<div class="bgt-inc-amt bgt-amt-green">' + bgtFmt(r.amount) + '</div>' +
+      '<div class="bgt-row-acts">' +
+        '<button class="bgt-act" onclick="bgtEdit(\'' + type + '\',' + i + ')">\u270f\ufe0f</button>' +
+        '<button class="bgt-act" onclick="bgtDelete(\'' + type + '\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+      '</div>' +
+    '</div>';
+  }
+  // Banking: rendered as static vault carousel — update hero total pill only
+  const bvTotalEl = document.getElementById('bv-total-amt');
+  if (bvTotalEl) bvTotalEl.textContent = bgtFmt(c.bTotal);
+  const bvBPillEl = document.getElementById('bv-b-total');
+  if (bvBPillEl) bvBPillEl.textContent = bgtFmt(c.bTotal);
+  const bvNbPillEl = document.getElementById('bv-nb-total-pill');
+  if (bvNbPillEl) bvNbPillEl.textContent = bgtFmt(c.nbTotal);
+  // Non-Banking list
+  const nbList = document.getElementById('bgt-asset-nb-list');
+  if (nbList) nbList.innerHTML = (d.assets.nonBanking||[]).map(function(r,i){ return assetRow(r,i,'assets_nb'); }).join('');
+  const nbt = document.getElementById('bgt-nb-total');
+  if (nbt) nbt.textContent = bgtFmt(c.nbTotal);
+  // Grand Total
+  const at = document.getElementById('bgt-a-total');
+  if (at) at.textContent = bgtFmt(c.aTotal);
+  // Income list
+  const incList = document.getElementById('bgt-inc-list');
+  if (incList) {
+    incList.innerHTML = d.income.map(function(r, i) {
+      return '<div class="bgt-inc-row">' +
+        '<div class="bgt-inc-name">' + r.source + '</div>' +
+        '<div class="bgt-inc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-row-acts">' +
+          '<button class="bgt-act" onclick="bgtEdit(\'income\',' + i + ')">\u270f\ufe0f</button>' +
+          '<button class="bgt-act" onclick="bgtDelete(\'income\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  const it = document.getElementById('bgt-i-total');
+  if (it) it.textContent = bgtFmt(c.iTotal);
 }
 
 function renderBgtYearly(d, c) {
@@ -10178,18 +10422,42 @@ function renderBgtSummary(d, c) {
         '</div>' +
       '</div>';
   }
+  // Current Balance card
+  const cb = document.getElementById('bgt-cur-balance');
+  if (cb) {
+    const balColor = c.currentBalance >= 0 ? 'green' : 'red';
+    cb.innerHTML =
+      '<div class="bgt-curbal-card">' +
+        '<div class="bgt-curbal-title">\ud83d\udcb0 Current Balance</div>' +
+        '<div class="bgt-curbal-big ' + balColor + '">' + bgtFmt(c.currentBalance) + '</div>' +
+        '<div class="bgt-curbal-formula">' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Total Assets</span>' +
+            '<span class="bgt-curbal-val green">+ ' + bgtFmt(c.aTotal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Monthly Balance Due</span>' +
+            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.mBal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Yearly Balance Due</span>' +
+            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.yBal) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
   // Top expense breakdown bars
   const bd = document.getElementById('bgt-breakdown');
   if (bd) {
     const allItems = [];
-    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount}); });
-    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, yr: true}); });
+    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount * 12, tag: '×12'}); });
+    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, tag: 'yr'}); });
     allItems.sort(function(a, b) { return b.amt - a.amt; });
     const top = allItems.slice(0, 8);
     const maxAmt = top[0] ? top[0].amt : 1;
     bd.innerHTML = top.map(function(item) {
       const pct = Math.round(item.amt / maxAmt * 100);
-      const tag = item.yr ? ' <span style="font-size:9px;opacity:.4">(yr)</span>' : '';
+      const tag = ' <span style="font-size:9px;opacity:.45">' + item.tag + '</span>';
       return '<div class="bgt-bd-item">' +
         '<div class="bgt-bd-row">' +
           '<div class="bgt-bd-name">' + item.name + tag + '</div>' +
@@ -10209,20 +10477,42 @@ function _bgtOpenSheet() {
   const sheet = document.getElementById('bgt-sheet');
   const card  = document.querySelector('.bgt-sheet-card');
   sheet.classList.remove('hidden');
-  // Scroll input into view when keyboard opens (Android Chrome fix)
+
   if (card) {
-    card.addEventListener('focusin', function(e) {
+    // ── Clean up any previous listeners ──
+    if (card._bgtFocusIn) card.removeEventListener('focusin', card._bgtFocusIn);
+    if (card._bgtVpHandler && window.visualViewport)
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+
+    // ── focusin: scroll active input into view ──
+    card._bgtFocusIn = function(e) {
       if (e.target.tagName === 'INPUT' && e.target.type !== 'hidden') {
-        setTimeout(function() { e.target.scrollIntoView({behavior:'smooth', block:'center'}); }, 350);
+        setTimeout(function() { e.target.scrollIntoView({behavior:'instant', block:'nearest'}); }, 80);
       }
-    }, {once: false});
+    };
+    card.addEventListener('focusin', card._bgtFocusIn);
+
+    // ── visualViewport: push card above iOS keyboard ──
+    // iOS fixed overlays don't shrink with the keyboard — we add paddingBottom
+    // equal to keyboard height so the last input is never hidden behind it.
+    if (window.visualViewport) {
+      card._bgtVpHandler = function() {
+        var kbH = window.innerHeight - window.visualViewport.height;
+        card.style.paddingBottom = kbH > 50 ? (kbH + 24) + 'px' : '';
+        var active = document.activeElement;
+        if (active && active.tagName === 'INPUT' && active.type !== 'hidden') {
+          setTimeout(function() { active.scrollIntoView({behavior:'instant', block:'nearest'}); }, 60);
+        }
+      };
+      window.visualViewport.addEventListener('resize', card._bgtVpHandler);
+    }
   }
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); bgtCalcBal(); }, 120);
 }
 
 function bgtAdd(type) {
   _bgtState = {type, idx: -1};
-  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source'};
+  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source', assets:'Add Asset', assets_b:'Add Banking', assets_nb:'Add Non-Banking'};
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
   _bgtOpenSheet();
@@ -10231,19 +10521,21 @@ function bgtAdd(type) {
 function bgtEdit(type, idx) {
   const d = bgtGetData();
   _bgtState = {type, idx};
-  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source'};
-  document.getElementById('bgt-sheet-title').textContent = labels[type];
-  const row = type==='income' ? d.income[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
+  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source', assets_b:'Edit Banking', assets_nb:'Edit Non-Banking'};
+  document.getElementById('bgt-sheet-title').textContent = labels[type] || 'Edit Item';
+  const row = type==='income' ? d.income[idx] : type==='assets_b' ? (d.assets.banking||[])[idx] : type==='assets_nb' ? (d.assets.nonBanking||[])[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
   _bgtOpenSheet();
 }
 
 function bgtDelete(type, idx) {
   const d = bgtGetData();
-  const name = type==='income' ? d.income[idx].source : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
+  const name = type==='income' ? d.income[idx].source : type==='assets_b' ? (d.assets.banking||[])[idx].item : type==='assets_nb' ? (d.assets.nonBanking||[])[idx].item : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
   if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
   if (type==='monthly') d.monthly.splice(idx, 1);
   else if (type==='yearly') d.yearly.splice(idx, 1);
+  else if (type==='assets_b') { d.assets.banking.splice(idx, 1); }
+  else if (type==='assets_nb') { d.assets.nonBanking.splice(idx, 1); }
   else d.income.splice(idx, 1);
   bgtSaveData(d);
   initBudget();
@@ -10260,11 +10552,24 @@ function bgtSheetSave() {
   if (!f1) { if(document.getElementById('bgt-f1')) document.getElementById('bgt-f1').focus(); return; }
   const d = bgtGetData();
   if (type === 'monthly') {
-    const obj = {item:f1, amount:f2, balance:f3};
+    const paid = f3;
+    const balance = Math.max(0, f2 - paid);
+    const obj = {item:f1, amount:f2, paid:paid, balance:balance};
     if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
   } else if (type === 'yearly') {
     const obj = {item:f1, amount:f2, balance:f3, next:f4};
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
+  } else if (type === 'assets' || type === 'assets_b' || type === 'assets_nb') {
+    if (!d.assets) d.assets = {banking:[], nonBanking:[]};
+    const obj = {item:f1, amount:f2};
+    // For new adds, check toggle; for edits, use encoded type
+    let cat = type === 'assets_b' ? 'banking' : type === 'assets_nb' ? 'nonBanking' : null;
+    if (!cat) {
+      // Read toggle selection from DOM
+      const activeCatBtn = document.querySelector('.bgt-cat-btn.active');
+      cat = (activeCatBtn && activeCatBtn.dataset.cat === 'nb') ? 'nonBanking' : 'banking';
+    }
+    if (idx < 0) d.assets[cat].push(obj); else d.assets[cat][idx] = obj;
   } else {
     const obj = {source:f1, amount:f2};
     if (idx < 0) d.income.push(obj); else d.income[idx] = obj;
@@ -10276,14 +10581,43 @@ function bgtSheetSave() {
 
 function bgtCloseSheet() {
   document.getElementById('bgt-sheet').classList.add('hidden');
+  // Clean up listeners and reset keyboard padding
+  var card = document.querySelector('.bgt-sheet-card');
+  if (card) {
+    card.style.paddingBottom = '';
+    if (card._bgtFocusIn) { card.removeEventListener('focusin', card._bgtFocusIn); card._bgtFocusIn = null; }
+    if (card._bgtVpHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+      card._bgtVpHandler = null;
+    }
+  }
   _bgtState = null;
+}
+
+function bgtToggleAssetCat(btn) {
+  document.querySelectorAll('.bgt-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function bgtCalcBal() {
+  var amt  = parseInt((document.getElementById('bgt-f2') || {}).value) || 0;
+  var paid = parseInt((document.getElementById('bgt-f3') || {}).value) || 0;
+  var bal  = Math.max(0, amt - paid);
+  var el   = document.getElementById('bgt-bal-val');
+  if (el) {
+    el.textContent = bgtFmt(bal);
+    el.style.color = bal > 0 ? 'var(--gold)' : 'var(--green)';
+  }
 }
 
 function _bgtFields(type, row) {
   if (type === 'monthly') {
+    // For backward compat: if row has no paid field, derive it from amount - balance
+    var paidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - row.balance)) : '';
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + paidVal + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
@@ -10292,7 +10626,110 @@ function _bgtFields(type, row) {
            '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
            '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
   }
+  if (type === 'assets') {
+    // New add — show Banking / Non-Banking toggle
+    return '<div class="bgt-asset-toggle">' +
+             '<button class="bgt-cat-btn active" data-cat="b" onclick="bgtToggleAssetCat(this)">\ud83c\udfd7\ufe0f Banking</button>' +
+             '<button class="bgt-cat-btn" data-cat="nb" onclick="bgtToggleAssetCat(this)">\ud83d\udcca Non-Banking</button>' +
+           '</div>' +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. ICICI Bank, HDFC Life" value=""></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value=""></div>' +
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets_b' || type === 'assets_nb') {
+    // Edit — show read-only category badge
+    const badge = type === 'assets_b'
+      ? '<div class="bgt-cat-badge bgt-cat-banking">\ud83c\udfd7\ufe0f Banking</div>'
+      : '<div class="bgt-cat-badge bgt-cat-nb">\ud83d\udcca Non-Banking</div>';
+    const ph = type === 'assets_b' ? 'e.g. ICICI Bank' : 'e.g. HDFC Life';
+    return badge +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="' + ph + '" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
   return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
          '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
          '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
 }
+
+/* ═══════════════════════════════════════════════════════
+   HERO BANNER CAROUSEL
+   ═══════════════════════════════════════════════════════ */
+(function initHeroCarousel() {
+  var banner   = document.getElementById('heroBanner');
+  var track    = document.getElementById('heroTrack');
+  var progress = document.getElementById('heroProgressFill');
+  var dotsEl   = document.getElementById('heroDots');
+  if (!banner || !track) return;
+
+  var slides   = track.querySelectorAll('.hero-slide');
+  var dots     = dotsEl ? dotsEl.querySelectorAll('.hero-dot') : [];
+  var current  = 0;
+  var DURATION = 4500;
+  var autoTimer, dragging = false, startX = 0, tx = 0;
+
+  function setSlide(idx) {
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = ((idx % slides.length) + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    resetProgress();
+  }
+
+  function resetProgress() {
+    if (!progress) return;
+    progress.style.animation = 'none';
+    progress.offsetHeight; // force reflow
+    progress.style.animation = 'heroProgressFill ' + DURATION + 'ms linear forwards';
+  }
+
+  function startAuto() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(function() { setSlide(current + 1); }, DURATION);
+  }
+
+  // expose for inline onclick on dots
+  window.heroGoSlide = function(idx) { setSlide(idx); startAuto(); };
+
+  resetProgress();
+  startAuto();
+
+  // Touch swipe
+  banner.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX; dragging = true; clearInterval(autoTimer);
+  }, { passive: true });
+  banner.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    tx = e.touches[0].clientX - startX;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + tx + 'px))';
+  }, { passive: true });
+  banner.addEventListener('touchend', function() {
+    dragging = false;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(tx < -50 ? current + 1 : tx > 50 ? current - 1 : current);
+    tx = 0; startAuto();
+  });
+
+  // Mouse drag
+  var mouseDown = false, mouseStartX = 0;
+  banner.addEventListener('mousedown', function(e) { mouseDown = true; mouseStartX = e.clientX; clearInterval(autoTimer); });
+  banner.addEventListener('mousemove', function(e) {
+    if (!mouseDown) return;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + (e.clientX - mouseStartX) + 'px))';
+  });
+  banner.addEventListener('mouseup', function(e) {
+    if (!mouseDown) return;
+    mouseDown = false;
+    var dx = e.clientX - mouseStartX;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(dx < -50 ? current + 1 : dx > 50 ? current - 1 : current);
+    startAuto();
+  });
+  banner.addEventListener('mouseleave', function() {
+    if (mouseDown) { mouseDown = false; setSlide(current); startAuto(); }
+  });
+})();
