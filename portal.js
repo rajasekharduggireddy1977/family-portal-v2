@@ -10018,11 +10018,11 @@ const BGT_DEFAULTS = {
       {item:'NPS',        amount:50000}
     ],
     nonBanking: [
-      {item:'HDFC Life', amount:270000},
-      {item:'Babai',     amount:500000},
-      {item:'Murali',    amount:22200},
-      {item:'Krishna',   amount:25000},
-      {item:'NPS',       amount:50000}
+      {item:'HDFC Life', amount:270000, type:'life_ins'},
+      {item:'Babai',     amount:500000, type:'personal_loan'},
+      {item:'Murali',    amount:22200,  type:'personal_loan'},
+      {item:'Krishna',   amount:25000,  type:'personal_loan'},
+      {item:'NPS',       amount:50000,  type:'other'}
     ]
   }
 };
@@ -10045,6 +10045,19 @@ function bgtGetData() {
       bgtSaveData(d);
     }
     if (!d.assets) d.assets = { banking: [], nonBanking: [] };
+    // Migrate: auto-assign type to old nonBanking items without type
+    (d.assets.nonBanking||[]).forEach(function(r) {
+      if (!r.type) {
+        var n = (r.item||'').toLowerCase();
+        if (n.includes('life')||n.includes('insurance')) r.type='life_ins';
+        else if (n.includes('gold')) r.type='gold';
+        else if (n.includes('mutual')||n.includes('fund')||n.includes('sip')) r.type='mutual_fund';
+        else if (n.includes('property')||n.includes('flat')||n.includes('house')||n.includes('plot')) r.type='property';
+        else if (n.includes('car')||n.includes('bike')||n.includes('vehicle')) r.type='vehicle';
+        else if (n.includes('fd')||n.includes('deposit')) r.type='fd';
+        else r.type='personal_loan';
+      }
+    });
     return d;
   } catch(e) { return JSON.parse(JSON.stringify(BGT_DEFAULTS)); }
 }
@@ -10460,6 +10473,90 @@ function initBankVault() {
   bvSetupTapHandlers();
 }
 
+// ████████████████████████████████████████████████████████
+// § NON-BANKING   Liquid glass card grid
+// ████████████████████████████████████████████████████████
+
+var NB_TYPES = [
+  {value:'personal_loan', label:'Personal Loan',   icon:'👤', r:'99,102,241'},
+  {value:'life_ins',      label:'Life Insurance',  icon:'🛡️', r:'168,85,247'},
+  {value:'mutual_fund',   label:'Mutual Fund',     icon:'📈', r:'34,197,94'},
+  {value:'gold',          label:'Gold',            icon:'🥇', r:'234,179,8'},
+  {value:'property',      label:'Property',        icon:'🏠', r:'249,115,22'},
+  {value:'vehicle',       label:'Vehicle',         icon:'🚗', r:'20,184,166'},
+  {value:'fd',            label:'Fixed Deposit',   icon:'🔒', r:'59,130,246'},
+  {value:'other',         label:'Other',           icon:'💰', r:'107,114,128'}
+];
+
+function _nbTypeOpts(selected) {
+  return NB_TYPES.map(function(t) {
+    return '<option value="'+t.value+'"'+(selected===t.value?' selected':'')+'>'+t.icon+' '+t.label+'</option>';
+  }).join('');
+}
+
+function _nbFields(row) {
+  return '<div class="bgt-field"><label>Name / Description</label><input id="bgt-f1" type="text" placeholder="e.g. Babai, HDFC Life" value="'+(row?row.item||'':'')+'"></div>'+
+         '<div class="bgt-field"><label>Type</label><select id="bgt-nb-type" class="bv-select">'+_nbTypeOpts(row?row.type:'personal_loan')+'</select></div>'+
+         '<div class="bgt-field"><label>Amount (₹)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="'+(row?row.amount||'':'')+'"></div>'+
+         '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+}
+
+function renderBgtNonBanking(d, c) {
+  var nbList = document.getElementById('bgt-asset-nb-list');
+  if (!nbList) return;
+  var items = d.assets.nonBanking || [];
+  var total = c.nbTotal;
+  if (items.length === 0) {
+    nbList.innerHTML = '<div class="nb-empty">No non-banking assets yet. Tap <strong>＋ Add</strong> to get started.</div>';
+  } else {
+    nbList.innerHTML = '<div class="nb-grid">'+items.map(function(r,i) {
+      var t = NB_TYPES.find(function(x){return x.value===r.type;})||NB_TYPES[NB_TYPES.length-1];
+      var pct = total>0 ? (r.amount/total*100).toFixed(1) : '0';
+      var rgb = t.r;
+      return '<div class="nb-card" style="--nb-r:'+rgb+'">'+
+        '<div class="nb-card-glow"></div>'+
+        '<div class="nb-card-shimmer"></div>'+
+        '<div class="nb-ico-wrap">'+t.icon+'</div>'+
+        '<div class="nb-name">'+r.item+'</div>'+
+        '<div class="nb-type-lbl">'+t.label+'</div>'+
+        '<div class="nb-amt">'+bgtFmt(r.amount)+'</div>'+
+        '<div class="nb-pct-pill">'+pct+'% of total</div>'+
+        '<div class="nb-actions">'+
+          '<div class="nb-act-btn nb-edit-btn" onclick="nbEditItem('+i+')">✏ Edit</div>'+
+          '<div class="nb-act-btn nb-del-btn" onclick="nbDeleteItem('+i+')">🗑</div>'+
+        '</div>'+
+      '</div>';
+    }).join('')+'</div>';
+  }
+  var nbt = document.getElementById('bgt-nb-total');
+  if (nbt) nbt.textContent = bgtFmt(c.nbTotal);
+}
+
+function nbAddItem() {
+  _bgtState = {type:'assets_nb', idx:-1};
+  document.getElementById('bgt-sheet-title').textContent = '＋ Non-Banking Asset';
+  document.getElementById('bgt-sheet-body').innerHTML = _nbFields(null);
+  _bgtOpenSheet();
+}
+
+function nbEditItem(idx) {
+  var d = bgtGetData();
+  var row = (d.assets.nonBanking||[])[idx];
+  if (!row) return;
+  _bgtState = {type:'assets_nb', idx:idx};
+  document.getElementById('bgt-sheet-title').textContent = '✏ '+row.item;
+  document.getElementById('bgt-sheet-body').innerHTML = _nbFields(row);
+  _bgtOpenSheet();
+}
+
+function nbDeleteItem(idx) {
+  var d = bgtGetData();
+  var name = ((d.assets.nonBanking||[])[idx]||{}).item || 'this item';
+  if (!confirm('Delete "'+name+'"?\nThis cannot be undone.')) return;
+  d.assets.nonBanking.splice(idx,1);
+  bgtSaveData(d); initBudget();
+}
+
 function initBudget() {
   const d = bgtGetData();
   const c = bgtCalc(d);
@@ -10542,14 +10639,13 @@ function renderBgtAssets(d, c) {
   if (bvBPillEl) bvBPillEl.textContent = bgtFmt(c.bTotal);
   const bvNbPillEl = document.getElementById('bv-nb-total-pill');
   if (bvNbPillEl) bvNbPillEl.textContent = bgtFmt(c.nbTotal);
-  // Non-Banking list
-  const nbList = document.getElementById('bgt-asset-nb-list');
-  if (nbList) nbList.innerHTML = (d.assets.nonBanking||[]).map(function(r,i){ return assetRow(r,i,'assets_nb'); }).join('');
-  const nbt = document.getElementById('bgt-nb-total');
-  if (nbt) nbt.textContent = bgtFmt(c.nbTotal);
+  // Non-Banking — liquid glass card grid
+  renderBgtNonBanking(d, c);
   // Grand Total
+  var vd2 = (typeof bvGetData==='function') ? bvGetData() : null;
+  var vbTot = vd2 ? vd2.banks.reduce(function(s,b){return s+bvBankTotal(b);},0) : c.bTotal;
   const at = document.getElementById('bgt-a-total');
-  if (at) at.textContent = bgtFmt(c.aTotal);
+  if (at) at.textContent = bgtFmt(vbTot + c.nbTotal);
   // Income list
   const incList = document.getElementById('bgt-inc-list');
   if (incList) {
@@ -10786,7 +10882,11 @@ function bgtSheetSave() {
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
   } else if (type === 'assets' || type === 'assets_b' || type === 'assets_nb') {
     if (!d.assets) d.assets = {banking:[], nonBanking:[]};
-    const obj = {item:f1, amount:f2};
+    const nbTypeEl = document.getElementById('bgt-nb-type');
+    const nbTypeVal = nbTypeEl ? nbTypeEl.value : 'other';
+    const obj = type === 'assets_nb'
+      ? {item:f1, amount:f2, type:nbTypeVal}
+      : {item:f1, amount:f2};
     // For new adds, check toggle; for edits, use encoded type
     let cat = type === 'assets_b' ? 'banking' : type === 'assets_nb' ? 'nonBanking' : null;
     if (!cat) {
@@ -10861,16 +10961,15 @@ function _bgtFields(type, row) {
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value=""></div>' +
            '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
   }
-  if (type === 'assets_b' || type === 'assets_nb') {
-    // Edit — show read-only category badge
-    const badge = type === 'assets_b'
-      ? '<div class="bgt-cat-badge bgt-cat-banking">\ud83c\udfd7\ufe0f Banking</div>'
-      : '<div class="bgt-cat-badge bgt-cat-nb">\ud83d\udcca Non-Banking</div>';
-    const ph = type === 'assets_b' ? 'e.g. ICICI Bank' : 'e.g. HDFC Life';
+  if (type === 'assets_b') {
+    const badge = '<div class="bgt-cat-badge bgt-cat-banking">\ud83c\udfd7\ufe0f Banking</div>';
     return badge +
-           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="' + ph + '" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. ICICI Bank" value="' + (row ? row.item : '') + '"></div>' +
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
            '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets_nb') {
+    return _nbFields(row);
   }
   return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
          '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +

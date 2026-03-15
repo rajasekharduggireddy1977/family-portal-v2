@@ -1200,8 +1200,11 @@
             <div class="bv-shint">‹ tap left · right to browse ›</div>
           </div><!-- /bv-wrap -->
           <!-- Non-Banking sub-section -->
-          <div class="bgt-asset-sub-hdr" style="margin-top:14px;">📊 Non-Banking</div>
-          <div class="bgt-inc-list" id="bgt-asset-nb-list"></div>
+          <div class="bgt-sec-row" style="margin-top:16px;">
+            <div class="bgt-sec-lbl">📊 Non-Banking</div>
+            <button class="bgt-add-btn" onclick="nbAddItem()">＋ Add</button>
+          </div>
+          <div id="bgt-asset-nb-list"></div>
           <div class="bgt-sub-total-row">
             <span class="bgt-total-lbl">Non-Banking Total</span>
             <span class="bgt-total-val green" id="bgt-nb-total"></span>
