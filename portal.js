@@ -10012,9 +10012,10 @@ const BGT_DEFAULTS = {
   ],
   assets: {
     banking: [
-      {item:'ICICI Bank', amount:0},
-      {item:'Axis Bank',  amount:0},
-      {item:'HDFC Bank',  amount:0}
+      {item:'ICICI Bank', amount:912000},
+      {item:'HDFC Bank',  amount:1567000},
+      {item:'AXIS Bank',  amount:1082000},
+      {item:'NPS',        amount:50000}
     ],
     nonBanking: [
       {item:'HDFC Life', amount:270000},
@@ -10150,6 +10151,89 @@ function bgtInitSwipe() {
   }, {passive:true});
 }
 
+// ── Bank Vault Carousel ──
+function bvCopyAcct(num, toastId) {
+  navigator.clipboard.writeText(num).catch(function(){});
+  var t = document.getElementById(toastId);
+  if (!t) return;
+  t.classList.add('bv-show');
+  setTimeout(function(){ t.classList.remove('bv-show'); }, 1800);
+}
+
+var _bvActive = 0;
+var _bvN = 4;
+var _bvReady = false;
+var _bvSS = [
+  {top:'0px',   tr:'scale(1) rotateX(0deg)',   op:'1',    zi:'4', pe:'auto', sh:'0 28px 70px rgba(0,0,0,0.75)'},
+  {top:'14px',  tr:'scale(0.93) rotateX(3deg)', op:'0.78', zi:'3', pe:'auto', sh:'0 14px 35px rgba(0,0,0,0.5)'},
+  {top:'25px',  tr:'scale(0.86) rotateX(6deg)', op:'0.45', zi:'2', pe:'none', sh:'0 8px 20px rgba(0,0,0,0.3)'},
+  {top:'33px',  tr:'scale(0.79) rotateX(9deg)', op:'0.18', zi:'1', pe:'none', sh:'none'}
+];
+
+function bvPos(i) { return ((i - _bvActive) + _bvN) % _bvN; }
+
+function bvLayout() {
+  var front = document.getElementById('bvc' + _bvActive);
+  var h = front ? front.offsetHeight : 420;
+  var carousel = document.getElementById('bv-carousel');
+  if (carousel) carousel.style.height = Math.max(h + 20, 350) + 'px';
+  for (var i = 0; i < _bvN; i++) {
+    var el = document.getElementById('bvc' + i);
+    if (!el) continue;
+    var p = bvPos(i);
+    var s = _bvSS[p];
+    el.style.top = s.top; el.style.transform = s.tr; el.style.opacity = s.op;
+    el.style.zIndex = s.zi; el.style.pointerEvents = s.pe; el.style.boxShadow = s.sh;
+    el.setAttribute('data-pos', p);
+  }
+  document.querySelectorAll('.bv-dot').forEach(function(d, i) {
+    d.classList.toggle('bv-dot-on', i === _bvActive);
+  });
+}
+
+function bvGoTo(idx) {
+  _bvActive = ((idx % _bvN) + _bvN) % _bvN;
+  bvLayout();
+  setTimeout(bvLayout, 300);
+}
+
+function initBankVault() {
+  if (_bvReady) return;
+  // Spawn twinkling stars inside vault
+  var sf = document.getElementById('bv-sf');
+  if (sf && sf.children.length === 0) {
+    for (var k = 0; k < 55; k++) {
+      var s = document.createElement('div');
+      var z = Math.random() * 1.4 + 0.3;
+      s.className = 'bv-st';
+      s.style.cssText = 'width:' + z + 'px;height:' + z + 'px;top:' + (Math.random()*100) + '%;left:' + (Math.random()*100) + '%;--d:' + (2 + Math.random()*5) + 's;--dl:' + (Math.random()*5) + 's';
+      sf.appendChild(s);
+    }
+  }
+  bvLayout();
+  setTimeout(bvLayout, 200);
+  setTimeout(bvLayout, 500);
+  if (_bvReady) return;
+  _bvReady = true;
+  // Swipe handler on each card
+  document.querySelectorAll('.bv-card').forEach(function(card) {
+    var sx = null, sy = null;
+    function bvStart(x, y) { sx = x; sy = y; }
+    function bvEnd(x, y) {
+      if (sx === null) return;
+      var dx = sx - x, dy = sy - y;
+      if (Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy)) {
+        bvGoTo(dx > 0 ? _bvActive + 1 : _bvActive - 1);
+      }
+      sx = null; sy = null;
+    }
+    card.addEventListener('mousedown', function(e){ e.preventDefault(); bvStart(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', function(e){ bvEnd(e.clientX, e.clientY); });
+    card.addEventListener('touchstart', function(e){ e.preventDefault(); bvStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+    card.addEventListener('touchend',   function(e){ e.preventDefault(); bvEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY); }, {passive:false});
+  });
+}
+
 function initBudget() {
   const d = bgtGetData();
   const c = bgtCalc(d);
@@ -10157,6 +10241,7 @@ function initBudget() {
   renderBgtYearly(d, c);
   renderBgtAssets(d, c);
   renderBgtSummary(d, c);
+  initBankVault();
   bgtInitSwipe();
   // Move selector and animate bars after render
   setTimeout(function() {
@@ -10224,11 +10309,13 @@ function renderBgtAssets(d, c) {
       '</div>' +
     '</div>';
   }
-  // Banking list
-  const bList = document.getElementById('bgt-asset-b-list');
-  if (bList) bList.innerHTML = (d.assets.banking||[]).map(function(r,i){ return assetRow(r,i,'assets_b'); }).join('');
-  const bt = document.getElementById('bgt-b-total');
-  if (bt) bt.textContent = bgtFmt(c.bTotal);
+  // Banking: rendered as static vault carousel — update hero total pill only
+  const bvTotalEl = document.getElementById('bv-total-amt');
+  if (bvTotalEl) bvTotalEl.textContent = bgtFmt(c.bTotal);
+  const bvBPillEl = document.getElementById('bv-b-total');
+  if (bvBPillEl) bvBPillEl.textContent = bgtFmt(c.bTotal);
+  const bvNbPillEl = document.getElementById('bv-nb-total-pill');
+  if (bvNbPillEl) bvNbPillEl.textContent = bgtFmt(c.nbTotal);
   // Non-Banking list
   const nbList = document.getElementById('bgt-asset-nb-list');
   if (nbList) nbList.innerHTML = (d.assets.nonBanking||[]).map(function(r,i){ return assetRow(r,i,'assets_nb'); }).join('');
