@@ -10151,88 +10151,313 @@ function bgtInitSwipe() {
   }, {passive:true});
 }
 
-// ── Bank Vault Carousel ──
-function bvCopyAcct(num, toastId) {
-  navigator.clipboard.writeText(num).catch(function(){});
-  var t = document.getElementById(toastId);
-  if (!t) return;
-  t.classList.add('bv-show');
-  setTimeout(function(){ t.classList.remove('bv-show'); }, 1800);
-}
+// ████████████████████████████████████████████████████████
+// § BANK VAULT   Data-driven card carousel with edit + add
+// ████████████████████████████████████████████████████████
 
-var _bvActive = 0;
-var _bvN = 4;
-var _bvReady = false;
-var _bvSS = [
-  {top:'0px',   tr:'scale(1) rotateX(0deg)',   op:'1',    zi:'4', pe:'auto', sh:'0 28px 70px rgba(0,0,0,0.75)'},
-  {top:'14px',  tr:'scale(0.93) rotateX(3deg)', op:'0.78', zi:'3', pe:'auto', sh:'0 14px 35px rgba(0,0,0,0.5)'},
-  {top:'25px',  tr:'scale(0.86) rotateX(6deg)', op:'0.45', zi:'2', pe:'none', sh:'0 8px 20px rgba(0,0,0,0.3)'},
-  {top:'33px',  tr:'scale(0.79) rotateX(9deg)', op:'0.18', zi:'1', pe:'none', sh:'none'}
+var BV_ASSET_TYPES = [
+  {value:'savings', label:'Savings Account',   sub:'Current Balance',     icon:'💳', cls:'bv-ico-s', section:'Savings'},
+  {value:'fd',      label:'Fixed Deposit',     sub:'Locked Deposit',      icon:'🔒', cls:'bv-ico-f', section:'Fixed Deposit'},
+  {value:'rd',      label:'Recurring Deposit', sub:'RD · Active',         icon:'📅', cls:'bv-ico-s', section:'Recurring Deposit'},
+  {value:'life',    label:'Life Insurance',    sub:'Insurance · Active',  icon:'🛡️', cls:'bv-ico-l', section:'Life Insurance'},
+  {value:'loan',    label:'Loan / EMI',        sub:'Outstanding Balance', icon:'💸', cls:'bv-ico-f', section:'Loan'},
+  {value:'other',   label:'Other',             sub:'Other Asset',         icon:'💰', cls:'bv-ico-s', section:'Other'}
 ];
 
-function bvPos(i) { return ((i - _bvActive) + _bvN) % _bvN; }
+var BV_DEFAULTS = { banks: [
+  {id:'icici', name:'ICICI Bank',  sub:'Private Sector · Savings & FD',       acct:'020201506595',    bg:'bv-bg-icici', network:'visa',       blob:'rgba(255,140,0,0.22)',   holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',       amount:29000 },
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit', amount:883000}]},
+  {id:'hdfc',  name:'HDFC Bank',   sub:'Private Sector · Savings, FD & Life', acct:'50100245463742',  bg:'bv-bg-hdfc',  network:'mastercard', blob:'rgba(0,100,200,0.3)',    holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',          amount:797000},
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit',    amount:500000},
+           {label:'HDFC Life',      sub:'Insurance · Active', icon:'🛡️',cls:'bv-ico-l',section:'Life Insurance',  amount:270000}]},
+  {id:'axis',  name:'AXIS Bank',   sub:'Private Sector · Savings & FD',       acct:'008010101337901', bg:'bv-bg-axis',  network:'visa',       blob:'rgba(220,30,100,0.28)', holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',       amount:32000 },
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit', amount:1050000}]},
+  {id:'nps',   name:'NPS',         sub:'National Pension System · PFRDA',     acct:'110141031812',    bg:'bv-bg-nps',   network:'rupay',      blob:'rgba(0,180,60,0.22)',   holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'NPS Corpus',     sub:'Retirement · Active',icon:'🏦',cls:'bv-ico-n',section:'National Pension Scheme',amount:50000}]}
+]};
+
+function bvGetData() {
+  try { var s=localStorage.getItem('fp_bank_vault_v1'); return s?JSON.parse(s):JSON.parse(JSON.stringify(BV_DEFAULTS)); }
+  catch(e) { return JSON.parse(JSON.stringify(BV_DEFAULTS)); }
+}
+function bvSaveData(d) { localStorage.setItem('fp_bank_vault_v1',JSON.stringify(d)); }
+function bvBankTotal(bank) { return (bank.assets||[]).reduce(function(s,a){return s+(a.amount||0);},0); }
+
+function bvNetworkHtml(n) {
+  if (n==='visa') return '<svg width="36" height="14" viewBox="0 0 36 14"><text x="0" y="13" fill="white" font-size="15" font-style="italic" font-weight="800" font-family="Arial,sans-serif" letter-spacing="-0.5">VISA</text></svg>';
+  if (n==='mastercard') return '<div class="bv-mc"><div class="bv-mc1"></div><div class="bv-mc2"></div></div>';
+  return '<div class="bv-rupay">RuPay</div>';
+}
+
+function bvCardHtml(bank, idx) {
+  var total = bvBankTotal(bank);
+  // Group consecutive assets by section
+  var sections = [];
+  (bank.assets||[]).forEach(function(a) {
+    var last = sections[sections.length-1];
+    if (last && last.name===(a.section||'')) { last.items.push(a); }
+    else { sections.push({name:a.section||'',items:[a]}); }
+  });
+  var assetsHtml = sections.map(function(sec,si) {
+    return '<div class="bv-ca-slbl"'+(si>0?' style="padding-top:4px;"':'')+'>'+sec.name+'</div>'+
+      sec.items.map(function(a) {
+        var pct = total>0 ? Math.round(a.amount/total*100) : 0;
+        return '<div class="bv-ca-item">'+
+          '<div class="bv-ca-left"><div class="bv-ca-ico '+a.cls+'">'+a.icon+'</div>'+
+          '<div><div class="bv-ca-name">'+a.label+'</div><div class="bv-ca-type">'+a.sub+'</div>'+
+          '<div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:'+pct+'%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>'+
+          '<div class="bv-ca-right"><div class="bv-ca-amt">'+bgtFmt(a.amount)+'</div>'+
+          '<div class="bv-ca-pct">'+pct+'%</div></div></div>';
+      }).join('');
+  }).join('');
+  return '<div class="bv-card '+bank.bg+'" id="bvc'+idx+'" data-idx="'+idx+'" data-pos="'+idx+'">' +
+    '<div class="bv-blob" style="width:190px;height:190px;background:'+(bank.blob||'rgba(255,255,255,0.1)')+';top:-60px;right:-20px;--bd:7.5s;"></div>'+
+    '<div class="bv-sweep"></div><div class="bv-refl"></div>'+
+    '<div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>'+
+    '<div class="bv-copy-toast" id="bv-toast'+idx+'">Copied!</div>'+
+    '<div class="bv-cc">'+
+      '<div class="bv-card-top">'+
+        '<div><div class="bv-bank-name">'+bank.name+'</div><div class="bv-bank-sub">'+bank.sub+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:5px;">'+
+          '<div class="bv-ct-badge">'+bgtFmt(total)+'</div>'+
+          '<div class="bv-edit-btn" onclick="bvOpenEditSheet('+idx+');event.stopPropagation();">✏</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="bv-chip-r">'+
+        '<div class="bv-chip"><div class="bv-chip-i"></div></div>'+
+        '<div class="bv-acct-wrap">'+
+          '<div class="bv-acct-num">'+bank.acct+'</div>'+
+          '<div class="bv-copy-btn" onclick="bvCopyAcct(\''+bank.acct+'\',\'bv-toast'+idx+'\');event.stopPropagation();">'+
+            '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="bv-cdiv"></div>'+
+    '<div class="bv-cassets">'+assetsHtml+'</div>'+
+    '<div class="bv-cbot">'+
+      '<div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">'+bank.holder+'</div></div>'+
+      bvNetworkHtml(bank.network)+
+    '</div>'+
+  '</div>';
+}
+
+function bvRenderCards(d) {
+  var carousel = document.getElementById('bv-carousel');
+  if (!carousel) return;
+  _bvN = d.banks.length;
+  if (_bvActive >= _bvN) _bvActive = 0;
+  carousel.innerHTML = d.banks.map(function(bank,idx){return bvCardHtml(bank,idx);}).join('');
+  var dots = document.getElementById('bv-dots');
+  if (dots) dots.innerHTML = d.banks.map(function(_,i){
+    return '<div class="bv-dot'+(i===_bvActive?' bv-dot-on':'')+'"></div>';
+  }).join('');
+}
+
+function bvSetupTapHandlers() {
+  document.querySelectorAll('.bv-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.bv-copy-btn')||e.target.closest('.bv-edit-btn')) return;
+      var pos=parseInt(card.getAttribute('data-pos'),10);
+      var idx=parseInt(card.getAttribute('data-idx'),10);
+      if (pos!==0) { bvGoTo(idx); return; }
+      var rect=card.getBoundingClientRect();
+      if ((e.clientX-rect.left)<rect.width/2) { bvGoTo(_bvActive-1); }
+      else { bvGoTo(_bvActive+1); }
+    });
+  });
+}
+
+function bvUpdateHero(d) {
+  var bTotal=d.banks.reduce(function(s,b){return s+bvBankTotal(b);},0);
+  var bgt=bgtGetData(); var c=bgtCalc(bgt);
+  var el=document.getElementById('bv-total-amt'); if(el) el.textContent=bgtFmt(bTotal);
+  var bp=document.getElementById('bv-b-total');   if(bp) bp.textContent=bgtFmt(bTotal);
+  var np=document.getElementById('bv-nb-total-pill'); if(np) np.textContent=bgtFmt(c.nbTotal);
+  var at=document.getElementById('bgt-a-total');  if(at) at.textContent=bgtFmt(bTotal+c.nbTotal);
+}
+
+function bvSyncToBgt(d) {
+  var bgt=bgtGetData();
+  bgt.assets.banking=d.banks.map(function(b){return{item:b.name,amount:bvBankTotal(b)};});
+  bgtSaveData(bgt);
+}
+
+// ── Copy ──
+function bvCopyAcct(num, toastId) {
+  navigator.clipboard.writeText(num).catch(function(){});
+  var t=document.getElementById(toastId); if(!t) return;
+  t.classList.add('bv-show');
+  setTimeout(function(){t.classList.remove('bv-show');},1800);
+}
+
+// ── Carousel state ──
+var _bvActive=0, _bvN=4, _bvReady=false;
+var _bvSS=[
+  {top:'0px',  tr:'scale(1) rotateX(0deg)',    op:'1',    zi:'4',pe:'auto',sh:'0 28px 70px rgba(0,0,0,0.75)'},
+  {top:'14px', tr:'scale(0.93) rotateX(3deg)', op:'0.78', zi:'3',pe:'auto',sh:'0 14px 35px rgba(0,0,0,0.5)'},
+  {top:'25px', tr:'scale(0.86) rotateX(6deg)', op:'0.45', zi:'2',pe:'none',sh:'0 8px 20px rgba(0,0,0,0.3)'},
+  {top:'33px', tr:'scale(0.79) rotateX(9deg)', op:'0.18', zi:'1',pe:'none',sh:'none'}
+];
+
+function bvPos(i) { return ((i-_bvActive)+_bvN)%_bvN; }
 
 function bvLayout() {
-  var front = document.getElementById('bvc' + _bvActive);
-  var h = front ? front.offsetHeight : 420;
-  var carousel = document.getElementById('bv-carousel');
-  if (carousel) carousel.style.height = Math.max(h + 20, 350) + 'px';
-  for (var i = 0; i < _bvN; i++) {
-    var el = document.getElementById('bvc' + i);
-    if (!el) continue;
-    var p = bvPos(i);
-    var s = _bvSS[p];
-    el.style.top = s.top; el.style.transform = s.tr; el.style.opacity = s.op;
-    el.style.zIndex = s.zi; el.style.pointerEvents = s.pe; el.style.boxShadow = s.sh;
-    el.setAttribute('data-pos', p);
+  var front=document.getElementById('bvc'+_bvActive);
+  var h=front?front.offsetHeight:420;
+  var carousel=document.getElementById('bv-carousel');
+  if (carousel) carousel.style.height=Math.max(h+20,350)+'px';
+  for (var i=0;i<_bvN;i++) {
+    var el=document.getElementById('bvc'+i); if(!el) continue;
+    var p=bvPos(i); var s=_bvSS[Math.min(p,3)];
+    el.style.top=s.top; el.style.transform=s.tr; el.style.opacity=s.op;
+    el.style.zIndex=s.zi; el.style.pointerEvents=s.pe; el.style.boxShadow=s.sh;
+    el.setAttribute('data-pos',p);
   }
-  document.querySelectorAll('.bv-dot').forEach(function(d, i) {
-    d.classList.toggle('bv-dot-on', i === _bvActive);
-  });
+  document.querySelectorAll('.bv-dot').forEach(function(d,i){d.classList.toggle('bv-dot-on',i===_bvActive);});
 }
 
 function bvGoTo(idx) {
-  _bvActive = ((idx % _bvN) + _bvN) % _bvN;
-  bvLayout();
-  setTimeout(bvLayout, 300);
+  _bvActive=((idx%_bvN)+_bvN)%_bvN;
+  bvLayout(); setTimeout(bvLayout,300);
 }
 
+// ── Edit Sheet ──
+var _bvEditIdx=-1;
+
+function bvOpenEditSheet(bankIdx) {
+  var d=bvGetData(); var bank=d.banks[bankIdx]; if(!bank) return;
+  _bvEditIdx=bankIdx;
+  var body='<div class="bv-edit-form">';
+  (bank.assets||[]).forEach(function(a,i) {
+    body+='<div class="bv-edit-row">'+
+      '<div class="bv-edit-ico">'+a.icon+'</div>'+
+      '<div class="bv-edit-info"><div class="bv-edit-lbl">'+a.label+'</div><div class="bv-edit-sub">'+a.section+'</div></div>'+
+      '<div class="bv-edit-amt-wrap"><span class="bv-rupee-sign">₹</span>'+
+        '<input class="bv-edit-input" type="number" inputmode="numeric" data-aidx="'+i+'" value="'+(a.amount||0)+'" min="0">'+
+      '</div></div>';
+  });
+  body+='</div>';
+  document.getElementById('bgt-sheet-title').textContent='✏ '+bank.name;
+  document.getElementById('bgt-sheet-body').innerHTML=body;
+  document.querySelector('.bgt-sheet-btn.save').setAttribute('onclick','bvSaveEditSheet()');
+  document.querySelector('.bgt-sheet-btn.cancel').setAttribute('onclick','bvCloseVaultSheet()');
+  _bgtOpenSheet();
+}
+
+function bvSaveEditSheet() {
+  var d=bvGetData(); var bank=d.banks[_bvEditIdx]; if(!bank){bvCloseVaultSheet();return;}
+  document.querySelectorAll('.bv-edit-input').forEach(function(inp){
+    var i=parseInt(inp.getAttribute('data-aidx'),10);
+    bank.assets[i].amount=parseFloat(inp.value)||0;
+  });
+  bvSaveData(d); bvCloseVaultSheet();
+  bvRenderCards(d); bvSetupTapHandlers();
+  bvLayout(); setTimeout(bvLayout,300);
+  bvUpdateHero(d); bvSyncToBgt(d);
+}
+
+// ── Add Sheet (2-step) ──
+var _bvAddBank=null;
+var BV_TYPE_OPTS='<option value="savings">💳 Savings Account</option><option value="fd">🔒 Fixed Deposit</option><option value="rd">📅 Recurring Deposit</option><option value="life">🛡️ Life Insurance</option><option value="loan">💸 Loan / EMI</option><option value="other">💰 Other</option>';
+
+function bvOpenAddSheet() {
+  var d=bvGetData(); _bvAddBank=null;
+  var chips=d.banks.map(function(b){
+    return '<div class="bv-bank-chip bv-bc-'+b.bg.replace('bv-bg-','')+'" onclick="bvPickBank(\''+b.id+'\',this)">'+b.name+'</div>';
+  }).join('')+'<div class="bv-bank-chip bv-bc-new" onclick="bvPickBank(\'new\',this)">＋ New Bank</div>';
+  document.getElementById('bgt-sheet-title').textContent='Add Banking Asset';
+  document.getElementById('bgt-sheet-body').innerHTML=
+    '<div class="bv-add-lbl">Select Bank</div>'+
+    '<div class="bv-bank-chips">'+chips+'</div>'+
+    '<div id="bv-add-step2"></div>';
+  document.querySelector('.bgt-sheet-btn.save').setAttribute('onclick','bvSaveAddSheet()');
+  document.querySelector('.bgt-sheet-btn.cancel').setAttribute('onclick','bvCloseVaultSheet()');
+  _bgtOpenSheet();
+}
+
+function bvPickBank(bankId, el) {
+  _bvAddBank=bankId;
+  document.querySelectorAll('.bv-bank-chip').forEach(function(c){c.classList.remove('bv-bc-active');});
+  el.classList.add('bv-bc-active');
+  var step2=document.getElementById('bv-add-step2'); if(!step2) return;
+  var d=bvGetData();
+  if (bankId==='new') {
+    step2.innerHTML=
+      '<div class="bgt-field" style="margin-top:16px;"><label>Bank Name</label><input id="bv-new-name" type="text" placeholder="e.g. SBI Bank"></div>'+
+      '<div class="bgt-field"><label>Account Number</label><input id="bv-new-acct" type="text" inputmode="numeric" placeholder="Account number"></div>'+
+      '<div class="bgt-field"><label>Asset Type</label><select id="bv-new-type" class="bv-select">'+BV_TYPE_OPTS+'</select></div>'+
+      '<div class="bgt-field"><label>Amount (₹)</label><input id="bv-new-amt" type="number" inputmode="numeric" placeholder="0" min="0"></div>';
+  } else {
+    var bank=d.banks.find(function(b){return b.id===bankId;});
+    step2.innerHTML=
+      '<div class="bv-add-to-lbl" style="margin-top:14px;">Adding to <strong>'+(bank?bank.name:bankId)+'</strong></div>'+
+      '<div class="bgt-field" style="margin-top:10px;"><label>Asset Type</label><select id="bv-ex-type" class="bv-select">'+BV_TYPE_OPTS+'</select></div>'+
+      '<div class="bgt-field"><label>Amount (₹)</label><input id="bv-ex-amt" type="number" inputmode="numeric" placeholder="0" min="0"></div>';
+  }
+  setTimeout(function(){var s2=document.getElementById('bv-add-step2');if(s2)s2.scrollIntoView({behavior:'smooth',block:'nearest'});},120);
+}
+
+function bvSaveAddSheet() {
+  if (!_bvAddBank){bvCloseVaultSheet();return;}
+  var d=bvGetData();
+  var newBgs=['bv-bg-new1','bv-bg-new2','bv-bg-new3'];
+  if (_bvAddBank==='new') {
+    var name=(document.getElementById('bv-new-name')||{}).value||'';
+    name=name.trim(); if(!name){var n=document.getElementById('bv-new-name');if(n)n.focus();return;}
+    var acct=((document.getElementById('bv-new-acct')||{}).value||'').trim()||'—';
+    var tv=(document.getElementById('bv-new-type')||{}).value||'savings';
+    var amt=parseFloat((document.getElementById('bv-new-amt')||{}).value)||0;
+    var ti=BV_ASSET_TYPES.find(function(t){return t.value===tv;})||BV_ASSET_TYPES[0];
+    d.banks.push({id:'bank_'+Date.now(),name:name,sub:'Custom Bank',acct:acct,
+      bg:newBgs[Math.max(0,d.banks.length-4)%newBgs.length],network:'rupay',
+      blob:'rgba(255,255,255,0.1)',holder:'RAJASEKHAR REDDY D',
+      assets:[{label:ti.label,sub:ti.sub,icon:ti.icon,cls:ti.cls,section:ti.section,amount:amt}]});
+  } else {
+    var bank=d.banks.find(function(b){return b.id===_bvAddBank;}); if(!bank){bvCloseVaultSheet();return;}
+    var tv=(document.getElementById('bv-ex-type')||{}).value||'savings';
+    var amt=parseFloat((document.getElementById('bv-ex-amt')||{}).value)||0;
+    var ti=BV_ASSET_TYPES.find(function(t){return t.value===tv;})||BV_ASSET_TYPES[0];
+    bank.assets.push({label:ti.label,sub:ti.sub,icon:ti.icon,cls:ti.cls,section:ti.section,amount:amt});
+  }
+  bvSaveData(d); bvCloseVaultSheet();
+  bvRenderCards(d); bvSetupTapHandlers();
+  bvLayout(); setTimeout(bvLayout,300);
+  bvUpdateHero(d); bvSyncToBgt(d);
+}
+
+function bvCloseVaultSheet() {
+  bgtCloseSheet();
+  var sv=document.querySelector('.bgt-sheet-btn.save');
+  var cn=document.querySelector('.bgt-sheet-btn.cancel');
+  if(sv) sv.setAttribute('onclick','bgtSheetSave()');
+  if(cn) cn.setAttribute('onclick','bgtCloseSheet()');
+}
+
+// ── Init ──
 function initBankVault() {
   if (_bvReady) return;
-  // Spawn twinkling stars inside vault
-  var sf = document.getElementById('bv-sf');
-  if (sf && sf.children.length === 0) {
-    for (var k = 0; k < 55; k++) {
-      var s = document.createElement('div');
-      var z = Math.random() * 1.4 + 0.3;
-      s.className = 'bv-st';
-      s.style.cssText = 'width:' + z + 'px;height:' + z + 'px;top:' + (Math.random()*100) + '%;left:' + (Math.random()*100) + '%;--d:' + (2 + Math.random()*5) + 's;--dl:' + (Math.random()*5) + 's';
+  var d=bvGetData();
+  bvRenderCards(d);
+  bvSyncToBgt(d);
+  // Stars
+  var sf=document.getElementById('bv-sf');
+  if (sf&&sf.children.length===0) {
+    for (var k=0;k<55;k++) {
+      var s=document.createElement('div'); var z=Math.random()*1.4+0.3;
+      s.className='bv-st';
+      s.style.cssText='width:'+z+'px;height:'+z+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;--d:'+(2+Math.random()*5)+'s;--dl:'+(Math.random()*5)+'s';
       sf.appendChild(s);
     }
   }
-  bvLayout();
-  setTimeout(bvLayout, 200);
-  setTimeout(bvLayout, 500);
+  bvLayout(); setTimeout(bvLayout,200); setTimeout(bvLayout,500);
+  bvUpdateHero(d);
   if (_bvReady) return;
-  _bvReady = true;
-  // Tap-to-navigate — no swipe, no preventDefault → vertical scroll stays natural
-  document.querySelectorAll('.bv-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      // Ignore taps on the copy button
-      if (e.target.closest('.bv-copy-btn')) return;
-      var pos = parseInt(card.getAttribute('data-pos'), 10);
-      var idx = parseInt(card.getAttribute('data-idx'), 10);
-      // Back cards: tap anywhere → bring to front
-      if (pos !== 0) { bvGoTo(idx); return; }
-      // Front card: left half → prev, right half → next
-      var rect = card.getBoundingClientRect();
-      if ((e.clientX - rect.left) < rect.width / 2) {
-        bvGoTo(_bvActive - 1);
-      } else {
-        bvGoTo(_bvActive + 1);
-      }
-    });
-  });
+  _bvReady=true;
+  bvSetupTapHandlers();
 }
 
 function initBudget() {
