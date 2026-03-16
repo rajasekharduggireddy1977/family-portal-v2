@@ -7515,14 +7515,33 @@ function closeGmDropdown() {
 // Close dropdown on outside tap
 document.addEventListener('click', e => {
   if (!e.target.closest('#gm-pill') && !e.target.closest('#gm-dropdown')) closeGmDropdown();
-  if (!e.target.closest('#tb-more-wrap')) closeTbMore();
 }, true);
 
+let _tbMgOpen = false;
 function toggleTbMore() {
-  document.getElementById('tb-more-popup').classList.toggle('open');
+  _tbMgOpen ? closeTbMore() : openTbMore();
+}
+function openTbMore() {
+  const modal = document.getElementById('tb-mg-modal');
+  const popup = document.getElementById('tb-mg-popup');
+  if (!modal) return;
+  // Replay stagger animations
+  modal.querySelectorAll('.a').forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetHeight;
+    el.style.animation = '';
+  });
+  _tbMgOpen = true;
+  modal.classList.add('open');
 }
 function closeTbMore() {
-  document.getElementById('tb-more-popup')?.classList.remove('open');
+  const modal = document.getElementById('tb-mg-modal');
+  if (!modal) return;
+  _tbMgOpen = false;
+  modal.classList.remove('open');
+}
+function handleTbMgBackdrop(e) {
+  if (e.target === e.currentTarget) closeTbMore();
 }
 
 // ── Context banner builder ──
