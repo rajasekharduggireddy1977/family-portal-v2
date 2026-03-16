@@ -455,10 +455,11 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 ══════════════════════════════════════ */
 #bottom-nav{
   position:fixed;
-  bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  bottom:0;
   left:50%;transform:translateX(-50%);
   width:calc(100% - 48px);max-width:380px;
   z-index:200;background:transparent;
+  padding-bottom:env(safe-area-inset-bottom,0px);
   will-change:transform;
 }
 .nav-pill{
