@@ -454,107 +454,51 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
    BOTTOM NAV — Floating Glass Pill
 ══════════════════════════════════════ */
 #bottom-nav{
-  position:fixed;
-  bottom:calc(14px + env(safe-area-inset-bottom,0px));
-  left:50%;transform:translateX(-50%);
-  width:calc(100% - 56px);max-width:360px;
-  z-index:200;background:transparent;
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:transparent;
+  padding:6px 0 env(safe-area-inset-bottom,0px);
   will-change:transform;
 }
-.nav-pill{
-  display:flex;align-items:center;justify-content:space-around;
-  width:100%;padding:2px 4px;height:44px;
-  border-radius:100px;position:relative;overflow:visible;
-  /* Dark glass — matches Aura OS portal theme */
-  background:rgba(14,18,36,0.82);
-  backdrop-filter:blur(32px) saturate(200%);
-  -webkit-backdrop-filter:blur(32px) saturate(200%);
-  border:1px solid rgba(255,255,255,0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    inset 0 -1px 0 rgba(0,0,0,.20),
-    0 8px 32px rgba(0,0,0,.50),
-    0 2px 8px rgba(0,0,0,.30);
+.bnav-inner{
+  position:relative;
+  display:flex;justify-content:space-around;align-items:center;
+  margin:0 14px;padding:8px 6px 8px;
+  border-radius:32px;
+  background:rgba(14,18,36,0.85);
+  backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 8px 32px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.07);
 }
-/* Top gloss specular */
-.nav-pill::before{
-  content:'';position:absolute;inset:0;border-radius:100px;
-  background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 60%);
+/* Sliding selector — rounded rectangle matching pulse rail style */
+.bnav-selector{
+  position:absolute;
+  top:5px;height:calc(100% - 10px);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.13),rgba(255,255,255,0.05));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 2px 12px rgba(100,160,255,0.1),inset 0 1px 0 rgba(255,255,255,0.2);
+  transition:left .38s cubic-bezier(0.34,1.3,0.64,1), width .38s cubic-bezier(0.34,1.3,0.64,1);
   pointer-events:none;z-index:0;
 }
-/* Nav item */
-.nav-item{
-  position:relative;
-  display:flex;align-items:center;justify-content:center;
-  flex:1;height:36px;
-  cursor:pointer;z-index:2;border-radius:100px;
-  -webkit-tap-highlight-color:transparent;
-  transition:transform .20s cubic-bezier(.34,1.4,.64,1);
+.bnav-item{
+  position:relative;z-index:1;
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:5px 4px 4px;cursor:pointer;
+  color:rgba(255,255,255,0.50);font-size:7px;font-weight:700;
+  font-family:'DM Mono',monospace;border-radius:20px;
+  transition:color .25s ease,transform .3s cubic-bezier(0.34,1.6,0.64,1);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }
-.nav-item:active{transform:scale(.88);}
-/* Icon */
-.nav-icon{
-  font-size:17px;position:relative;z-index:3;
-  transition:transform .25s cubic-bezier(.34,1.4,.64,1),opacity .20s ease;
-  opacity:0.55;display:block;line-height:1;
-}
-/* Active — convex glass bubble */
-.nav-item.active .nav-icon{
-  opacity:1;
-  transform:scale(1.05);
-  animation:bnavIconBounce .30s cubic-bezier(.34,1.5,.64,1) both;
-}
-.nav-item.active::before{
-  content:'';
-  position:absolute;width:34px;height:34px;
-  top:50%;left:50%;transform:translate(-50%,-50%);
-  border-radius:50%;z-index:1;
-  animation:bnavBubbleIn .28s cubic-bezier(.34,1.5,.64,1) both;
-  background:radial-gradient(ellipse 65% 55% at 38% 28%,
-    rgba(255,255,255,.98) 0%,
-    rgba(215,232,255,.90) 25%,
-    rgba(185,212,255,.75) 55%,
-    rgba(160,195,255,.55) 78%,
-    rgba(145,182,252,.38) 100%);
-  box-shadow:
-    0 0 0 1px rgba(190,215,255,.65),
-    0 0 0 1.5px rgba(255,255,255,.80),
-    inset 0 2px 5px rgba(255,255,255,.98),
-    inset 0 3px 14px rgba(255,255,255,.55),
-    inset 2px 1px 6px rgba(255,255,255,.40),
-    inset 0 -5px 16px rgba(130,170,240,.38),
-    inset 0 -2px 5px rgba(100,145,225,.28),
-    0 4px 16px rgba(100,150,255,.20),
-    0 2px 6px rgba(0,0,0,.10);
-}
-/* Glare dot on bubble */
-.nav-item.active::after{
-  content:'';
-  position:absolute;width:34px;height:34px;
-  top:50%;left:50%;transform:translate(-50%,-50%);
-  border-radius:50%;z-index:2;pointer-events:none;
-  animation:bnavBubbleIn .28s cubic-bezier(.34,1.5,.64,1) both;
-  background:radial-gradient(ellipse 48% 42% at 30% 22%,
-    rgba(255,255,255,.92) 0%,
-    rgba(255,255,255,.45) 22%,
-    rgba(255,255,255,.10) 48%,
-    transparent 65%);
-}
-@keyframes bnavBubbleIn{
-  0%  {transform:translate(-50%,-50%) scale(.5);opacity:0;}
-  65% {transform:translate(-50%,-50%) scale(1.10);}
-  100%{transform:translate(-50%,-50%) scale(1);opacity:1;}
-}
-@keyframes bnavIconBounce{
-  0%  {transform:scale(.7);}
-  65% {transform:scale(1.18);}
-  100%{transform:scale(1.05);}
-}
-/* Alert dot (health) */
-.bnav-alert-dot{position:absolute;top:6px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid rgba(255,255,255,.9);animation:alertPulse 1.8s ease-in-out infinite;z-index:4;}
+.bnav-item.active{color:rgba(255,255,255,0.95);transform:translateY(-2px);}
+.bnav-item:active{transform:scale(0.88) !important;}
+.bnav-icon{font-size:13px;line-height:1;transition:filter .3s ease;display:flex;align-items:center;justify-content:center;width:22px;height:22px;}
+.bnav-item > span:not(.bnav-icon):not(.bnav-badge){text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;}
+.bnav-item.active .bnav-icon{filter:drop-shadow(0 0 6px rgba(180,210,255,0.7));}
+.bnav-alert-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid var(--bg);animation:alertPulse 1.8s ease-in-out infinite;}
 .snav-alert-dot{position:absolute;top:50%;right:14px;transform:translateY(-50%);margin:0;}
 @keyframes alertPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.25);}}
-.bnav-badge{position:absolute;top:2px;right:6px;background:var(--red);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:20px;font-family:'DM Mono',monospace;z-index:4;}
+.bnav-badge{position:absolute;top:0;right:4px;background:var(--red);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:20px;font-family:'DM Mono',monospace;}
 
 /* ═══════════════════════════════════════
    MAIN CONTENT AREA
@@ -3209,7 +3153,17 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   background: rgba(240,242,248,0.88) !important;
 }
 
-/* Bottom nav — pill overrides handled in main nav section */
+/* Bottom nav glass */
+#bottom-nav {
+  background: rgba(10,12,22,0.88) !important;
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-top: 1px solid rgba(255,255,255,.08) !important;
+}
+[data-theme="light"] #bottom-nav {
+  background: rgba(255,255,255,0.9) !important;
+  border-top: 1px solid rgba(0,0,0,.08) !important;
+}
 
 /* Sidebar glass */
 #sidebar-nav {
@@ -5759,6 +5713,10 @@ body.dash-active #content{
    on a light (#f0f2f8) background.
 ══════════════════════════════════════════════════════ */
 
+
+/* Bottom nav item unfocused text */
+[data-theme="light"] .bnav-item{color:rgba(0,0,0,0.42);}
+[data-theme="light"] .bnav-item.active{color:rgba(0,0,0,0.9);}
 
 /* Section separator labels */
 [data-theme="light"] .ov-ss-label{color:rgba(30,50,100,.55);}
