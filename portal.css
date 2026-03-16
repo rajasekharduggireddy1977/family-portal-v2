@@ -278,8 +278,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-mg-modal{
   position:fixed;inset:0;z-index:9990;
   pointer-events:none;opacity:0;
-  background:rgba(255,255,255,0.72);
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  background:transparent;
   display:flex;align-items:center;justify-content:center;
   padding:20px;
   transition:opacity .30s ease;
