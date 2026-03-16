@@ -455,39 +455,38 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 ══════════════════════════════════════ */
 #bottom-nav{
   position:fixed;
-  bottom:0;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
   left:50%;transform:translateX(-50%);
-  width:calc(100% - 48px);max-width:380px;
+  width:calc(100% - 56px);max-width:360px;
   z-index:200;background:transparent;
-  padding-bottom:env(safe-area-inset-bottom,0px);
   will-change:transform;
 }
 .nav-pill{
   display:flex;align-items:center;justify-content:space-around;
-  width:100%;padding:3px 6px;height:52px;
+  width:100%;padding:2px 4px;height:44px;
   border-radius:100px;position:relative;overflow:visible;
-  /* White frosted glass */
-  background:rgba(255,255,255,0.70);
-  backdrop-filter:blur(40px) saturate(200%) brightness(1.12);
-  -webkit-backdrop-filter:blur(40px) saturate(200%) brightness(1.12);
+  /* Dark glass — matches Aura OS portal theme */
+  background:rgba(14,18,36,0.82);
+  backdrop-filter:blur(32px) saturate(200%);
+  -webkit-backdrop-filter:blur(32px) saturate(200%);
+  border:1px solid rgba(255,255,255,0.12);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.88),
-    inset 0 1.5px 0 rgba(255,255,255,1),
-    inset 0 -1px 0 rgba(0,0,0,.09),
-    0 12px 40px rgba(0,0,0,.22),
-    0 3px 8px rgba(0,0,0,.12);
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 8px 32px rgba(0,0,0,.50),
+    0 2px 8px rgba(0,0,0,.30);
 }
 /* Top gloss specular */
 .nav-pill::before{
   content:'';position:absolute;inset:0;border-radius:100px;
-  background:linear-gradient(180deg,rgba(255,255,255,.52) 0%,rgba(255,255,255,.08) 50%,transparent 100%);
+  background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 60%);
   pointer-events:none;z-index:0;
 }
 /* Nav item */
 .nav-item{
   position:relative;
   display:flex;align-items:center;justify-content:center;
-  flex:1;height:42px;
+  flex:1;height:36px;
   cursor:pointer;z-index:2;border-radius:100px;
   -webkit-tap-highlight-color:transparent;
   transition:transform .20s cubic-bezier(.34,1.4,.64,1);
@@ -495,9 +494,9 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .nav-item:active{transform:scale(.88);}
 /* Icon */
 .nav-icon{
-  font-size:20px;position:relative;z-index:3;
+  font-size:17px;position:relative;z-index:3;
   transition:transform .25s cubic-bezier(.34,1.4,.64,1),opacity .20s ease;
-  opacity:0.65;display:block;line-height:1;
+  opacity:0.55;display:block;line-height:1;
 }
 /* Active — convex glass bubble */
 .nav-item.active .nav-icon{
@@ -507,7 +506,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 }
 .nav-item.active::before{
   content:'';
-  position:absolute;width:38px;height:38px;
+  position:absolute;width:34px;height:34px;
   top:50%;left:50%;transform:translate(-50%,-50%);
   border-radius:50%;z-index:1;
   animation:bnavBubbleIn .28s cubic-bezier(.34,1.5,.64,1) both;
@@ -531,7 +530,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 /* Glare dot on bubble */
 .nav-item.active::after{
   content:'';
-  position:absolute;width:38px;height:38px;
+  position:absolute;width:34px;height:34px;
   top:50%;left:50%;transform:translate(-50%,-50%);
   border-radius:50%;z-index:2;pointer-events:none;
   animation:bnavBubbleIn .28s cubic-bezier(.34,1.5,.64,1) both;
