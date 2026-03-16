@@ -377,6 +377,9 @@
     <div class="snav-item" id="snav-calendar" onclick="goPage('calendar')">
       <div class="snav-icon">📅</div> Calendar
     </div>
+    <div class="snav-item" id="snav-appointments" onclick="goPage('appointments')">
+      <div class="snav-icon">🗓</div> Appointments
+    </div>
     <div class="snav-item" id="snav-health" onclick="goPage('health')">
       <div class="snav-icon">💊</div> Health<div class="bnav-alert-dot snav-alert-dot" id="health-alert-dot-snav" style="display:none;"></div>
     </div>
@@ -1095,6 +1098,10 @@
         </div>
         <div class="cal-cells" id="cal-cells"></div>
       </div>
+      <!-- Type filter pills (Tasks / Appointments / Events / Classes) -->
+      <div class="cal-type-pills-wrap">
+        <div class="cal-type-pills" id="cal-type-pills"></div>
+      </div>
       <!-- Member filter chips -->
       <div class="cal-filter-chips" id="cal-chips"></div>
       <!-- Event list -->
@@ -1102,6 +1109,26 @@
         <div class="cal-events-title" id="cal-events-title">Upcoming Events</div>
       </div>
       <div id="cal-events-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ APPOINTMENTS HUB PAGE ══════════ -->
+  <div class="page" id="page-appointments">
+    <div class="appt-page-wrap">
+      <!-- Header -->
+      <div class="appt-page-hdr">
+        <div>
+          <div class="appt-page-title">🗓 Appointments Hub</div>
+          <div class="appt-page-sub">DOCTOR · VEHICLE · LAB · OTHER</div>
+        </div>
+        <button class="appt-add-btn" onclick="openApptSheetV4()">＋ Add</button>
+      </div>
+      <!-- Stats chips -->
+      <div class="appt-stats" id="appt-stats"></div>
+      <!-- Type filter pills -->
+      <div class="appt-filter-pills" id="appt-filter-pills"></div>
+      <!-- Appointments list -->
+      <div id="appt-list-wrap"></div>
     </div>
   </div>
 
@@ -1728,6 +1755,72 @@
   </div>
 </div>
 
+<!-- ═══ APPOINTMENTS V4 ADD/EDIT SHEET ═══ -->
+<div class="apptv4-sheet hidden" id="apptv4-sheet" onclick="if(event.target===this)closeApptSheetV4()">
+  <div class="apptv4-card">
+    <div class="apptv4-handle"></div>
+    <div class="apptv4-hdr">
+      <div class="apptv4-title" id="apptv4-sheet-title">Add Appointment</div>
+      <button onclick="closeApptSheetV4()" class="apptv4-close">✕</button>
+    </div>
+
+    <!-- Type selector -->
+    <div class="apptv4-sec-label">TYPE</div>
+    <div class="apptf-type-row">
+      <button class="apptf-type-btn active" data-type="doctor"  onclick="_selectApptType('doctor')">🏥<span>Doctor</span></button>
+      <button class="apptf-type-btn"        data-type="vehicle" onclick="_selectApptType('vehicle')">🚗<span>Vehicle</span></button>
+      <button class="apptf-type-btn"        data-type="lab"     onclick="_selectApptType('lab')">🧪<span>Lab</span></button>
+      <button class="apptf-type-btn"        data-type="other"   onclick="_selectApptType('other')">📋<span>Other</span></button>
+    </div>
+
+    <!-- Member selector -->
+    <div class="apptv4-sec-label">MEMBER</div>
+    <div class="apptf-member-row" id="apptf-member-row">
+      <button class="apptf-member-chip active" data-member="rajasekhar" onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👨 Raj</button>
+      <button class="apptf-member-chip" data-member="vasundhara" onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👩 Vasu</button>
+      <button class="apptf-member-chip" data-member="josritha"   onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👧 Josi</button>
+      <button class="apptf-member-chip" data-member="jeevan"     onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👦 Jeevan</button>
+    </div>
+
+    <!-- Vehicle selector (shown only for vehicle type) -->
+    <div id="apptf-vehicle-row" style="display:none">
+      <div class="apptv4-sec-label">VEHICLE</div>
+      <select id="apptf-vehicle" class="apptf-input">
+        <option value="">Select vehicle…</option>
+        <option value="activa">🛵 Honda Activa 125 · TS08HJ8438</option>
+        <option value="i10">🚗 Hyundai i10 · AP27AK7873</option>
+      </select>
+    </div>
+
+    <!-- Fields -->
+    <div class="apptv4-sec-label">TITLE</div>
+    <input id="apptf-title" class="apptf-input" type="text" placeholder="e.g. Cardiology Consultation" autocomplete="off">
+
+    <div class="apptv4-fields-row">
+      <div style="flex:1">
+        <div class="apptv4-sec-label">DATE</div>
+        <input id="apptf-date" class="apptf-input" type="date">
+      </div>
+      <div style="flex:1">
+        <div class="apptv4-sec-label">TIME</div>
+        <input id="apptf-time" class="apptf-input" type="time">
+      </div>
+    </div>
+
+    <div class="apptv4-sec-label">LOCATION / DOCTOR</div>
+    <input id="apptf-loc" class="apptf-input" type="text" placeholder="e.g. Yashoda Hospitals, KPHB" autocomplete="off">
+
+    <div class="apptv4-sec-label">NOTES</div>
+    <textarea id="apptf-notes" class="apptf-input apptf-textarea" placeholder="Fasting required, bring reports…" rows="2"></textarea>
+
+    <!-- Actions -->
+    <div class="apptv4-actions">
+      <button id="apptv4-del-btn" class="apptv4-del-btn" style="display:none" onclick="deleteApptV4(this.dataset.id)">🗑 Delete</button>
+      <button class="apptv4-save-btn" onclick="saveApptV4()">✓ Save Appointment</button>
+    </div>
+  </div>
+</div>
+
 <!-- Widget picker sheet -->
 <div class="wp-sheet hidden" id="wp-sheet" onclick="if(event.target===this)closeWidgetPicker()">
   <div class="wp-card">
@@ -1812,7 +1905,7 @@
 
       <div class="tb-mg-div-in a s7"></div>
 
-      <div class="tb-mg-grid a s7">
+      <div class="tb-mg-grid a s7" style="grid-template-columns:repeat(3,1fr)">
         <div class="tb-mg-card" onclick="moreMenuAction('expiry');closeTbMore()">
           <div class="tb-mg-ico">⏰</div>
           <div class="tb-mg-t1">Expiry</div>
@@ -1822,6 +1915,11 @@
           <div class="tb-mg-ico">📅</div>
           <div class="tb-mg-t1">Calendar</div>
           <div class="tb-mg-t2">Events</div>
+        </div>
+        <div class="tb-mg-card" onclick="moreMenuAction('appointments');closeTbMore()">
+          <div class="tb-mg-ico">🗓</div>
+          <div class="tb-mg-t1">Appts</div>
+          <div class="tb-mg-t2">Hub</div>
         </div>
       </div>
 
