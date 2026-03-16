@@ -357,19 +357,20 @@ function goPage(page) {
   document.body.classList.remove('dash-active');
   window.scrollTo(0,0);
 
-  if(page==='view')      { applyGmView(); }
-  if(page==='members')   { applyGmMembers(); }
-  if(page==='expiry')    { initExpiry(); animateExpBars(); }
-  if(page==='calendar')  { initCalendar(); applyGmCalendar(); }
-  if(page==='health')    { initHealthPage(); applyGmHealth(); }
-  if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
-  if(page==='budget')    { initBudget(); }
+  if(page==='view')         { applyGmView(); }
+  if(page==='members')      { applyGmMembers(); }
+  if(page==='expiry')       { initExpiry(); animateExpBars(); }
+  if(page==='calendar')     { initCalendar(); applyGmCalendar(); }
+  if(page==='health')       { initHealthPage(); applyGmHealth(); }
+  if(page==='documents')    { applyGmDocuments(); collapseAllDocSections(); }
+  if(page==='budget')       { initBudget(); }
+  if(page==='appointments') { initAppointmentsPage(); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['view','members','documents','expiry','calendar','health','budget','search'];
+const PAGE_ORDER = ['view','members','documents','expiry','calendar','appointments','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -554,6 +555,7 @@ const MEMBER_COLORS = {
 let calCurrentDate = new Date();
 let calSelectedDate = null;
 let calFilter = 'all'; // member filter
+let calTypeFilter = 'all'; // type filter: all|tasks|events|appointments|education
 let calSelectedColor = '#4f7fff';
 let calEditId = null;
 
@@ -591,6 +593,17 @@ function calNav(dir) {
   renderCalEvents(calSelectedDate);
 }
 
+// ── Subject colour palette for timetable dots (Option A: no storage write) ──
+var _ttSubjectColors = {};
+var _ttColorPalette = ['#a78bfa','#38bdf8','#34d399','#f472b6','#f0b429','#ff8c42','#60a5fa','#fb923c'];
+function _ttColorForKey(key) {
+  if (!_ttSubjectColors[key]) {
+    const idx = Object.keys(_ttSubjectColors).length % _ttColorPalette.length;
+    _ttSubjectColors[key] = _ttColorPalette[idx];
+  }
+  return _ttSubjectColors[key];
+}
+
 function renderCalGrid() {
   const year = calCurrentDate.getFullYear();
   const month = calCurrentDate.getMonth();
@@ -601,20 +614,79 @@ function renderCalGrid() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
+  const DAY_NUM = {SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
 
   const events = getCalEvents();
-  // Build dot map: date-string → [colors]
+  // Build dot map: date-string → [{color, type}]
   const dotMap = {};
-  events.forEach(ev => {
-    if (!dotMap[ev.date]) dotMap[ev.date] = [];
-    dotMap[ev.date].push(ev.color);
-  });
+  const tf = calTypeFilter;
+
+  function addDot(ds, color, type) {
+    if (!dotMap[ds]) dotMap[ds] = [];
+    dotMap[ds].push({ color, type });
+  }
+
+  // fp_cal_events dots (skip att_risk_* always)
+  if (tf === 'all' || tf === 'tasks' || tf === 'events' || tf === 'appointments') {
+    events.forEach(ev => {
+      if (ev.id && ev.id.indexOf('att_risk_') === 0) return; // purged
+      // Classify type
+      const evType = ev.apptRef ? 'appointments'
+        : (ev.id && ev.id.startsWith('tr_')) ? 'tasks'
+        : 'events';
+      if (tf !== 'all' && tf !== evType) return;
+      addDot(ev.date, ev.color || '#4f7fff', evType);
+    });
+  }
+
+  // EXPIRY dots (type = tasks)
+  if (tf === 'all' || tf === 'tasks') {
+    EXPIRY.forEach(e => {
+      const d = daysUntil(e.date);
+      const col = d < 0 ? '#ff4f4f' : d <= 30 ? '#ff8c42' : d <= 90 ? '#f0b429' : '#3ecf8e';
+      addDot(e.date, col, 'tasks');
+    });
+  }
+
+  // Appointments v4 dots (type = appointments)
+  if (tf === 'all' || tf === 'appointments') {
+    try {
+      getApptsV4().forEach(a => {
+        const t = APPT_TYPES[a.type] || APPT_TYPES.other;
+        addDot(a.date, t.color, 'appointments');
+      });
+    } catch(e) {}
+  }
+
+  // ── Option A: Dynamic timetable dots (type = education) ──
+  if (tf === 'all' || tf === 'education') {
+    try {
+      const ttRaw = localStorage.getItem('fp_timetable_synced');
+      if (ttRaw) {
+        const ttSlots = JSON.parse(ttRaw); // [{day:'MONDAY', att_key, subject, ...}]
+        // Walk every day in the displayed month
+        for (let d = 1; d <= daysInMonth; d++) {
+          const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const dayNum = new Date(year, month, d).getDay();
+          const dayName = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][dayNum];
+          const slotsToday = ttSlots.filter(s => s.day === dayName);
+          // Deduplicate by att_key (one dot per subject per day)
+          const seenKeys = new Set();
+          slotsToday.forEach(s => {
+            const key = s.att_key || s.code || s.subject;
+            if (!key || seenKeys.has(key)) return;
+            seenKeys.add(key);
+            addDot(ds, _ttColorForKey(key), 'education');
+          });
+        }
+      }
+    } catch(e) {}
+  }
 
   let html = '';
   // Prev month cells
   for (let i = firstDay - 1; i >= 0; i--) {
     const d = daysInPrev - i;
-    const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
   }
   // Current month
@@ -622,10 +694,14 @@ function renderCalGrid() {
     const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
     const isSel = calSelectedDate === ds;
-    const dots = (dotMap[ds]||[]).slice(0,3).map(c=>`<div class="cal-dot" style="background:${c}"></div>`).join('');
+    const allDots = dotMap[ds] || [];
+    // Deduplicate by type for compact display (max 3 dots)
+    const seen = new Set();
+    const dedupDots = allDots.filter(dv => { if (seen.has(dv.type+dv.color)) return false; seen.add(dv.type+dv.color); return true; }).slice(0,3);
+    const dotsHtml = dedupDots.map(dv => `<div class="cal-dot" style="background:${dv.color}"></div>`).join('');
     html += `<div class="cal-cell${isToday?' today':''}${isSel?' selected':''}" onclick="selectCalDate('${ds}')">
       <div class="cal-day-num">${d}</div>
-      ${dots?`<div class="cal-dot-row">${dots}</div>`:''}
+      ${dotsHtml ? `<div class="cal-dot-row">${dotsHtml}</div>` : ''}
     </div>`;
   }
   // Next month fill
@@ -635,6 +711,8 @@ function renderCalGrid() {
     html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
   }
   document.getElementById('cal-cells').innerHTML = html;
+  // Render type filter pills
+  renderCalTypePills();
 }
 
 function selectCalDate(ds) {
@@ -659,20 +737,92 @@ function renderCalChips() {
 function setCalFilter(m) {
   calFilter = m;
   renderCalChips();
+  renderCalGrid();
+  renderCalEvents(calSelectedDate);
+}
+
+// ── Type filter pills for calendar ──
+function renderCalTypePills() {
+  const wrap = document.getElementById('cal-type-pills');
+  if (!wrap) return;
+  const pills = [
+    { id:'all',          label:'All',          icon:'🗓', color:'var(--purple)', bg:'rgba(167,139,250,.14)', border:'rgba(167,139,250,.35)' },
+    { id:'tasks',        label:'Tasks',         icon:'✅', color:'#f0b429',       bg:'rgba(240,180,41,.14)',  border:'rgba(240,180,41,.35)'  },
+    { id:'appointments', label:'Appointments',  icon:'🏥', color:'#f472b6',       bg:'rgba(244,114,182,.14)', border:'rgba(244,114,182,.35)' },
+    { id:'events',       label:'Events',        icon:'📌', color:'#38bdf8',       bg:'rgba(56,189,248,.14)',  border:'rgba(56,189,248,.35)'  },
+    { id:'education',    label:'Classes',       icon:'📚', color:'#a78bfa',       bg:'rgba(167,139,250,.14)', border:'rgba(167,139,250,.35)' }
+  ];
+  wrap.innerHTML = pills.map(p => {
+    const active = calTypeFilter === p.id;
+    return `<div class="cal-type-pill${active?' active':''}"
+      style="${active ? `background:${p.bg};border-color:${p.border};color:${p.color};font-weight:700` : ''}"
+      onclick="setCalTypeFilter('${p.id}')">${p.icon} ${p.label}</div>`;
+  }).join('');
+}
+
+function setCalTypeFilter(t) {
+  calTypeFilter = t;
+  renderCalGrid();
   renderCalEvents(calSelectedDate);
 }
 
 function renderCalEvents(selectedDate) {
   const events = getCalEvents();
+  // Build timetable events for selected date if type filter allows
+  let ttEvents = [];
+  if ((calTypeFilter === 'all' || calTypeFilter === 'education') && selectedDate) {
+    try {
+      const ttRaw = localStorage.getItem('fp_timetable_synced');
+      if (ttRaw) {
+        const ttSlots = JSON.parse(ttRaw);
+        const d = new Date(selectedDate + 'T12:00:00');
+        const dayName = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][d.getDay()];
+        const seenKeys = new Set();
+        ttSlots.filter(s => s.day === dayName).forEach(s => {
+          const key = s.att_key || s.code || s.subject;
+          if (!key || seenKeys.has(key)) return;
+          seenKeys.add(key);
+          ttEvents.push({
+            id: 'tt_dyn_' + key + '_' + selectedDate,
+            title: '📚 ' + (s.subject || key),
+            date: selectedDate,
+            start: s.time_start || s.time || '',
+            end: s.time_end || '',
+            cat: 'education',
+            color: _ttColorForKey(key),
+            members: ['Josritha'],
+            notes: s.room ? 'Room ' + s.room : (s.type || ''),
+            _timetable: true
+          });
+        });
+      }
+    } catch(e) {}
+  }
+
   let filtered = events.filter(ev => {
+    if (ev.id && ev.id.indexOf('att_risk_') === 0) return false; // always hide legacy spam
     if (calFilter !== 'all') {
-      if (!ev.members.includes(calFilter) && !ev.members.includes('all')) return false;
+      if (!ev.members || (!ev.members.includes(calFilter) && !ev.members.includes('all'))) return false;
+    }
+    // Type filter
+    if (calTypeFilter !== 'all') {
+      const evType = ev.apptRef ? 'appointments'
+        : (ev.id && ev.id.startsWith('tr_')) ? 'tasks'
+        : ev.cat === 'education' ? 'education'
+        : 'events';
+      if (evType !== calTypeFilter) return false;
     }
     if (selectedDate) return ev.date === selectedDate;
     return true;
   });
-  // Sort by date
-  filtered.sort((a,b) => a.date.localeCompare(b.date));
+
+  // Merge in dynamic timetable events (for selected date only)
+  const combined = filtered.concat(ttEvents);
+  combined.sort((a,b) => {
+    const ds = a.date.localeCompare(b.date);
+    if (ds !== 0) return ds;
+    return (a.start||'').localeCompare(b.start||'');
+  });
 
   const titleEl = document.getElementById('cal-events-title');
   if (selectedDate) {
@@ -682,26 +832,35 @@ function renderCalEvents(selectedDate) {
     titleEl.textContent = 'Upcoming Events';
   }
 
-  if (!filtered.length) {
+  if (!combined.length) {
     document.getElementById('cal-events-list').innerHTML = `<div class="cal-no-events"><span>📭</span>${selectedDate?'No events on this day':'No events found'}</div>`;
     return;
   }
 
   const today = new Date().toISOString().slice(0,10);
-  let html = filtered.map(ev => {
+  let html = combined.map(ev => {
     const d = new Date(ev.date + 'T12:00:00');
     const dStr = d.toLocaleDateString('en-IN',{month:'short',day:'numeric',weekday:'short'});
     const isPast = ev.date < today;
-    const avatars = ev.members.slice(0,3).map(m => {
+    const members = ev.members || ['all'];
+    const avatars = members.slice(0,3).map(m => {
       const icons = {Rajasekhar:'👨',Vasundhara:'👩',Josritha:'👧',Jeevan:'👦',all:'👨‍👩‍👧‍👦'};
       return icons[m]||'👤';
     }).join('');
     const catIcon = CAL_CAT_ICONS[ev.cat]||'📌';
     const time = ev.start ? `${ev.start}${ev.end?'–'+ev.end:''}` : 'All day';
-    return `<div class="cal-event-item pressable" onclick="editCalEvent('${ev.id}')" style="opacity:${isPast?.6:1}">
+    // Timetable events are read-only (no edit)
+    const clickHandler = ev._timetable ? '' : `onclick="editCalEvent('${ev.id}')"`;
+    // Type badge for appointments
+    const apptTypeBadge = ev.apptRef ? (() => {
+      const appt = (typeof getApptsV4==='function' ? getApptsV4() : []).find(a => a.id === ev.apptRef);
+      const t2 = appt ? (APPT_TYPES[appt.type] || APPT_TYPES.other) : APPT_TYPES.other;
+      return `<span class="cal-type-tag" style="background:${t2.bg};color:${t2.color};border-color:${t2.border}">${t2.icon} ${t2.label}</span>`;
+    })() : '';
+    return `<div class="cal-event-item pressable" ${clickHandler} style="opacity:${isPast?.6:1}">
       <div class="cal-event-bar" style="background:${ev.color}"></div>
       <div class="cal-event-body">
-        <div class="cal-event-title">${catIcon} ${ev.title}</div>
+        <div class="cal-event-title">${catIcon} ${ev.title}${apptTypeBadge}</div>
         <div class="cal-event-meta">${dStr} · ${time}</div>
         ${ev.notes?`<div class="cal-event-tags"><span class="cal-event-tag">📝 ${ev.notes.slice(0,40)}${ev.notes.length>40?'…':''}</span></div>`:''}
       </div>
@@ -906,7 +1065,7 @@ const DEFAULT_WIDGETS=['hero','att_severity','ai_briefing2','priority','family',
 let widgetOrder=[...DEFAULT_WIDGETS];
 let editMode=false;
 
-const WIDGET_VERSION = 'v9';
+const WIDGET_VERSION = 'v10';
 
 // ████████████████████████████████████████████████████████
 // § WIDGETS       Dashboard widget system -- drag/drop, widget HTML builders
@@ -2210,8 +2369,8 @@ function buildVehicleWidget() {
       if (days < 0) { badgeClass = 'overdue'; badgeTxt = Math.abs(days) + 'd overdue'; }
       else if (days <= 30) { badgeClass = 'soon'; badgeTxt = 'Due in ' + days + 'd'; }
       else { badgeClass = 'ok'; badgeTxt = 'Due ' + (typeof fmtDate==='function'?fmtDate(nextDate):nextDate); }
-    } else if (!lastDate) { badgeClass = 'soon'; badgeTxt = 'Not tracked'; }
-    return '<div class="veh-row" onclick="vehOpenSheet(\'' + v.id + '\')">'
+    } else if (!lastDate) { badgeClass = 'soon'; badgeTxt = 'Schedule →'; }
+    return '<div class="veh-row" onclick="' + (!lastDate ? 'openApptSheetV4({type:\'vehicle\',vehicle:\'' + v.id + '\'})' : 'vehOpenSheet(\'' + v.id + '\')') + '">'
       + '<div class="veh-icon" style="background:' + v.color + '">' + v.icon + '</div>'
       + '<div class="veh-info">'
       + '<div class="veh-name">' + v.name + '</div>'
@@ -5641,122 +5800,24 @@ function renderAcademicsTab(m) {
 // AUTO ATTENDANCE EVENTS — creates/updates/deletes calendar
 // events for Josritha subjects below 75%
 // ═══════════════════════════════════════════════════════
+// ── autoManageAttendanceEvents: REPLACED by Option A (dynamic timetable overlay) ──
+// Attendance risk is now shown in Education panel only.
+// Calendar gets clean per-subject timetable dots rendered dynamically from
+// fp_timetable_synced — no calendar events are written for education/attendance.
+// This function is retained as a no-op so existing call-sites don't break.
 function autoManageAttendanceEvents(attData) {
-  // Guard — never run during backup operation
-  if (!attData || !Array.isArray(attData) || !attData.length) return;
-
-  var PREFIX = 'att_risk_';
-  var DAY_MAP = {0:'SUNDAY',1:'MONDAY',2:'TUESDAY',3:'WEDNESDAY',4:'THURSDAY',5:'FRIDAY',6:'SATURDAY'};
-
-  // Load timetable from localStorage
-  var ttData = [];
+  // No-op: timetable dots are overlaid dynamically in renderCalGrid()
+  // Purge any legacy att_risk_* events that may exist from previous version
   try {
-    var ttRaw = localStorage.getItem('fp_timetable_synced');
-    if (ttRaw) ttData = JSON.parse(ttRaw);
-  } catch(e) { ttData = []; }
-
-  // Load current calendar events (safe wrapper)
-  var events = [];
-  try { events = getCalEvents(); } catch(e) { return; }
-
-  // Step 1: Remove ALL existing auto att_risk events (full refresh)
-  events = events.filter(function(e) {
-    return !(e.id && e.id.indexOf(PREFIX) === 0 && e.auto === true);
-  });
-
-  // Step 2: Build set of risky subjects
-  var riskySubjects = {};
-  attData.forEach(function(a) {
-    if (!a.code || !a.type || !a.subject) return;
-    var pct = Math.round(a.present / a.total * 100);
-    if (pct < 75) {
-      var attKey = a.code + '|' + a.type;
-      var need = Math.max(0, Math.ceil(0.75 * (a.total + 1)) - a.present);
-      var canSkip = Math.max(0, Math.floor(a.total * 0.25) - (a.total - a.present));
-      riskySubjects[attKey] = {
-        code: a.code,
-        type: a.type,
-        subject: a.subject,
-        pct: pct,
-        need: need,
-        canSkip: canSkip,
-        critical: pct < 70
-      };
-    }
-  });
-
-  var riskCount = Object.keys(riskySubjects).length;
-  if (riskCount === 0) {
-    // All subjects safe — save cleaned events and return
-    try { saveCalEvents(events); } catch(e) {}
-    return;
-  }
-
-  // Step 3: Generate day-wise events for next 2 months
-  var today = new Date();
-  today.setHours(0,0,0,0);
-  var cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() + 62); // ~2 months
-
-  // Build lookup: attKey -> list of timetable day names
-  var ttByKey = {};
-  ttData.forEach(function(slot) {
-    var key = slot.att_key || (slot.code + '|' + slot.type);
-    if (!ttByKey[key]) ttByKey[key] = {};
-    ttByKey[key][slot.day] = true; // slot.day = 'MONDAY' etc
-  });
-
-  // Walk each day for next 2 months
-  var d = new Date(today);
-  var newEvents = [];
-  while (d <= cutoff) {
-    var dayName = DAY_MAP[d.getDay()];
-    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-
-    Object.keys(riskySubjects).forEach(function(attKey) {
-      var subj = riskySubjects[attKey];
-      // Only create event if this subject has a class on this day of week
-      var hasClassToday = ttByKey[attKey] && ttByKey[attKey][dayName];
-      if (!hasClassToday) return;
-
-      var shortName = subj.subject.length > 24 ? subj.subject.substring(0,22) + '\u2026' : subj.subject;
-      var icon = subj.critical ? '\uD83D\uDEA8' : '\uD83D\uDCDA';
-      var label = subj.critical ? '\uD83D\uDEA8 CRITICAL' : '\u26A0\uFE0F AT RISK';
-      var note = subj.type + ' \u00B7 ' + subj.pct + '% \u00B7 '
-        + (subj.canSkip > 0
-            ? 'Can skip ' + subj.canSkip + ' more · need ' + subj.need + ' to reach 75%'
-            : 'DO NOT skip · need ' + subj.need + ' more classes');
-
-      // Unique id per subject + date
-      var safeKey = attKey.replace(/[^a-zA-Z0-9]/g, '_');
-      newEvents.push({
-        id: PREFIX + safeKey + '_' + dateStr,
-        title: label + ' ' + shortName,
-        date: dateStr,
-        cat: 'education',
-        color: '#a78bfa',
-        type: 'Academic',
-        icon: icon,
-        members: ['Josritha'],
-        auto: true,
-        att_key: attKey,
-        note: note
-      });
+    var events = getCalEvents();
+    var cleaned = events.filter(function(e) {
+      return !(e.id && e.id.indexOf('att_risk_') === 0);
     });
-
-    d.setDate(d.getDate() + 1);
-  }
-
-  // Step 4: Merge and save
-  var finalEvents = events.concat(newEvents);
-  try {
-    saveCalEvents(finalEvents);
-    if (newEvents.length > 0) {
-      setTimeout(function() {
-        showToast('\uD83D\uDCDA ' + newEvents.length + ' class alerts created for ' + riskCount + ' at-risk subject' + (riskCount!==1?'s':''));
-      }, 400);
+    if (cleaned.length !== events.length) {
+      saveCalEvents(cleaned);
+      if (typeof auraRenderHome === 'function') auraRenderHome();
     }
-  } catch(e) {}
+  } catch(err) {}
 }
 
 
@@ -5771,8 +5832,9 @@ function syncAttendanceFile(input) {
       const ts = new Date().toLocaleString("en-IN", {day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
       localStorage.setItem("fp_attendance_synced_ts", ts);
       showToast("✅ " + data.length + " subjects synced");
+      // Purge legacy att_risk_ calendar events, then refresh UI (timetable dots are dynamic)
       setTimeout(function() { autoManageAttendanceEvents(data); }, 200);
-      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderAlerts(); }, 50);
+      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderAlerts(); if(typeof renderCalGrid==='function') renderCalGrid(); }, 50);
       input.value = "";
     } catch(err) { showToast("❌ Could not parse file"); }
   };
@@ -6132,29 +6194,63 @@ function buildTimeline() {
   ].map(function(l){ return '<div class="vtl-leg"><div class="vtl-leg-dot" style="background:' + l.col + '"></div>' + l.lbl + '</div>'; }).join('');
 }
 
+// Tracks which EXPIRY item is open in the detail sheet
+var _tlSheetItem = null;
+
 function openTlSheet(idx) {
   var axis=document.getElementById('vtl-list');
   var sorted=axis?._expiry;
   if(!sorted) return;
   const e=sorted[idx];
   if(!e) return;
+  _tlSheetItem = e;
   const days=daysUntil(e.date);
   const col=days<0?'var(--red)':days<=30?'var(--orange)':days<=90?'var(--gold)':'var(--green)';
   const badge=days<0?`${Math.abs(days)} days OVERDUE`:days===0?'Expires TODAY':`${days} days remaining`;
+  // Determine renew URL
+  const renewUrl = e.id.includes('car_ins')||e.id.includes('bike_ins')||e.id.includes('health')
+    ? 'https://www.icicilombard.com'
+    : e.id.includes('dl') ? 'https://sarathi.parivahan.gov.in'
+    : e.id.includes('prop_tax') ? 'https://cdma.ap.gov.in' : '#';
+  const renewLabel = e.id.includes('prop_tax') ? '🏦 Pay Tax' : '🔄 Renew Now';
   const body=document.getElementById('tl-sheet-body');
   if(body) body.innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <div style="font-size:32px;">${e.icon}</div>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text)">${e.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:3px;">${e.sub}</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+      <div style="font-size:36px;filter:drop-shadow(0 0 8px ${col}60)">${e.icon}</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);line-height:1.2">${e.label}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace">${e.sub}</div>
       </div>
     </div>
-    <div style="display:inline-block;padding:7px 14px;border-radius:10px;background:${col}18;color:${col};font-family:'DM Mono',monospace;font-size:12px;font-weight:700;border:1px solid ${col}33;margin-bottom:14px;">${badge}</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Expiry date: <strong style="color:var(--text)">${fmtDate(e.date)}</strong></div>
-    <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">Policy / Ref: ${e.policy||'—'}</div>
-    ${days<=90?`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <div onclick="window.open('https://www.icicilombard.com','_blank')" style="flex:1;min-width:120px;padding:10px;border-radius:10px;background:var(--blue-dim);border:1px solid rgba(79,127,255,.3);color:var(--blue2);font-size:12px;font-weight:700;text-align:center;cursor:pointer;">🔄 Renew Now</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:${col}18;color:${col};font-family:'DM Mono',monospace;font-size:12px;font-weight:700;border:1px solid ${col}33;margin-bottom:16px;">
+      <span style="font-size:9px;opacity:.7">●</span>${badge}
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Due Date</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${fmtDate(e.date)}</div>
+      </div>
+      <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Ref / Policy</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);word-break:break-all">${e.policy||'—'}</div>
+      </div>
+    </div>
+    <!-- Action row -->
+    <div class="tls-actions">
+      <button class="tls-btn tls-btn-done" onclick="markExpiryDone('${e.id}')">✅ Mark Done</button>
+      <button class="tls-btn tls-btn-reschedule" onclick="openReschedulePanel('${e.id}')">📅 Reschedule</button>
+    </div>
+    <!-- Reschedule panel (hidden by default) -->
+    <div id="tls-reschedule-panel" style="display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;font-family:'Syne',sans-serif;">📅 Set New Date</div>
+      <input type="date" id="tls-new-date" style="width:100%;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:10px;" value="${e.date}">
+      <div style="display:flex;gap:8px;">
+        <button onclick="confirmReschedule('${e.id}')" style="flex:1;padding:10px;border-radius:10px;background:var(--blue2);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">✓ Confirm</button>
+        <button onclick="document.getElementById('tls-reschedule-panel').style.display='none'" style="padding:10px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+    ${days<=120?`<div style="margin-top:14px;">
+      <button onclick="window.open('${renewUrl}','_blank')" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--blue2),var(--purple));border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.02em">${renewLabel}</button>
     </div>`:''}
   `;
   var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
@@ -6164,6 +6260,62 @@ function openTlSheet(idx) {
 function closeTlSheet() {
   document.getElementById('tl-sheet').classList.add('hidden');
   var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
+  _tlSheetItem = null;
+}
+
+// ── Mark Done: for recurring items prompt next renewal, else just close ──
+function markExpiryDone(id) {
+  const e = EXPIRY.find(function(x){ return x.id === id; });
+  if (!e) return;
+  const isRecurring = id.includes('ins') || id.includes('tax') || id.includes('dl');
+  if (isRecurring) {
+    const panel = document.getElementById('tls-reschedule-panel');
+    if (panel) {
+      // Pre-fill with +1 year
+      const next = new Date(e.date + 'T12:00:00');
+      next.setFullYear(next.getFullYear() + 1);
+      const nv = next.toISOString().slice(0, 10);
+      const inp = document.getElementById('tls-new-date');
+      if (inp) inp.value = nv;
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth' });
+      panel.querySelector('div').textContent = '✅ Done! Set next renewal date:';
+    }
+  } else {
+    closeTlSheet();
+    showToast('✅ ' + e.label + ' marked done');
+  }
+}
+
+// ── Open reschedule panel ──
+function openReschedulePanel(id) {
+  const panel = document.getElementById('tls-reschedule-panel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Confirm reschedule: update EXPIRY date + linked fp_cal_events entry ──
+function confirmReschedule(id) {
+  const newDate = document.getElementById('tls-new-date')?.value;
+  if (!newDate) { showToast('⚠️ Pick a date first'); return; }
+  // Update in EXPIRY array
+  const e = EXPIRY.find(function(x){ return x.id === id; });
+  if (!e) return;
+  const oldDate = e.date;
+  e.date = newDate;
+  // Sync matching fp_cal_events entry (id prefix: 'tr_' + id)
+  try {
+    const calId = 'tr_' + id;
+    const evts = getCalEvents();
+    const ev = evts.find(function(x){ return x.id === calId; });
+    if (ev) { ev.date = newDate; saveCalEvents(evts); }
+  } catch(err) {}
+  closeTlSheet();
+  initExpiry(); animateExpBars(); buildTimeline();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+  showToast('📅 ' + e.label + ' rescheduled to ' + fmtDate(newDate));
 }
 
 // ═══════════════════════════════════════
@@ -6439,7 +6591,7 @@ function bmBarPct(def, val) {
 let hrActiveMember  = 'rajasekhar'; // selected member in add-report sheet
 let haActiveMember  = 'rajasekhar'; // selected member in add-appt sheet
 
-// ── Appointments storage ──
+// ── Appointments v3 storage (legacy — health page read-only view) ──
 function getAppts() {
   try { const s=localStorage.getItem('fp_health_appts_v3'); if(s) return JSON.parse(s); } catch(e){}
   return SEED_APPTS();
@@ -6454,6 +6606,332 @@ function SEED_APPTS() {
   ];
   localStorage.setItem('fp_health_appts_v3', JSON.stringify(appts));
   return appts;
+}
+
+// ══════════════════════════════════════════════════════════
+// APPOINTMENTS v4 — unified store (Doctor/Vehicle/Lab/Other)
+// ══════════════════════════════════════════════════════════
+const APPT_TYPES = {
+  doctor:  { label:'Doctor',  icon:'🏥', color:'#f472b6', bg:'rgba(244,114,182,.12)', border:'rgba(244,114,182,.3)' },
+  vehicle: { label:'Vehicle', icon:'🚗', color:'#38bdf8', bg:'rgba(56,189,248,.12)',  border:'rgba(56,189,248,.3)'  },
+  lab:     { label:'Lab',     icon:'🧪', color:'#a78bfa', bg:'rgba(167,139,250,.12)', border:'rgba(167,139,250,.3)' },
+  other:   { label:'Other',   icon:'📋', color:'#f0b429', bg:'rgba(240,180,41,.12)',  border:'rgba(240,180,41,.3)'  }
+};
+
+function getApptsV4() {
+  try { const s = localStorage.getItem('fp_appts_v4'); if (s) return JSON.parse(s); } catch(e) {}
+  return migrateApptsToV4();
+}
+function saveApptsV4(arr) { localStorage.setItem('fp_appts_v4', JSON.stringify(arr)); }
+
+function migrateApptsToV4() {
+  // Migrate legacy fp_health_appts_v3 → fp_appts_v4 with type:'doctor'
+  let v3 = [];
+  try { const s = localStorage.getItem('fp_health_appts_v3'); if (s) v3 = JSON.parse(s); } catch(e) {}
+  const v4 = v3.map(a => ({ ...a, type: a.type || 'doctor', vehicle: a.vehicle || '' }));
+  // Add seed v4 appointments if nothing came from v3
+  if (!v4.length) {
+    v4.push(
+      { id:'av4_a1', type:'doctor',  member:'rajasekhar', title:'Cardiology Consultation',   date:'2026-03-20', time:'10:00', loc:'Dr. Reddy, Yashoda Hospitals',  notes:'Bring ECG + last lipid report', vehicle:'' },
+      { id:'av4_a2', type:'doctor',  member:'vasundhara', title:'Thyroid Follow-up',         date:'2026-04-05', time:'09:30', loc:'Dr. Priya, KIMS Hospital',       notes:'Fasting required · 6 hrs',      vehicle:'' },
+      { id:'av4_a3', type:'doctor',  member:'josritha',   title:'Annual Health Check-up',    date:'2026-05-12', time:'08:00', loc:'Apollo Diagnostics, Hyderabad',  notes:'Full body check package',       vehicle:'' },
+      { id:'av4_a4', type:'vehicle', member:'vasundhara', title:'Activa 125 Regular Service',date:'2026-04-15', time:'10:00', loc:'Honda Service Center, KPHB',     notes:'Oil change + general check',    vehicle:'activa' },
+      { id:'av4_a5', type:'lab',     member:'rajasekhar', title:'Lipid Panel + HbA1c',       date:'2026-06-01', time:'07:30', loc:'Apollo Diagnostics, Ameerpet',   notes:'Fasting 10 hrs required',       vehicle:'' }
+    );
+  }
+  saveApptsV4(v4);
+  return v4;
+}
+
+// ██████████████████████████████████████████████████████████
+// § APPOINTMENTS_PAGE  Unified Appointments Hub
+// initAppointmentsPage, renderApptsList, openApptSheetV4,
+// closeApptSheetV4, saveApptV4, deleteApptV4,
+// apptCreateCalEvent, apptDeleteCalEvent
+// ██████████████████████████████████████████████████████████
+
+var _apptSheetMode = 'add'; // 'add' | 'edit'
+var _apptEditId    = null;
+var _apptFilter    = 'all'; // 'all' | 'doctor' | 'vehicle' | 'lab' | 'other'
+
+// ── Page init ──
+function initAppointmentsPage() {
+  renderApptsList();
+  renderApptFilterPills();
+}
+
+// ── Filter pills ──
+function renderApptFilterPills() {
+  const wrap = document.getElementById('appt-filter-pills');
+  if (!wrap) return;
+  const pills = [
+    { id:'all',     label:'All',     icon:'🗓' },
+    { id:'doctor',  label:'Doctor',  icon:'🏥' },
+    { id:'vehicle', label:'Vehicle', icon:'🚗' },
+    { id:'lab',     label:'Lab',     icon:'🧪' },
+    { id:'other',   label:'Other',   icon:'📋' }
+  ];
+  wrap.innerHTML = pills.map(p => {
+    const t = APPT_TYPES[p.id] || {};
+    const active = _apptFilter === p.id;
+    return `<div class="appt-fpill${active?' active':''}" data-type="${p.id}"
+      style="${active ? `background:${t.bg||'rgba(167,139,250,.15)'};border-color:${t.border||'rgba(167,139,250,.4)'};color:${t.color||'var(--purple)'}` : ''}"
+      onclick="setApptFilter('${p.id}')">${p.icon} ${p.label}</div>`;
+  }).join('');
+}
+
+function setApptFilter(f) {
+  _apptFilter = f;
+  renderApptFilterPills();
+  renderApptsList();
+}
+
+// ── Main list renderer ──
+function renderApptsList() {
+  const wrap = document.getElementById('appt-list-wrap');
+  if (!wrap) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let all = getApptsV4();
+
+  // Upcoming (today+)
+  let upcoming = all.filter(a => new Date(a.date + 'T12:00:00') >= today);
+  // Past (yesterday-)
+  let past = all.filter(a => new Date(a.date + 'T12:00:00') < today);
+
+  if (_apptFilter !== 'all') {
+    upcoming = upcoming.filter(a => a.type === _apptFilter);
+    past     = past.filter(a => a.type === _apptFilter);
+  }
+  upcoming.sort((a,b) => a.date.localeCompare(b.date));
+  past.sort((a,b) => b.date.localeCompare(a.date));
+
+  // Stats bar
+  const statsEl = document.getElementById('appt-stats');
+  if (statsEl) {
+    const counts = { doctor:0, vehicle:0, lab:0, other:0 };
+    all.filter(a => new Date(a.date + 'T12:00:00') >= today).forEach(a => { if (counts[a.type] != null) counts[a.type]++; });
+    statsEl.innerHTML = Object.entries(APPT_TYPES).map(([k,t]) =>
+      `<div class="appt-stat-chip" style="background:${t.bg};border-color:${t.border};color:${t.color}">
+        ${t.icon} ${counts[k]} ${t.label}
+      </div>`
+    ).join('');
+  }
+
+  if (!upcoming.length && !past.length) {
+    wrap.innerHTML = `<div class="appt-empty">
+      <div style="font-size:40px;margin-bottom:12px">🗓</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">No appointments yet</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">Tap + to schedule one</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if (upcoming.length) {
+    html += `<div class="appt-section-label">UPCOMING · ${upcoming.length}</div>`;
+    html += upcoming.map(a => buildApptCard(a, today)).join('');
+  }
+  if (past.length) {
+    html += `<div class="appt-section-label" style="margin-top:20px;opacity:.6">PAST · ${past.length}</div>`;
+    html += past.slice(0, 5).map(a => buildApptCard(a, today, true)).join('');
+  }
+  wrap.innerHTML = html;
+}
+
+function buildApptCard(a, today, isPast) {
+  const t = APPT_TYPES[a.type] || APPT_TYPES.other;
+  const d = new Date(a.date + 'T12:00:00');
+  const daysAway = Math.ceil((d - today) / 86400000);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = d.toLocaleString('en-IN',{month:'short'}).toUpperCase();
+  const dow = d.toLocaleString('en-IN',{weekday:'short'}).toUpperCase();
+  const memberMeta = Object.values(MEMBERS || {}).find(m => m.id === a.member || m.shortName?.toLowerCase() === a.member);
+  const memberName = memberMeta ? memberMeta.shortName : (a.member || '—');
+  const urgBadge = !isPast && daysAway <= 7
+    ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:${t.color};background:${t.bg};padding:2px 7px;border-radius:6px;border:1px solid ${t.border}">In ${daysAway}d</span>`
+    : !isPast && daysAway === 0
+    ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);background:rgba(255,79,79,.1);padding:2px 7px;border-radius:6px">TODAY</span>`
+    : '';
+  return `<div class="appt-v4-card pressable" onclick="editApptV4('${a.id}')" style="border-left:4px solid ${t.color};opacity:${isPast?'.55':'1'}">
+    <div class="appt-v4-datecol">
+      <div class="appt-v4-dd">${dd}</div>
+      <div class="appt-v4-mm">${mm}</div>
+      <div class="appt-v4-dow">${dow}</div>
+    </div>
+    <div class="appt-v4-body">
+      <div class="appt-v4-type-badge" style="color:${t.color};background:${t.bg};border-color:${t.border}">${t.icon} ${t.label}</div>
+      <div class="appt-v4-title">${a.title}</div>
+      ${a.time ? `<div class="appt-v4-meta">🕐 ${a.time}${a.loc ? ' · ' + a.loc : ''}</div>` : (a.loc ? `<div class="appt-v4-meta">📍 ${a.loc}</div>` : '')}
+      ${a.vehicle ? `<div class="appt-v4-meta">🚗 ${a.vehicle === 'activa' ? 'Honda Activa 125 · TS08HJ8438' : 'Hyundai i10 · AP27AK7873'}</div>` : ''}
+      ${a.notes ? `<div class="appt-v4-notes">${a.notes}</div>` : ''}
+      <div class="appt-v4-member">👤 ${memberName} ${urgBadge}</div>
+    </div>
+    <div class="appt-v4-chevron">›</div>
+  </div>`;
+}
+
+// ── Open sheet (add mode) ──
+function openApptSheetV4(prefill) {
+  _apptSheetMode = 'add';
+  _apptEditId = null;
+  const p = prefill || {};
+  _setApptSheetTitle('Add Appointment');
+  _resetApptSheet();
+  if (p.type)    _selectApptType(p.type);
+  if (p.vehicle) { const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = p.vehicle; }
+  const dateInp = document.getElementById('apptf-date');
+  if (dateInp) dateInp.value = p.date || new Date().toISOString().slice(0,10);
+  const delBtn = document.getElementById('apptv4-del-btn');
+  if (delBtn) delBtn.style.display = 'none';
+  _openApptSheet();
+}
+
+// ── Open sheet (edit mode) ──
+function editApptV4(id) {
+  const all = getApptsV4();
+  const a = all.find(x => x.id === id);
+  if (!a) return;
+  _apptSheetMode = 'edit';
+  _apptEditId = id;
+  _setApptSheetTitle('Edit Appointment');
+  _resetApptSheet();
+  _selectApptType(a.type || 'doctor');
+  const fields = { 'apptf-title':a.title, 'apptf-date':a.date, 'apptf-time':a.time||'', 'apptf-loc':a.loc||'', 'apptf-notes':a.notes||'' };
+  Object.entries(fields).forEach(([id,val]) => { const el = document.getElementById(id); if (el) el.value = val; });
+  const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = a.vehicle || '';
+  // Set member
+  document.querySelectorAll('.apptf-member-chip').forEach(c => c.classList.toggle('active', c.dataset.member === a.member));
+  const delBtn = document.getElementById('apptv4-del-btn');
+  if (delBtn) { delBtn.style.display = ''; delBtn.dataset.id = id; }
+  _openApptSheet();
+}
+
+function _setApptSheetTitle(t) { const el = document.getElementById('apptv4-sheet-title'); if (el) el.textContent = t; }
+
+function _resetApptSheet() {
+  ['apptf-title','apptf-date','apptf-time','apptf-loc','apptf-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = '';
+  _selectApptType('doctor');
+  document.querySelectorAll('.apptf-member-chip').forEach(c => c.classList.toggle('active', c.dataset.member === 'rajasekhar'));
+}
+
+var _apptSheetType = 'doctor';
+function _selectApptType(type) {
+  _apptSheetType = type;
+  document.querySelectorAll('.apptf-type-btn').forEach(b => {
+    const active = b.dataset.type === type;
+    b.classList.toggle('active', active);
+  });
+  // Show vehicle selector only for vehicle type
+  const vrow = document.getElementById('apptf-vehicle-row');
+  if (vrow) vrow.style.display = type === 'vehicle' ? 'block' : 'none';
+}
+
+function _openApptSheet() {
+  var _sy = window.scrollY||window.pageYOffset;
+  document.body.dataset.scrollY = _sy;
+  document.body.style.top = '-' + _sy + 'px';
+  document.body.classList.add('modal-open');
+  document.getElementById('apptv4-sheet').classList.remove('hidden');
+}
+
+function closeApptSheetV4() {
+  document.getElementById('apptv4-sheet').classList.add('hidden');
+  var _sy2 = parseInt(document.body.dataset.scrollY||'0',10);
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0,_sy2);
+}
+
+// ── Save appointment ──
+function saveApptV4() {
+  const title  = document.getElementById('apptf-title')?.value.trim();
+  const date   = document.getElementById('apptf-date')?.value;
+  const time   = document.getElementById('apptf-time')?.value || '';
+  const loc    = document.getElementById('apptf-loc')?.value.trim() || '';
+  const notes  = document.getElementById('apptf-notes')?.value.trim() || '';
+  const vehicle = (document.getElementById('apptf-vehicle')?.value || '').trim();
+  const member = document.querySelector('.apptf-member-chip.active')?.dataset.member || 'rajasekhar';
+
+  if (!title) { showToast('⚠️ Enter a title'); return; }
+  if (!date)  { showToast('⚠️ Pick a date');  return; }
+
+  const all = getApptsV4();
+  const t = APPT_TYPES[_apptSheetType] || APPT_TYPES.other;
+
+  if (_apptSheetMode === 'edit' && _apptEditId) {
+    // Update existing
+    const idx = all.findIndex(x => x.id === _apptEditId);
+    if (idx !== -1) {
+      apptDeleteCalEvent(_apptEditId);
+      all[idx] = { ...all[idx], type:_apptSheetType, title, date, time, loc, notes, vehicle, member };
+      saveApptsV4(all);
+      apptCreateCalEvent(all[idx]);
+      showToast('✅ Appointment updated');
+    }
+  } else {
+    // New
+    const id = 'appt_' + Date.now();
+    const appt = { id, type:_apptSheetType, member, title, date, time, loc, notes, vehicle };
+    all.push(appt);
+    saveApptsV4(all);
+    apptCreateCalEvent(appt);
+    showToast('✅ Appointment saved');
+  }
+
+  closeApptSheetV4();
+  renderApptsList();
+  if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+}
+
+// ── Delete appointment ──
+function deleteApptV4(id) {
+  if (!id) return;
+  const all = getApptsV4().filter(a => a.id !== id);
+  saveApptsV4(all);
+  apptDeleteCalEvent(id);
+  closeApptSheetV4();
+  renderApptsList();
+  if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+  showToast('🗑 Appointment removed');
+}
+
+// ── Calendar sync helpers ──
+function apptCreateCalEvent(a) {
+  try {
+    const t = APPT_TYPES[a.type] || APPT_TYPES.other;
+    const evts = getCalEvents();
+    // Remove any existing entry for this appt id
+    const cleaned = evts.filter(e => e.id !== 'appt_cal_' + a.id);
+    cleaned.push({
+      id: 'appt_cal_' + a.id,
+      title: t.icon + ' ' + a.title,
+      date: a.date,
+      start: a.time || '',
+      end: '',
+      cat: a.type === 'doctor' ? 'health' : a.type === 'vehicle' ? 'other' : 'other',
+      color: t.color,
+      members: [a.member ? (a.member.charAt(0).toUpperCase() + a.member.slice(1)) : 'all'],
+      notes: [a.loc, a.notes].filter(Boolean).join(' · '),
+      apptRef: a.id
+    });
+    saveCalEvents(cleaned);
+  } catch(err) {}
+}
+
+function apptDeleteCalEvent(apptId) {
+  try {
+    const evts = getCalEvents().filter(e => e.id !== 'appt_cal_' + apptId);
+    saveCalEvents(evts);
+  } catch(err) {}
 }
 
 // ── Report history storage ──
@@ -6472,17 +6950,22 @@ initHealthPage = function() {
 };
 
 // ── Render appointments for active member ──
+// ── Health appts: read-only view (filtered to active member) ──
+// Full management moved to Appointments Hub page
 function renderHealthAppts() {
   const wrap = document.getElementById('health-appt-list');
   if (!wrap) return;
   const today = new Date(); today.setHours(0,0,0,0);
-  const appts = getAppts()
-    .filter(a => a.member === healthActiveMember)
+  // Read from fp_appts_v4 (unified store), filter to doctor type + member
+  const appts = (typeof getApptsV4 === 'function' ? getApptsV4() : getAppts())
+    .filter(a => (a.type === 'doctor' || !a.type) && a.member === healthActiveMember)
     .filter(a => new Date(a.date + 'T12:00:00') >= today)
     .sort((a,b) => a.date.localeCompare(b.date));
 
   if (!appts.length) {
-    wrap.innerHTML = `<div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">No upcoming appointments<br><span style="font-size:10px;opacity:.6">Tap + Add to schedule one</span></div>`;
+    wrap.innerHTML = `<div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">No upcoming appointments<br>
+      <button onclick="goPage('appointments')" style="margin-top:8px;padding:6px 14px;border-radius:8px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);color:#f472b6;font-size:11px;font-weight:700;cursor:pointer;">+ Schedule one →</button>
+    </div>`;
     return;
   }
   wrap.innerHTML = appts.map(a => {
@@ -6491,31 +6974,25 @@ function renderHealthAppts() {
     const dd = String(d.getDate()).padStart(2,'0');
     const mm = d.toLocaleString('en-IN',{month:'short'}).toUpperCase();
     const col = daysAway <= 7 ? 'var(--red)' : daysAway <= 30 ? 'var(--gold)' : 'var(--green)';
-    return `<div class="appt-card">
+    return `<div class="appt-card" onclick="goPage('appointments')" style="cursor:pointer">
       <div class="appt-datebox">
         <div class="appt-dd">${dd}</div>
         <div class="appt-mm">${mm}</div>
       </div>
       <div class="appt-body">
         <div class="appt-title">${a.title}</div>
-        <div class="appt-who">${a.time ? '🕐 '+a.time+' · ' : ''}${a.loc}</div>
+        <div class="appt-who">${a.time ? '🕐 '+a.time+' · ' : ''}${a.loc||'—'}</div>
         ${a.notes ? `<div class="appt-loc">${a.notes}</div>` : ''}
       </div>
       <div class="appt-right">
         <div class="appt-days" style="color:${col}">${daysAway}</div>
         <div class="appt-dlbl">days</div>
       </div>
-      <button class="appt-del" onclick="deleteAppt('${a.id}')">−</button>
     </div>`;
-  }).join('');
+  }).join('') + `<div style="text-align:center;padding:8px 0 4px;"><button onclick="goPage('appointments')" style="padding:7px 16px;border-radius:10px;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.25);color:#f472b6;font-size:11px;font-weight:700;cursor:pointer;">Manage in Appointments Hub →</button></div>`;
 }
 
-function deleteAppt(id) {
-  const arr = getAppts().filter(a => a.id !== id);
-  saveAppts(arr);
-  renderHealthAppts();
-  showToast('Appointment removed');
-}
+function deleteAppt(id) { /* legacy stub — deletions handled in Appointments Hub */ }
 
 // ── Render report history ──
 function renderReportHistory() {
@@ -6678,21 +7155,14 @@ function saveLabReport() {
 }
 
 // ── Add Appointment sheet ──
+// ── openAddApptSheet: redirect to unified Appointments Hub ──
 function openAddApptSheet() {
-  haActiveMember = healthActiveMember;
-  renderHaMemberSelect();
-  document.getElementById('ha-title').value = '';
-  document.getElementById('ha-date').value  = '';
-  document.getElementById('ha-time').value  = '';
-  document.getElementById('ha-loc').value   = '';
-  document.getElementById('ha-notes').value = '';
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('ha-sheet').classList.remove('hidden');
+  goPage('appointments');
+  setTimeout(function() {
+    if (typeof openApptSheetV4 === 'function') openApptSheetV4({ type: 'doctor' });
+  }, 250);
 }
-function closeAddApptSheet() {
-  document.getElementById('ha-sheet').classList.add('hidden');
-  var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
-}
+function closeAddApptSheet() { /* noop — sheet is now on appointments page */ }
 function renderHaMemberSelect() {
   const wrap = document.getElementById('ha-member-select');
   if (!wrap) return;
@@ -7673,7 +8143,7 @@ function applyGmCalendar() {
    without requiring manual restore
 ═══════════════════════════════════════════════ */
 (function() {
-  var BACKUP_DATA = {"fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
+  var BACKUP_DATA = {"fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_appts_v4":"[{"id": "av4_a1", "type": "doctor", "member": "rajasekhar", "title": "Cardiology Consultation", "date": "2026-03-20", "time": "10:00", "loc": "Dr. Reddy, Yashoda Hospitals", "notes": "Bring ECG + last lipid report", "vehicle": ""}, {"id": "av4_a2", "type": "doctor", "member": "vasundhara", "title": "Thyroid Follow-up", "date": "2026-04-05", "time": "09:30", "loc": "Dr. Priya, KIMS Hospital", "notes": "Fasting required · 6 hrs", "vehicle": ""}, {"id": "av4_a3", "type": "doctor", "member": "josritha", "title": "Annual Health Check-up", "date": "2026-05-12", "time": "08:00", "loc": "Apollo Diagnostics, Hyderabad", "notes": "Full body check package", "vehicle": ""}, {"id": "av4_a4", "type": "vehicle", "member": "vasundhara", "title": "Activa 125 Regular Service", "date": "2026-04-15", "time": "10:00", "loc": "Honda Service Center, KPHB", "notes": "Oil change + general check", "vehicle": "activa"}, {"id": "av4_a5", "type": "lab", "member": "rajasekhar", "title": "Lipid Panel + HbA1c", "date": "2026-06-01", "time": "07:30", "loc": "Apollo Diagnostics, Ameerpet", "notes": "Fasting 10 hrs required", "vehicle": ""}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
 
   // Load each key into localStorage only if not already present (don't overwrite fresh scrapes)
   var keys = Object.keys(BACKUP_DATA);
@@ -8004,6 +8474,7 @@ function checkPinSession() {
 const BACKUP_KEYS = [
   'fp_cal_events',
   'fp_health_v3','fp_health_appts_v3','fp_health_reports_v3',
+  'fp_appts_v4',  // ← Unified appointments (Doctor/Vehicle/Lab/Other)
   'fp_attendance_synced','fp_attendance_synced_ts',
   'fp_timetable_synced','fp_timetable_synced_ts',
   'fp_bank_stmt_icici','fp_bank_stmt_icici_ts',

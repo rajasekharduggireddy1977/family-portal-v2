@@ -6151,3 +6151,98 @@ body.dash-active #content{
 [data-theme="light"] .vsvc-chip{background:#f3f4f6;border-color:#e5e7eb;color:#374151;}
 [data-theme="light"] .vsvc-odo-wrap,[data-theme="light"] .vsvc-cost-wrap{background:#f9fafb;border-color:rgba(0,0,0,.12);}
 [data-theme="light"] .vsvc-odo-pre,[data-theme="light"] .vsvc-odo-suf,[data-theme="light"] .vsvc-cost-sym{border-color:rgba(0,0,0,.08);}
+
+/* ================================================================
+   FEATURE: TASKS / APPOINTMENTS / CALENDAR FILTER PILLS  v10
+   ================================================================ */
+
+/* -- Expiry sheet action buttons -- */
+.tls-actions{display:flex;gap:10px;margin-top:16px;}
+.tls-btn{flex:1;padding:12px 10px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:transform .15s,box-shadow .15s;}
+.tls-btn:active{transform:scale(.96);}
+.tls-btn-done{background:linear-gradient(135deg,rgba(62,207,142,.2),rgba(62,207,142,.1));border:1px solid rgba(62,207,142,.4);color:var(--green);}
+.tls-btn-reschedule{background:linear-gradient(135deg,rgba(79,127,255,.2),rgba(79,127,255,.1));border:1px solid rgba(79,127,255,.4);color:var(--blue2);}
+
+/* -- Calendar type filter pills -- */
+.cal-type-pills-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px -16px 0;padding:0 16px;scrollbar-width:none;}
+.cal-type-pills-wrap::-webkit-scrollbar{display:none;}
+.cal-type-pills{display:flex;gap:7px;padding:2px 0 8px;min-width:max-content;}
+.cal-type-pill{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s;font-family:'Inter',sans-serif;}
+.cal-type-pill.active{font-weight:700;box-shadow:0 0 0 1px rgba(255,255,255,.06);}
+.cal-type-pill:active{transform:scale(.95);}
+.cal-type-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:9px;font-weight:700;border:1px solid;margin-left:6px;vertical-align:middle;font-family:'DM Mono',monospace;}
+
+/* ================================================================
+   APPOINTMENTS HUB PAGE
+   ================================================================ */
+.appt-page-wrap{padding:16px 16px 100px;}
+.appt-page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:14px;}
+.appt-page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text);}
+.appt-page-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:3px;letter-spacing:.4px;text-transform:uppercase;}
+.appt-add-btn{padding:9px 16px;border-radius:12px;background:linear-gradient(135deg,#f472b6,#a855f7);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(244,114,182,.35);}
+.appt-add-btn:active{transform:scale(.96);}
+.appt-stats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.appt-stat-chip{padding:6px 12px;border-radius:10px;font-size:11px;font-weight:700;border:1px solid;font-family:'Inter',sans-serif;}
+.appt-filter-pills{display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px;}
+.appt-filter-pills::-webkit-scrollbar{display:none;}
+.appt-fpill{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s;font-family:'Inter',sans-serif;}
+.appt-fpill.active{font-weight:700;}
+.appt-fpill:active{transform:scale(.95);}
+.appt-section-label{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);font-family:'DM Mono',monospace;margin:0 0 10px;text-transform:uppercase;}
+
+/* Appointment v4 card */
+.appt-v4-card{display:flex;align-items:stretch;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;transition:transform .15s,box-shadow .15s;box-shadow:0 2px 12px rgba(0,0,0,.12);}
+.appt-v4-card:active{transform:scale(.98);box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.appt-v4-datecol{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:52px;padding:12px 10px;background:var(--surface2);border-right:1px solid var(--border);}
+.appt-v4-dd{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:var(--text);line-height:1;}
+.appt-v4-mm{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-top:2px;}
+.appt-v4-dow{font-family:'DM Mono',monospace;font-size:8px;color:var(--text3);margin-top:1px;text-transform:uppercase;}
+.appt-v4-body{flex:1;padding:12px 12px 10px;min-width:0;}
+.appt-v4-type-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:8px;font-size:9px;font-weight:700;border:1px solid;font-family:'DM Mono',monospace;margin-bottom:5px;letter-spacing:.03em;}
+.appt-v4-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.3;font-family:'Inter',sans-serif;}
+.appt-v4-meta{font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.appt-v4-notes{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic;}
+.appt-v4-member{font-size:10px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;}
+.appt-v4-chevron{display:flex;align-items:center;padding:0 12px;font-size:18px;color:var(--text3);opacity:.5;}
+.appt-empty{text-align:center;padding:48px 16px;color:var(--text3);}
+
+/* ================================================================
+   APPOINTMENTS V4 BOTTOM SHEET
+   ================================================================ */
+.apptv4-sheet{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:flex-end;}
+.apptv4-sheet.hidden{display:none;}
+.apptv4-card{background:var(--surface);border-top-left-radius:24px;border-top-right-radius:24px;width:100%;max-height:92vh;overflow-y:auto;padding:0 16px 40px;box-shadow:0 -8px 40px rgba(0,0,0,.4);}
+.apptv4-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
+.apptv4-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px;}
+.apptv4-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.apptv4-close{background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:4px 8px;}
+.apptv4-sec-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;margin:14px 0 6px;}
+.apptv4-fields-row{display:flex;gap:10px;}
+.apptv4-fields-row > div{flex:1;}
+.apptf-type-row{display:flex;gap:8px;margin-bottom:4px;}
+.apptf-type-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-size:9px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;letter-spacing:.03em;}
+.apptf-type-btn span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.apptf-type-btn > :first-child{font-size:20px;}
+.apptf-type-btn.active[data-type="doctor"]{background:rgba(244,114,182,.15);border-color:rgba(244,114,182,.4);color:#f472b6;}
+.apptf-type-btn.active[data-type="vehicle"]{background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:#38bdf8;}
+.apptf-type-btn.active[data-type="lab"]{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#a78bfa;}
+.apptf-type-btn.active[data-type="other"]{background:rgba(240,180,41,.15);border-color:rgba(240,180,41,.4);color:#f0b429;}
+.apptf-member-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px;}
+.apptf-member-chip{padding:7px 13px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.apptf-member-chip.active{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.45);color:var(--purple);font-weight:700;}
+.apptf-input{width:100%;padding:11px 13px;border-radius:11px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;box-sizing:border-box;outline:none;-webkit-appearance:none;}
+.apptf-input:focus{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 3px rgba(167,139,250,.1);}
+.apptf-textarea{resize:none;min-height:60px;}
+.apptv4-actions{display:flex;gap:10px;margin-top:20px;}
+.apptv4-save-btn{flex:1;padding:14px;border-radius:14px;background:linear-gradient(135deg,#f472b6,#a855f7);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 16px rgba(244,114,182,.4);transition:transform .15s;}
+.apptv4-save-btn:active{transform:scale(.97);}
+.apptv4-del-btn{padding:14px 18px;border-radius:14px;background:rgba(255,79,79,.12);border:1px solid rgba(255,79,79,.3);color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+
+/* -- Light theme overrides -- */
+[data-theme="light"] .apptf-type-btn{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280;}
+[data-theme="light"] .apptf-member-chip{background:#f9fafb;border-color:#e5e7eb;color:#6b7280;}
+[data-theme="light"] .apptf-input{background:#f9fafb;border-color:rgba(0,0,0,.12);color:#111;}
+[data-theme="light"] .appt-v4-card{background:#fff;border-color:rgba(0,0,0,.08);}
+[data-theme="light"] .appt-v4-datecol{background:#f9fafb;border-color:rgba(0,0,0,.08);}
+[data-theme="light"] .apptv4-card{background:#fff;}
+[data-theme="light"] .cal-type-pill{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280;}
