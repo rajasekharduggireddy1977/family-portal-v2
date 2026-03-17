@@ -285,6 +285,15 @@ function setBudgetRailVisible(show){
 // Remove legacy localStorage keys that are no longer used
 (function cleanLegacyKeys(){
   ['fp_health_appts_v3'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  // Purge appt_cal_* mirror events — appointments no longer sync into fp_cal_events
+  try {
+    var _raw = localStorage.getItem('fp_cal_events');
+    if (_raw) {
+      var _evts = JSON.parse(_raw);
+      var _cleaned = _evts.filter(function(e){ return !(e.id||'').startsWith('appt_cal_'); });
+      if (_cleaned.length !== _evts.length) localStorage.setItem('fp_cal_events', JSON.stringify(_cleaned));
+    }
+  } catch(e) {}
 })();
 
 document.addEventListener('DOMContentLoaded',function(){
@@ -6861,10 +6870,8 @@ function saveApptV4() {
     // Update existing
     const idx = all.findIndex(x => x.id === _apptEditId);
     if (idx !== -1) {
-      apptDeleteCalEvent(_apptEditId);
       all[idx] = { ...all[idx], type:_apptSheetType, title, date, time, loc, notes, vehicle, member };
       saveApptsV4(all);
-      apptCreateCalEvent(all[idx]);
       showToast('✅ Appointment updated');
     }
   } else {
@@ -6873,7 +6880,6 @@ function saveApptV4() {
     const appt = { id, type:_apptSheetType, member, title, date, time, loc, notes, vehicle };
     all.push(appt);
     saveApptsV4(all);
-    apptCreateCalEvent(appt);
     showToast('✅ Appointment saved');
   }
 
@@ -6891,7 +6897,6 @@ function deleteApptV4(id) {
   if (!id) return;
   const all = getApptsV4().filter(a => a.id !== id);
   saveApptsV4(all);
-  apptDeleteCalEvent(id);
   closeApptSheetV4();
   renderApptsList();
   if (typeof renderHealthAppts === 'function') renderHealthAppts();
@@ -6902,29 +6907,11 @@ function deleteApptV4(id) {
   showToast('🗑 Appointment removed');
 }
 
-// ── Calendar sync helpers ──
-function apptCreateCalEvent(a) {
-  try {
-    const t = APPT_TYPES[a.type] || APPT_TYPES.other;
-    const evts = getCalEvents();
-    // Remove any existing entry for this appt id
-    const cleaned = evts.filter(e => e.id !== 'appt_cal_' + a.id);
-    cleaned.push({
-      id: 'appt_cal_' + a.id,
-      title: t.icon + ' ' + a.title,
-      date: a.date,
-      start: a.time || '',
-      end: '',
-      cat: a.type === 'doctor' ? 'health' : a.type === 'vehicle' ? 'other' : 'other',
-      color: t.color,
-      members: [a.member ? (a.member.charAt(0).toUpperCase() + a.member.slice(1)) : 'all'],
-      notes: [a.loc, a.notes].filter(Boolean).join(' · '),
-      apptRef: a.id
-    });
-    saveCalEvents(cleaned);
-  } catch(err) {}
-}
+// ── Calendar sync helpers (appointments no longer mirror to fp_cal_events) ──
+// apptCreateCalEvent kept as no-op stub for safety (not called from saveApptV4/deleteApptV4)
+function apptCreateCalEvent(a) { /* intentionally empty — appointments live in fp_appts_v4 only */ }
 
+// apptDeleteCalEvent: kept only as a purge utility for legacy cleanup
 function apptDeleteCalEvent(apptId) {
   try {
     const evts = getCalEvents().filter(e => e.id !== 'appt_cal_' + apptId);
