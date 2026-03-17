@@ -374,9 +374,6 @@
       <div class="snav-icon">⏰</div> Expiry Tracker
       <span class="snav-badge">2</span>
     </div>
-    <div class="snav-item" id="snav-calendar" onclick="goPage('calendar')">
-      <div class="snav-icon">📅</div> Calendar
-    </div>
     <div class="snav-item" id="snav-scheduler" onclick="goPage('scheduler')">
       <div class="snav-icon">📋</div> Agenda
     </div>
@@ -630,7 +627,7 @@
               <span class="cw-live-dot"></span>
               Today
             </div>
-            <span class="cw-cal-link" onclick="goPage('calendar')">Calendar →</span>
+            <span class="cw-cal-link" onclick="goPage('scheduler')">Agenda →</span>
           </div>
 
           <div class="cw-date-hero">
@@ -675,7 +672,7 @@
 
           <div class="cw-upcoming-footer">
             <span class="cw-footer-count">Showing <strong id="cw-evt-count">—</strong> events</span>
-            <span class="cw-footer-link" onclick="goPage('calendar')">All events →</span>
+            <span class="cw-footer-link" onclick="goPage('scheduler')">All events →</span>
           </div>
         </div>
 
@@ -1074,43 +1071,6 @@
     </div>
   </div>
 
-  <!-- ══════════ CALENDAR PAGE ══════════ -->
-  <div class="page" id="page-calendar">
-    <div class="cal-wrap">
-      <div class="cal-page-hdr">
-        <div>
-          <div class="cal-page-title">📅 Family Calendar</div>
-          <div class="cal-page-sub">ALL EVENTS · DUGGIREDDY FAMILY</div>
-        </div>
-        <button class="cal-add-btn" onclick="openCalSheet()">＋ Add Event</button>
-      </div>
-      <!-- Month nav -->
-      <div class="cal-month-nav">
-        <div class="cal-nav-btn" onclick="calNav(-1)">‹</div>
-        <div class="cal-month-label" id="cal-month-label">March 2026</div>
-        <div class="cal-nav-btn" onclick="calNav(1)">›</div>
-      </div>
-      <!-- Grid -->
-      <div class="cal-grid-wrap">
-        <div class="cal-dow-row">
-          <div class="cal-dow">Sun</div><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
-          <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
-        </div>
-        <div class="cal-cells" id="cal-cells"></div>
-      </div>
-      <!-- Type filter pills (Tasks / Appointments / Events / Classes) -->
-      <div class="cal-type-pills-wrap">
-        <div class="cal-type-pills" id="cal-type-pills"></div>
-      </div>
-      <!-- Member filter chips -->
-      <div class="cal-filter-chips" id="cal-chips"></div>
-      <!-- Event list -->
-      <div class="cal-events-hdr">
-        <div class="cal-events-title" id="cal-events-title">Upcoming Events</div>
-      </div>
-      <div id="cal-events-list"></div>
-    </div>
-  </div>
 
   <!-- ══════════ SCHEDULER / AGENDA PAGE ══════════ -->
   <div class="page" id="page-scheduler">
@@ -1519,76 +1479,6 @@
     <div class="bgt-sheet-actions">
       <button class="bgt-sheet-btn cancel" onclick="bgtCloseSheet()">Cancel</button>
       <button class="bgt-sheet-btn save" onclick="bgtSheetSave()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ ADD EVENT SHEET ═══════════════ -->
-<div class="cal-sheet hidden" id="cal-sheet" onclick="if(event.target===this)closeCalSheet()">
-  <div class="cal-sheet-card">
-    <div class="cal-sheet-handle"></div>
-    <div class="cal-sheet-title" id="cal-sheet-title">Add Event</div>
-    <div class="cal-field">
-      <label>Event Title</label>
-      <input class="cal-input" id="calf-title" type="text" placeholder="e.g. Doctor appointment, Visa renewal…">
-    </div>
-    <div class="cal-field">
-      <label>Date</label>
-      <input class="cal-input" id="calf-date" type="date">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="cal-field">
-        <label>Start Time</label>
-        <input class="cal-input" id="calf-start" type="time">
-      </div>
-      <div class="cal-field">
-        <label>End Time</label>
-        <input class="cal-input" id="calf-end" type="time">
-      </div>
-    </div>
-    <div class="cal-field">
-      <label>Category</label>
-      <select class="cal-input" id="calf-cat">
-        <option value="health">🏥 Health / Medical</option>
-        <option value="travel">✈️ Travel / Visa</option>
-        <option value="education">🎓 Education</option>
-        <option value="finance">💰 Finance / Banking</option>
-        <option value="government">🏛️ Government / Official</option>
-        <option value="family">👨‍👩‍👧‍👦 Family</option>
-        <option value="birthday">🎂 Birthday</option>
-        <option value="other">📌 Other</option>
-      </select>
-    </div>
-    <div class="cal-field">
-      <label>Color</label>
-      <div class="cal-color-row" id="cal-color-row">
-        <div class="cal-color-swatch active" data-color="#4f7fff" style="background:#4f7fff" onclick="selectCalColor('#4f7fff',this)"></div>
-        <div class="cal-color-swatch" data-color="#f0b429" style="background:#f0b429" onclick="selectCalColor('#f0b429',this)"></div>
-        <div class="cal-color-swatch" data-color="#3ecf8e" style="background:#3ecf8e" onclick="selectCalColor('#3ecf8e',this)"></div>
-        <div class="cal-color-swatch" data-color="#ff4f4f" style="background:#ff4f4f" onclick="selectCalColor('#ff4f4f',this)"></div>
-        <div class="cal-color-swatch" data-color="#a78bfa" style="background:#a78bfa" onclick="selectCalColor('#a78bfa',this)"></div>
-        <div class="cal-color-swatch" data-color="#ff8c42" style="background:#ff8c42" onclick="selectCalColor('#ff8c42',this)"></div>
-        <div class="cal-color-swatch" data-color="#f472b6" style="background:#f472b6" onclick="selectCalColor('#f472b6',this)"></div>
-      </div>
-    </div>
-    <div class="cal-field">
-      <label>Family Members</label>
-      <div class="cal-member-row" id="cal-member-row">
-        <div class="cal-member-chip active" data-member="all" onclick="toggleCalMember(this)">All</div>
-        <div class="cal-member-chip" data-member="Rajasekhar" onclick="toggleCalMember(this)">Rajasekhar</div>
-        <div class="cal-member-chip" data-member="Vasundhara" onclick="toggleCalMember(this)">Vasundhara</div>
-        <div class="cal-member-chip" data-member="Josritha" onclick="toggleCalMember(this)">Josritha</div>
-        <div class="cal-member-chip" data-member="Jeevan" onclick="toggleCalMember(this)">Jeevan</div>
-      </div>
-    </div>
-    <div class="cal-field">
-      <label>Notes (optional)</label>
-      <textarea class="cal-input" id="calf-notes" rows="2" placeholder="Any details, location, reminders…" style="resize:none;"></textarea>
-    </div>
-    <div class="cal-sheet-actions">
-      <button class="cal-delete-btn" id="cal-delete-btn" onclick="confirmDeleteCalEvent()" style="display:none">🗑 Delete</button>
-      <button class="cal-cancel-btn" onclick="closeCalSheet()">Cancel</button>
-      <button class="cal-save-btn" onclick="saveCalEvent()">Save Event</button>
     </div>
   </div>
 </div>
@@ -2115,10 +2005,10 @@
           <div class="tb-mg-t1">Expiry</div>
           <div class="tb-mg-t2">Track renewals</div>
         </div>
-        <div class="tb-mg-card" onclick="moreMenuAction('calendar');closeTbMore()">
+        <div class="tb-mg-card" onclick="goPage('scheduler');closeTbMore()">
           <div class="tb-mg-ico">📅</div>
-          <div class="tb-mg-t1">Calendar</div>
-          <div class="tb-mg-t2">Events</div>
+          <div class="tb-mg-t1">Events</div>
+          <div class="tb-mg-t2">Agenda</div>
         </div>
         <div class="tb-mg-card" onclick="moreMenuAction('appointments');closeTbMore()">
           <div class="tb-mg-ico">🗓</div>

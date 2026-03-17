@@ -282,6 +282,11 @@ function setBudgetRailVisible(show){
     setTimeout(function(){r.style.transition='';},50);
   }
 }
+// Remove legacy localStorage keys that are no longer used
+(function cleanLegacyKeys(){
+  ['fp_health_appts_v3'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+})();
+
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
     // Init bottom nav selector
@@ -308,7 +313,7 @@ function goPage(page) {
   // Always close more menu and sync nav selector, even if already on this page
   closeMoreMenuIfOpen();
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const _morePages = ['documents','expiry','calendar'];
+  const _morePages = ['documents','expiry'];
   const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
   const _navEl = document.getElementById(_navId);
   if(_navEl){ _navEl.classList.add('active'); moveBnavSelector(_navEl); }
@@ -360,7 +365,7 @@ function goPage(page) {
   if(page==='view')         { applyGmView(); }
   if(page==='members')      { applyGmMembers(); }
   if(page==='expiry')       { initExpiry(); animateExpBars(); }
-  if(page==='calendar')     { initCalendar(); applyGmCalendar(); }
+  if(page==='calendar')     { if(typeof setSchedTab==='function') setSchedTab('events',true); goPage('scheduler'); return; }
   if(page==='health')       { initHealthPage(); applyGmHealth(); }
   if(page==='documents')    { applyGmDocuments(); collapseAllDocSections(); }
   if(page==='budget')       { initBudget(); }
@@ -371,7 +376,7 @@ function goPage(page) {
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['view','members','documents','expiry','calendar','scheduler','health','budget','search'];
+const PAGE_ORDER = ['view','members','documents','expiry','scheduler','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -561,12 +566,7 @@ let calSelectedColor = '#4f7fff';
 let calEditId = null;
 
 
-// ████████████████████████████████████████████████████████
-// § CALENDAR      Calendar page -- grid, events, add/edit sheet
-// getCalEvents, saveCalEvents, initCalendar, calNav, renderCalGrid,
-// selectCalDate, renderCalChips, renderCalEvents, openCalSheet,
-// closeCalSheet, saveCalEvent, selectCalColor, buildCalMiniWidget
-// ████████████████████████████████████████████████████████
+// § CALENDAR — Data layer (getCalEvents/saveCalEvents) — UI removed; Agenda Events tab handles display
 function getCalEvents() {
   try {
     const stored = localStorage.getItem('fp_cal_events');
@@ -576,441 +576,6 @@ function getCalEvents() {
 
 function saveCalEvents(events) {
   localStorage.setItem('fp_cal_events', JSON.stringify(events));
-}
-
-function saveCalEvents(events) {
-  localStorage.setItem('fp_cal_events', JSON.stringify(events));
-}
-
-function initCalendar() {
-  renderCalGrid();
-  renderCalChips();
-  renderCalEvents(null);
-}
-
-function calNav(dir) {
-  calCurrentDate = new Date(calCurrentDate.getFullYear(), calCurrentDate.getMonth() + dir, 1);
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-// ── Subject colour palette for timetable dots (Option A: no storage write) ──
-var _ttSubjectColors = {};
-var _ttColorPalette = ['#a78bfa','#38bdf8','#34d399','#f472b6','#f0b429','#ff8c42','#60a5fa','#fb923c'];
-function _ttColorForKey(key) {
-  if (!_ttSubjectColors[key]) {
-    const idx = Object.keys(_ttSubjectColors).length % _ttColorPalette.length;
-    _ttSubjectColors[key] = _ttColorPalette[idx];
-  }
-  return _ttSubjectColors[key];
-}
-
-function renderCalGrid() {
-  const year = calCurrentDate.getFullYear();
-  const month = calCurrentDate.getMonth();
-  const label = calCurrentDate.toLocaleDateString('en-IN', { month:'long', year:'numeric' });
-  document.getElementById('cal-month-label').textContent = label;
-
-  const today = new Date();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const daysInPrev = new Date(year, month, 0).getDate();
-  const DAY_NUM = {SUNDAY:0,MONDAY:1,TUESDAY:2,WEDNESDAY:3,THURSDAY:4,FRIDAY:5,SATURDAY:6};
-
-  const events = getCalEvents();
-  // Build dot map: date-string → [{color, type}]
-  const dotMap = {};
-  const tf = calTypeFilter;
-
-  function addDot(ds, color, type) {
-    if (!dotMap[ds]) dotMap[ds] = [];
-    dotMap[ds].push({ color, type });
-  }
-
-  // fp_cal_events dots (skip att_risk_* always)
-  if (tf === 'all' || tf === 'tasks' || tf === 'events' || tf === 'appointments') {
-    events.forEach(ev => {
-      if (ev.id && ev.id.indexOf('att_risk_') === 0) return; // purged
-      // Classify type
-      const evType = ev.apptRef ? 'appointments'
-        : (ev.id && ev.id.startsWith('tr_')) ? 'tasks'
-        : 'events';
-      if (tf !== 'all' && tf !== evType) return;
-      addDot(ev.date, ev.color || '#4f7fff', evType);
-    });
-  }
-
-  // EXPIRY dots (type = tasks)
-  if (tf === 'all' || tf === 'tasks') {
-    EXPIRY.forEach(e => {
-      const d = daysUntil(e.date);
-      const col = d < 0 ? '#ff4f4f' : d <= 30 ? '#ff8c42' : d <= 90 ? '#f0b429' : '#3ecf8e';
-      addDot(e.date, col, 'tasks');
-    });
-  }
-
-  // Appointments v4 dots (type = appointments)
-  if (tf === 'all' || tf === 'appointments') {
-    try {
-      getApptsV4().forEach(a => {
-        const t = APPT_TYPES[a.type] || APPT_TYPES.other;
-        addDot(a.date, t.color, 'appointments');
-      });
-    } catch(e) {}
-  }
-
-  // ── Option A: Dynamic timetable dots (type = education) ──
-  if (tf === 'all' || tf === 'education') {
-    try {
-      const ttRaw = localStorage.getItem('fp_timetable_synced');
-      if (ttRaw) {
-        const ttSlots = JSON.parse(ttRaw); // [{day:'MONDAY', att_key, subject, ...}]
-        // Walk every day in the displayed month
-        for (let d = 1; d <= daysInMonth; d++) {
-          const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-          const dayNum = new Date(year, month, d).getDay();
-          const dayName = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][dayNum];
-          const slotsToday = ttSlots.filter(s => s.day === dayName);
-          // Deduplicate by att_key (one dot per subject per day)
-          const seenKeys = new Set();
-          slotsToday.forEach(s => {
-            const key = s.att_key || s.code || s.subject;
-            if (!key || seenKeys.has(key)) return;
-            seenKeys.add(key);
-            addDot(ds, _ttColorForKey(key), 'education');
-          });
-        }
-      }
-    } catch(e) {}
-  }
-
-  let html = '';
-  // Prev month cells
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const d = daysInPrev - i;
-    html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
-  }
-  // Current month
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
-    const isSel = calSelectedDate === ds;
-    const allDots = dotMap[ds] || [];
-    // Deduplicate by type for compact display (max 3 dots)
-    const seen = new Set();
-    const dedupDots = allDots.filter(dv => { if (seen.has(dv.type+dv.color)) return false; seen.add(dv.type+dv.color); return true; }).slice(0,3);
-    const dotsHtml = dedupDots.map(dv => `<div class="cal-dot" style="background:${dv.color}"></div>`).join('');
-    html += `<div class="cal-cell${isToday?' today':''}${isSel?' selected':''}" onclick="selectCalDate('${ds}')">
-      <div class="cal-day-num">${d}</div>
-      ${dotsHtml ? `<div class="cal-dot-row">${dotsHtml}</div>` : ''}
-    </div>`;
-  }
-  // Next month fill
-  const total = firstDay + daysInMonth;
-  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= remaining; d++) {
-    html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
-  }
-  document.getElementById('cal-cells').innerHTML = html;
-  // Render type filter pills
-  renderCalTypePills();
-}
-
-function selectCalDate(ds) {
-  calSelectedDate = calSelectedDate === ds ? null : ds;
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-function renderCalChips() {
-  const members = ['all','Rajasekhar','Vasundhara','Josritha','Jeevan'];
-  const labels = { all:'🌐 All' };
-  let html = members.map(m => {
-    const col = MEMBER_COLORS[m] || '#8b93a8';
-    const lbl = labels[m] || m;
-    return `<div class="cal-chip${calFilter===m?' active':''}" onclick="setCalFilter('${m}')">
-      <div class="cal-chip-dot" style="background:${col}"></div>${lbl}
-    </div>`;
-  }).join('');
-  document.getElementById('cal-chips').innerHTML = html;
-}
-
-function setCalFilter(m) {
-  calFilter = m;
-  renderCalChips();
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-// ── Type filter pills for calendar ──
-function renderCalTypePills() {
-  const wrap = document.getElementById('cal-type-pills');
-  if (!wrap) return;
-  const pills = [
-    { id:'all',          label:'All',          icon:'🗓', color:'var(--purple)', bg:'rgba(167,139,250,.14)', border:'rgba(167,139,250,.35)' },
-    { id:'tasks',        label:'Tasks',         icon:'✅', color:'#f0b429',       bg:'rgba(240,180,41,.14)',  border:'rgba(240,180,41,.35)'  },
-    { id:'appointments', label:'Appointments',  icon:'🏥', color:'#f472b6',       bg:'rgba(244,114,182,.14)', border:'rgba(244,114,182,.35)' },
-    { id:'events',       label:'Events',        icon:'📌', color:'#38bdf8',       bg:'rgba(56,189,248,.14)',  border:'rgba(56,189,248,.35)'  },
-    { id:'education',    label:'Classes',       icon:'📚', color:'#a78bfa',       bg:'rgba(167,139,250,.14)', border:'rgba(167,139,250,.35)' }
-  ];
-  wrap.innerHTML = pills.map(p => {
-    const active = calTypeFilter === p.id;
-    return `<div class="cal-type-pill${active?' active':''}"
-      style="${active ? `background:${p.bg};border-color:${p.border};color:${p.color};font-weight:700` : ''}"
-      onclick="setCalTypeFilter('${p.id}')">${p.icon} ${p.label}</div>`;
-  }).join('');
-}
-
-function setCalTypeFilter(t) {
-  calTypeFilter = t;
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-function renderCalEvents(selectedDate) {
-  const events = getCalEvents();
-  // Build timetable events for selected date if type filter allows
-  let ttEvents = [];
-  if ((calTypeFilter === 'all' || calTypeFilter === 'education') && selectedDate) {
-    try {
-      const ttRaw = localStorage.getItem('fp_timetable_synced');
-      if (ttRaw) {
-        const ttSlots = JSON.parse(ttRaw);
-        const d = new Date(selectedDate + 'T12:00:00');
-        const dayName = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][d.getDay()];
-        const seenKeys = new Set();
-        ttSlots.filter(s => s.day === dayName).forEach(s => {
-          const key = s.att_key || s.code || s.subject;
-          if (!key || seenKeys.has(key)) return;
-          seenKeys.add(key);
-          ttEvents.push({
-            id: 'tt_dyn_' + key + '_' + selectedDate,
-            title: '📚 ' + (s.subject || key),
-            date: selectedDate,
-            start: s.time_start || s.time || '',
-            end: s.time_end || '',
-            cat: 'education',
-            color: _ttColorForKey(key),
-            members: ['Josritha'],
-            notes: s.room ? 'Room ' + s.room : (s.type || ''),
-            _timetable: true
-          });
-        });
-      }
-    } catch(e) {}
-  }
-
-  let filtered = events.filter(ev => {
-    if (ev.id && ev.id.indexOf('att_risk_') === 0) return false; // always hide legacy spam
-    if (calFilter !== 'all') {
-      if (!ev.members || (!ev.members.includes(calFilter) && !ev.members.includes('all'))) return false;
-    }
-    // Type filter
-    if (calTypeFilter !== 'all') {
-      const evType = ev.apptRef ? 'appointments'
-        : (ev.id && ev.id.startsWith('tr_')) ? 'tasks'
-        : ev.cat === 'education' ? 'education'
-        : 'events';
-      if (evType !== calTypeFilter) return false;
-    }
-    if (selectedDate) return ev.date === selectedDate;
-    return true;
-  });
-
-  // Merge in dynamic timetable events (for selected date only)
-  const combined = filtered.concat(ttEvents);
-  combined.sort((a,b) => {
-    const ds = a.date.localeCompare(b.date);
-    if (ds !== 0) return ds;
-    return (a.start||'').localeCompare(b.start||'');
-  });
-
-  const titleEl = document.getElementById('cal-events-title');
-  if (selectedDate) {
-    const d = new Date(selectedDate + 'T12:00:00');
-    titleEl.textContent = d.toLocaleDateString('en-IN',{weekday:'long',month:'long',day:'numeric'});
-  } else {
-    titleEl.textContent = 'Upcoming Events';
-  }
-
-  if (!combined.length) {
-    document.getElementById('cal-events-list').innerHTML = `<div class="cal-no-events"><span>📭</span>${selectedDate?'No events on this day':'No events found'}</div>`;
-    return;
-  }
-
-  const today = new Date().toISOString().slice(0,10);
-  let html = combined.map(ev => {
-    const d = new Date(ev.date + 'T12:00:00');
-    const dStr = d.toLocaleDateString('en-IN',{month:'short',day:'numeric',weekday:'short'});
-    const isPast = ev.date < today;
-    const members = ev.members || ['all'];
-    const avatars = members.slice(0,3).map(m => {
-      const icons = {Rajasekhar:'👨',Vasundhara:'👩',Josritha:'👧',Jeevan:'👦',all:'👨‍👩‍👧‍👦'};
-      return icons[m]||'👤';
-    }).join('');
-    const catIcon = CAL_CAT_ICONS[ev.cat]||'📌';
-    const time = ev.start ? `${ev.start}${ev.end?'–'+ev.end:''}` : 'All day';
-    // Timetable events are read-only (no edit)
-    const clickHandler = ev._timetable ? '' : `onclick="editCalEvent('${ev.id}')"`;
-    // Type badge for appointments
-    const apptTypeBadge = ev.apptRef ? (() => {
-      const appt = (typeof getApptsV4==='function' ? getApptsV4() : []).find(a => a.id === ev.apptRef);
-      const t2 = appt ? (APPT_TYPES[appt.type] || APPT_TYPES.other) : APPT_TYPES.other;
-      return `<span class="cal-type-tag" style="background:${t2.bg};color:${t2.color};border-color:${t2.border}">${t2.icon} ${t2.label}</span>`;
-    })() : '';
-    return `<div class="cal-event-item pressable" ${clickHandler} style="opacity:${isPast?.6:1}">
-      <div class="cal-event-bar" style="background:${ev.color}"></div>
-      <div class="cal-event-body">
-        <div class="cal-event-title">${catIcon} ${ev.title}${apptTypeBadge}</div>
-        <div class="cal-event-meta">${dStr} · ${time}</div>
-        ${ev.notes?`<div class="cal-event-tags"><span class="cal-event-tag">📝 ${ev.notes.slice(0,40)}${ev.notes.length>40?'…':''}</span></div>`:''}
-      </div>
-      <div class="cal-event-right">
-        <div class="cal-event-time">${isPast?'<span style="color:var(--text3)">Past</span>':''}</div>
-        <div class="cal-event-avatar">${avatars}</div>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('cal-events-list').innerHTML = html;
-}
-
-function openCalSheet(prefillDate) {
-  calEditId = null;
-  document.getElementById('cal-sheet-title').textContent = 'Add Event';
-  document.getElementById('calf-title').value = '';
-  document.getElementById('calf-date').value = prefillDate || calSelectedDate || new Date().toISOString().slice(0,10);
-  document.getElementById('calf-start').value = '';
-  document.getElementById('calf-end').value = '';
-  document.getElementById('calf-cat').value = 'other';
-  document.getElementById('calf-notes').value = '';
-  calSelectedColor = '#4f7fff';
-  document.querySelectorAll('.cal-color-swatch').forEach(s => {
-    s.classList.toggle('active', s.dataset.color === calSelectedColor);
-  });
-  document.querySelectorAll('.cal-member-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.member === 'all');
-  });
-  // Hide delete button when adding new
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.style.display='none'; delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('cal-sheet').classList.remove('hidden');
-}
-
-function closeCalSheet() {
-  document.getElementById('cal-sheet').classList.add('hidden');
-  var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
-  // Reset delete button state
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-}
-
-let _deleteConfirmTimer = null;
-function confirmDeleteCalEvent() {
-  const delBtn = document.getElementById('cal-delete-btn');
-  if (!delBtn) return;
-  if (delBtn.classList.contains('confirm')) {
-    // Second tap — execute delete
-    clearTimeout(_deleteConfirmTimer);
-    deleteCalEvent(calEditId);
-  } else {
-    // First tap — arm the button
-    delBtn.classList.add('confirm');
-    delBtn.textContent = '⚠️ Confirm';
-    _deleteConfirmTimer = setTimeout(() => {
-      delBtn.classList.remove('confirm');
-      delBtn.textContent = '🗑 Delete';
-    }, 3000);
-  }
-}
-
-function deleteCalEvent(id) {
-  if (!id) return;
-  const events = getCalEvents().filter(e => e.id !== id);
-  saveCalEvents(events);
-  closeCalSheet();
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-  const calMiniBody = document.getElementById('cal-mini-body');
-  if (calMiniBody) calMiniBody.innerHTML = buildCalMiniWidget();
-  showToast('🗑 Event deleted');
-  if (typeof auraRenderHome === 'function') auraRenderHome();
-  if (typeof auraRenderOverview === 'function') auraRenderOverview();
-  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
-}
-
-function editCalEvent(id) {
-  const events = getCalEvents();
-  const ev = events.find(e => e.id === id);
-  if (!ev) return;
-  calEditId = id;
-  document.getElementById('cal-sheet-title').textContent = 'Edit Event';
-  document.getElementById('calf-title').value = ev.title;
-  document.getElementById('calf-date').value = ev.date;
-  document.getElementById('calf-start').value = ev.start||'';
-  document.getElementById('calf-end').value = ev.end||'';
-  document.getElementById('calf-cat').value = ev.cat||'other';
-  document.getElementById('calf-notes').value = ev.notes||'';
-  calSelectedColor = ev.color;
-  document.querySelectorAll('.cal-color-swatch').forEach(s => {
-    s.classList.toggle('active', s.dataset.color === ev.color);
-  });
-  document.querySelectorAll('.cal-member-chip').forEach(c => {
-    c.classList.toggle('active', ev.members.includes(c.dataset.member) || (c.dataset.member==='all' && ev.members.includes('all')));
-  });
-  // Show delete button when editing
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.style.display=''; delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('cal-sheet').classList.remove('hidden');
-}
-
-function saveCalEvent() {
-  const title = document.getElementById('calf-title').value.trim();
-  const date = document.getElementById('calf-date').value;
-  if (!title || !date) { showToast('⚠️ Title and date are required'); return; }
-  const start = document.getElementById('calf-start').value;
-  const end = document.getElementById('calf-end').value;
-  const cat = document.getElementById('calf-cat').value;
-  const notes = document.getElementById('calf-notes').value.trim();
-  const members = [...document.querySelectorAll('.cal-member-chip.active')].map(c => c.dataset.member);
-
-  const events = getCalEvents();
-  if (calEditId) {
-    const idx = events.findIndex(e => e.id === calEditId);
-    if (idx > -1) events[idx] = {...events[idx], title, date, start, end, cat, color:calSelectedColor, members, notes};
-  } else {
-    events.push({ id:'e'+Date.now(), title, date, start, end, cat, color:calSelectedColor, members, notes });
-  }
-  saveCalEvents(events);
-  closeCalSheet();
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-  showToast(calEditId ? '✏️ Event updated' : '📅 Event added');
-  // Refresh dashboard cal widget and home panel immediately
-  buildCalMiniWidget && buildCalMiniWidget();
-  if (typeof auraRenderHome === 'function') auraRenderHome();
-  if (typeof auraRenderOverview === 'function') auraRenderOverview();
-  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
-}
-
-function selectCalColor(color, el) {
-  calSelectedColor = color;
-  document.querySelectorAll('.cal-color-swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function toggleCalMember(el) {
-  if (el.dataset.member === 'all') {
-    document.querySelectorAll('.cal-member-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-  } else {
-    document.querySelector('.cal-member-chip[data-member="all"]').classList.remove('active');
-    el.classList.toggle('active');
-    if (![...document.querySelectorAll('.cal-member-chip')].some(c => c.classList.contains('active'))) {
-      document.querySelector('.cal-member-chip[data-member="all"]').classList.add('active');
-    }
-  }
 }
 
 // Build mini cal widget for dashboard
@@ -1029,7 +594,7 @@ function buildCalMiniWidget() {
     const d = new Date(ev.date + 'T12:00:00');
     const dStr = d.toLocaleDateString('en-IN',{month:'short',day:'numeric'});
     const av = icons[ev.members[0]]||'📅';
-    return `<div class="cal-mini-event pressable" onclick="goPage('calendar')">
+    return `<div class="cal-mini-event pressable" onclick="goPage('scheduler')">
       <div class="cal-mini-bar" style="background:${ev.color}"></div>
       <div class="cal-mini-body">
         <div class="cal-mini-title">${ev.title}</div>
@@ -1289,7 +854,7 @@ function buildWidgetHTML(wid) {
     case 'priority': return `<div class="w-card" style="padding:14px 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">🔔 &nbsp;Priority</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">Calendar →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">Calendar →</span>
       </div>
       <div class="priority-strip-wrap" id="priority-strip"></div>
     </div>`;
@@ -1314,7 +879,7 @@ function buildWidgetHTML(wid) {
     case 'urgent': return `<div class="w-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">⏳ &nbsp;Urgent Items</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">View Calendar →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">View Calendar →</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;" id="urgent-items"></div></div>`;
     case 'actions': return `<div class="w-card w-card-collapsible collapsed" data-wid="actions">
@@ -1363,7 +928,7 @@ function buildWidgetHTML(wid) {
           </div>
           <div class="qa-row-arrow">›</div>
         </div>
-        <div class="qa-row pressable" onclick="goPage('calendar')">
+        <div class="qa-row pressable" onclick="goPage('scheduler')">
           <div class="qa-row-icon" style="background:rgba(244,114,182,.13);color:#f472b6;">📅</div>
           <div class="qa-row-body">
             <div class="qa-row-title">Family Calendar</div>
@@ -1377,7 +942,7 @@ function buildWidgetHTML(wid) {
     case 'cal_mini': return `<div class="w-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">📅 &nbsp;Family Calendar</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">View All →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">View All →</span>
       </div>
       <div class="cal-mini-wrap" id="cal-mini-body"></div>
     </div>`;
@@ -3724,7 +3289,7 @@ function initWidgetDynamic() {
         const shortTitle = ev.title.replace(/^(Rajasekhar|Vasundhara|Josritha|Jeevan)\s+/i,'').split(' ').slice(0,4).join(' ');
         const memberLabel = ev.members && ev.members[0] !== 'all' ? ev.members[0] : '';
         const icon = ev.icon || (cls==='overdue'?'🔴':cls==='due-soon'?'🟡':'🔵');
-        return `<div class="priority-chip ${cls} pressable" onclick="goPage('calendar')">
+        return `<div class="priority-chip ${cls} pressable" onclick="goPage('scheduler')">
           <div class="pc-icon">${icon}</div>
           <div class="pc-body">
             <div class="pc-title">${shortTitle}</div>
@@ -3912,7 +3477,7 @@ function initWidgetDynamic() {
         const days = daysUntil(ev.date);
         const col = expiryColor(days);
         const pct = days<0?100:Math.max(1,Math.min(100,((10-days)/10)*100));
-        return `<div class="urgent-item pressable" onclick="goPage('calendar')" style="border-left:3px solid ${col}${days<0?';background:rgba(255,79,79,.04)':''}">
+        return `<div class="urgent-item pressable" onclick="goPage('scheduler')" style="border-left:3px solid ${col}${days<0?';background:rgba(255,79,79,.04)':''}">
           <span class="ui-icon">⏳</span>
           <div class="ui-body">
             <div class="ui-title">${ev.title}</div>
@@ -6719,7 +6284,7 @@ function seedSchedTasks() {
   return tasks;
 }
 
-function _getCalEvents() {
+function getCalEvents() {
   try { var s = localStorage.getItem('fp_cal_events'); if (s) return JSON.parse(s); } catch(e) {}
   return [];
 }
@@ -6775,7 +6340,7 @@ function switchSchTab(tab, skipAnim) {
 function updateSchedBadges() {
   var today=new Date();today.setHours(0,0,0,0);
   var tasks=getSchedTasks().filter(function(t){return t.status!=='done';});
-  var events=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;});
+  var events=getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;});
   var appts=(typeof getApptsV4==='function'?getApptsV4():[]).filter(function(a){return new Date(a.date+'T12:00:00')>=today;});
   var overdue=tasks.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;}).length;
   var tb=document.getElementById('sc-badge-tasks'); if(tb){tb.textContent=tasks.length;tb.className='sc-cb-count sc-count-task'+(overdue>0?' sc-count-danger':'');}
@@ -6896,7 +6461,7 @@ function _buildEvSection(title,icon,events,today,collapsed){
 function renderSchedEvents(){
   var wrap=document.getElementById('sc-timeline-wrap');if(!wrap)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var all=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var all=getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
   var countLbl=document.getElementById('sc-events-count-lbl');if(countLbl)countLbl.textContent=all.length+' upcoming';
   wrap.innerHTML='';
   if(!all.length){var em=document.createElement('div');em.className='sc-ev-empty';em.innerHTML='<div class="sc-empty-ico">📅</div><div class="sc-empty-title">No upcoming events</div><div class="sc-empty-sub">Tap + to add one</div>';wrap.appendChild(em);return;}
@@ -6994,7 +6559,7 @@ function openSchedEventSheet(prefill){
 }
 
 function editSchedEvent(id){
-  var ev=_getCalEvents().find(function(e){return e.id===id;});if(!ev)return;
+  var ev=getCalEvents().find(function(e){return e.id===id;});if(!ev)return;
   _schEventEditId=id;
   var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Edit Event';
   var fmap={'sce-title':ev.title||'','sce-date':ev.date||'','sce-time':ev.start||'','sce-notes':ev.notes||''};
@@ -7020,7 +6585,7 @@ function saveSchedEvent(){
   if(!date) {if(typeof showToast==='function')showToast('\u26a0\ufe0f Pick a date');return;}
   var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
   var color=CAT_COLORS[cat]||'#a78bfa';
-  var events=_getCalEvents();
+  var events=getCalEvents();
   if(editId){var idx=events.findIndex(function(e){return e.id===editId;});if(idx!==-1)events[idx]=Object.assign(events[idx],{title,date,start:time,cat,color,members:selMems,notes});}
   else{events.push({id:'e'+Date.now(),title,date,start:time,end:'',cat,color,members:selMems,notes});}
   localStorage.setItem('fp_cal_events',JSON.stringify(events));
@@ -7031,7 +6596,7 @@ function saveSchedEvent(){
 
 function deleteSchedEvent(){
   var editId=document.getElementById('sce-edit-id')?.value||'';if(!editId)return;
-  localStorage.setItem('fp_cal_events',JSON.stringify(_getCalEvents().filter(function(e){return e.id!==editId;})));
+  localStorage.setItem('fp_cal_events',JSON.stringify(getCalEvents().filter(function(e){return e.id!==editId;})));
   closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
   if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
 }
@@ -7584,9 +7149,9 @@ function saveAppt() {
   const notes = document.getElementById('ha-notes').value.trim();
   if (!title) { showToast('⚠️ Enter appointment title'); return; }
   if (!date)  { showToast('⚠️ Pick a date'); return; }
-  const appts = getAppts();
-  appts.push({ id:'a'+Date.now(), member:haActiveMember, title, date, time, loc, notes });
-  saveAppts(appts);
+  const appts = getApptsV4();
+  appts.push({ id:'a'+Date.now(), type:'doctor', member:haActiveMember, title, date, time, loc, notes, vehicle:'' });
+  saveApptsV4(appts);
   closeAddApptSheet();
   if (haActiveMember === healthActiveMember) renderHealthAppts();
   showToast('✓ Appointment saved for ' + HEALTH_MEMBER_META[haActiveMember].label);
@@ -8436,7 +8001,6 @@ function applyMemberContextToCurrentPage() {
     case 'members':     applyGmMembers();     break;
     case 'documents':   applyGmDocuments();   break;
     case 'health':      applyGmHealth();      break;
-    case 'calendar':    applyGmCalendar();    break;
     case 'expiry':      break; // expiry is family-wide, no filter needed
   }
 }
@@ -8520,22 +8084,7 @@ function applyGmHealth() {
   renderHealthPage();
 }
 
-// ── Calendar: set member filter ──
-function applyGmCalendar() {
-  if (activePortalMember === 'all') {
-    setCalFilter('all');
-    // Show all chips
-    document.querySelectorAll('#cal-chips .cal-chip').forEach(c => c.style.display = '');
-  } else {
-    const name = GM_META[activePortalMember].label;
-    setCalFilter(name);
-    // Hide other member chips
-    document.querySelectorAll('#cal-chips .cal-chip').forEach(c => {
-      const txt = c.textContent.trim();
-      c.style.display = (txt.includes('All') || txt.includes(name)) ? '' : 'none';
-    });
-  }
-}
+// ── Calendar: set member filter ──}
 
 /* ═══════════════════════════════════════════════
    BACKUP JSON AUTO-LOADER
@@ -8874,7 +8423,7 @@ function checkPinSession() {
 const BACKUP_KEYS = [
   'fp_cal_events',
   'fp_sched_tasks',  // ← Scheduler tasks (Deadlines & To-dos)
-  'fp_health_v3','fp_health_appts_v3','fp_health_reports_v3',
+  'fp_health_v3','fp_health_reports_v3',
   'fp_appts_v4',  // ← Unified appointments (Doctor/Vehicle/Lab/Other)
   'fp_attendance_synced','fp_attendance_synced_ts',
   'fp_timetable_synced','fp_timetable_synced_ts',
@@ -9684,12 +9233,12 @@ const CMD_PAGES = [
   { icon: '👨‍👩‍👧‍👦', title: 'Members', sub: 'Family profiles & documents', action: () => goPage('members'), badge: 'Page' },
   { icon: '📁', title: 'Documents', sub: 'All family records', action: () => goPage('documents'), badge: 'Page' },
   { icon: '⏰', title: 'Expiry Tracker', sub: 'Passports, insurance, visas', action: () => goPage('expiry'), badge: 'Page' },
-  { icon: '📅', title: 'Calendar', sub: 'Family events & reminders', action: () => goPage('calendar'), badge: 'Page' },
+  { icon: '📅', title: 'Agenda', sub: 'Tasks, events & appointments', action: () => goPage('scheduler'), badge: 'Page' },
   { icon: '💊', title: 'Health', sub: 'Medical records & appointments', action: () => goPage('health'), badge: 'Page' },
   { icon: '🔍', title: 'Search', sub: 'Find documents & IDs', action: () => goPage('search'), badge: 'Page' },
   { icon: '🌙', title: 'Toggle Theme', sub: 'Switch dark / light mode', action: () => toggleTheme(), badge: 'Action' },
   { icon: '💾', title: 'Backup Data', sub: 'Download backup JSON', action: () => openBackupModal(), badge: 'Action' },
-  { icon: '➕', title: 'Add Calendar Event', sub: 'Create a new family event', action: () => { goPage('calendar'); setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200); }, badge: 'Action' },
+  { icon: '➕', title: 'Add Event', sub: 'Create a new event in Agenda', action: () => { goPage('scheduler'); setTimeout(function(){ if(typeof setSchedTab==='function') setSchedTab('events',true); if(typeof openSchedEventSheet==='function') openSchedEventSheet(); }, 200); }, badge: 'Action' },
 ];
 
 // Build member entries from MEMBERS data
