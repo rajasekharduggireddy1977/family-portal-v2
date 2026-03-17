@@ -4272,20 +4272,38 @@ function auraRenderHome() {
     + String(now.getMonth()+1).padStart(2,'0') + '-'
     + String(now.getDate()).padStart(2,'0');
 
-  // TODAY block: exact today calendar events only (no timetable subjects)
+  // TODAY block: events + tasks due today + appointments today
   var evtRaw = localStorage.getItem('fp_cal_events');
   var todayRows = [];
+  // Calendar events
   if (evtRaw) {
     try {
       var evts = JSON.parse(evtRaw);
-      var todayEvts = evts.filter(function(e){ return e.date === todayStr && e.cat !== 'education'; })
-        .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
-      for (var i=0; i<todayEvts.length; i++) {
-        var ev = todayEvts[i];
-        todayRows.push({ ts: ev.start || '', name: ev.title, meta: ev.notes||'', cat: ev.cat||'other', members: ev.members||[] });
-      }
+      evts.filter(function(e){ return e.date === todayStr && e.cat !== 'education'; })
+        .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); })
+        .forEach(function(ev){
+          todayRows.push({ ts: ev.start||'', name: ev.title, cat: ev.cat||'other', members: ev.members||[], type:'event' });
+        });
     } catch(e){}
   }
+  // Tasks due today
+  try {
+    var tasks = typeof getSchedTasks==='function' ? getSchedTasks() : [];
+    tasks.filter(function(t){ return t.status!=='done' && t.dueDate===todayStr; })
+      .forEach(function(t){
+        todayRows.push({ ts:'', name:(t.icon||'📋')+' '+t.title, cat: t.cat||'other', members: t.member?[t.member]:[], type:'task' });
+      });
+  } catch(e){}
+  // Appointments today
+  try {
+    var appts = typeof getApptsV4==='function' ? getApptsV4() : [];
+    appts.filter(function(a){ return a.date===todayStr; })
+      .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); })
+      .forEach(function(a){
+        todayRows.push({ ts: a.time||'', name: a.title, cat: a.type||'other', members: a.member?[a.member]:[], type:'appt' });
+      });
+  } catch(e){}
+  todayRows.sort(function(a,b){ return (a.ts||'ZZ').localeCompare(b.ts||'ZZ'); });
 
   var todayEl = document.getElementById('aura-today-timeline');
   if (todayEl) {
@@ -4302,8 +4320,10 @@ function auraRenderHome() {
         var memberKey = (row.members[0]||'').toLowerCase();
         var av = CW_AVATARS[memberKey] || null;
         var memberHtml = av ? '<div class="cw-person-avatar" style="background:' + av.b + '">' + av.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
-        var tagHtml = '<span class="cw-event-tag">' + (row.cat||'other') + '</span>';
-        html += '<div class="cw-event-item cw-today-event cat-' + (row.cat||'other') + '" onclick="goPage(\'calendar\')">'
+        var typeLabel = row.type==='task' ? 'task' : row.type==='appt' ? 'appt' : (row.cat||'other');
+        var tagHtml = '<span class="cw-event-tag">' + typeLabel + '</span>';
+        var rowNav = row.type==='task'||row.type==='appt' ? 'scheduler' : 'calendar';
+        html += '<div class="cw-event-item cw-today-event cat-' + (row.cat||'other') + '" onclick="goPage(\'' + rowNav + '\')">'
           + '<div class="cw-event-stripe"></div>'
           + '<div class="cw-event-date-col">'
           + '<div class="cw-event-day-num">' + timeH + '</div>'
@@ -4323,17 +4343,34 @@ function auraRenderHome() {
   // Init calendar widget date display + mini cal
   if (typeof cwInitWidget === 'function') cwInitWidget();
 
-  // GRAVITY RAIL: overdue + today + all upcoming events (no cap)
+  // GRAVITY RAIL: overdue + today + all upcoming — events + tasks + appointments merged
   var upcoming = [];
+  // Calendar events (all non-education categories)
   if (evtRaw) {
     try {
       var evts2 = JSON.parse(evtRaw);
-      var GR_ALLOWED = { health:1, travel:1, government:1, family:1, birthday:1, finance:1, other:1 };
-      upcoming = evts2
-        .filter(function(e){ return GR_ALLOWED[e.cat]; })
-        .sort(function(a,b){ return a.date.localeCompare(b.date); });
+      evts2.filter(function(e){ return e.cat !== 'education'; })
+        .forEach(function(e){
+          upcoming.push({ title:e.title, date:e.date, cat:e.cat||'other', members:e.members||[], type:'event' });
+        });
     } catch(e){}
   }
+  // Upcoming tasks (not done, has due date)
+  try {
+    var tasks2 = typeof getSchedTasks==='function' ? getSchedTasks() : [];
+    tasks2.filter(function(t){ return t.status!=='done' && t.dueDate; })
+      .forEach(function(t){
+        upcoming.push({ title:(t.icon||'📋')+' '+t.title, date:t.dueDate, cat:t.cat||'other', members:t.member?[t.member]:[], type:'task' });
+      });
+  } catch(e){}
+  // Upcoming appointments
+  try {
+    var appts2 = typeof getApptsV4==='function' ? getApptsV4() : [];
+    appts2.forEach(function(a){
+      upcoming.push({ title:a.title, date:a.date, cat:a.type||'other', members:a.member?[a.member]:[], type:'appt' });
+    });
+  } catch(e){}
+  upcoming.sort(function(a,b){ return a.date.localeCompare(b.date); });
 
   var grCards = document.getElementById('gr-cards');
   var grEmpty = document.getElementById('gr-empty');
@@ -4381,7 +4418,10 @@ function auraRenderHome() {
 
     var overdueBorder = isOverdue ? 'border-left:2px solid rgba(255,79,79,.6);' : '';
     var dayColor = isOverdue ? 'color:#ff4f4f;font-weight:700;' : isToday ? 'color:#3ecf8e;font-weight:700;' : '';
-    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;' + overdueBorder + '" onclick="goPage(\'calendar\')">'
+    var navTarget = ev2.type==='task'||ev2.type==='appt' ? 'scheduler' : 'calendar';
+    var TYPE_BADGE = { task:'📋 Task', appt:'🗓 Appt', event:'' };
+    var typeBadge = TYPE_BADGE[ev2.type]||'';
+    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;' + overdueBorder + '" onclick="goPage(\'' + navTarget + '\')">'
       + '<div class="gr-card-node">'
       + '<div class="gr-card-dot gr-dot-' + cls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
       + '</div>'
@@ -4394,6 +4434,7 @@ function auraRenderHome() {
       + (memberLabel ? '<span class="gr-card-member">' + memberLabel + '</span>' : '')
       + (memberLabel && ev2.cat ? '<span class="gr-card-cat">\u00b7</span>' : '')
       + (ev2.cat ? '<span class="gr-card-cat">' + ev2.cat + '</span>' : '')
+      + (typeBadge ? '<span class="gr-card-cat" style="opacity:.6;">\u00b7 '+typeBadge+'</span>' : '')
       + '</div>'
       + '</div>'
       + '</div>';
