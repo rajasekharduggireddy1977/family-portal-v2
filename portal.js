@@ -6727,7 +6727,8 @@ function switchSchTab(tab, skipAnim) {
   _schTab=tab;
   var inEl=document.getElementById('sc-panel-'+tab); if(inEl) inEl.classList.add('sc-active');
   var inBtn=document.getElementById('sc-btn-'+tab); if(inBtn) inBtn.classList.add('active');
-  var fab=document.getElementById('sc-fab'); if(fab) fab.className='sc-fab'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');
+  var fab=document.getElementById('sc-fab'); if(fab) fab.className='sc-add-btn'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');
+  var addLbl=document.getElementById('sc-add-btn-label'); if(addLbl) addLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appointment':'Add Task';
 }
 
 function updateSchedBadges() {
@@ -6812,25 +6813,58 @@ function undoTaskDone(id){
   renderSchedTasks();updateSchedBadges();
 }
 
+function _buildEvCard(ev,today){
+  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
+  var dotColor=ev.color||CAT_COLORS[ev.cat]||'#a78bfa';
+  var d=new Date(ev.date+'T12:00:00');
+  var timeStr=ev.start?ev.start:d.toLocaleString('en-IN',{day:'2-digit',month:'short'});
+  var daysAway=Math.ceil((d-today)/86400000);
+  var urgClass=daysAway===0?'risk-crit':daysAway<=7?'risk-warn':'risk-ok';
+  var urgLabel=daysAway===0?'TODAY':daysAway===1?'Tomorrow':'In '+daysAway+'d';
+  var card=document.createElement('div');card.className='sc-ev-card';
+  card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div>';
+  return card;
+}
+
+function _buildEvSection(title,icon,events,today,collapsed){
+  var section=document.createElement('div');
+  section.className='sc-ev-section'+(collapsed?' collapsed':'');
+  var bodyH=collapsed?'0px':'auto';
+  var chevron=collapsed?'›':'‹';
+  /* header */
+  var hdr=document.createElement('div');hdr.className='sc-ev-section-hdr';
+  hdr.innerHTML='<div class="sc-ev-section-left"><span style="font-size:14px;">'+icon+'</span><span class="sc-ev-section-title">'+title+'</span><span class="sc-ev-section-badge">'+events.length+'</span></div><span class="sc-ev-section-chevron">'+(collapsed?'▸':'▾')+'</span>';
+  hdr.addEventListener('click',function(){
+    var isCol=section.classList.contains('collapsed');
+    var body=section.querySelector('.sc-ev-section-body');
+    var chev=hdr.querySelector('.sc-ev-section-chevron');
+    if(isCol){section.classList.remove('collapsed');if(chev)chev.textContent='▾';body.style.maxHeight=body.scrollHeight+'px';setTimeout(function(){body.style.maxHeight='none';},320);}
+    else{body.style.maxHeight=body.scrollHeight+'px';requestAnimationFrame(function(){body.style.maxHeight='0px';});section.classList.add('collapsed');if(chev)chev.textContent='▸';}
+  });
+  section.appendChild(hdr);
+  /* body */
+  var body=document.createElement('div');body.className='sc-ev-section-body';
+  if(collapsed)body.style.maxHeight='0px';
+  var tWrap=document.createElement('div');tWrap.style.cssText='position:relative;';
+  var tLine=document.createElement('div');tLine.className='sc-timeline-line';tWrap.appendChild(tLine);
+  events.forEach(function(ev){tWrap.appendChild(_buildEvCard(ev,today));});
+  body.appendChild(tWrap);section.appendChild(body);
+  return section;
+}
+
 function renderSchedEvents(){
   var wrap=document.getElementById('sc-timeline-wrap');if(!wrap)return;
   var today=new Date();today.setHours(0,0,0,0);
-  var events=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);}).slice(0,20);
-  var countLbl=document.getElementById('sc-events-count-lbl');if(countLbl)countLbl.textContent=events.length+' upcoming';
-  wrap.querySelectorAll('.sc-ev-card,.sc-ev-empty').forEach(function(el){el.remove();});
-  if(!events.length){var em=document.createElement('div');em.className='sc-ev-empty';em.innerHTML='<div class="sc-empty-ico">📅</div><div class="sc-empty-title">No upcoming events</div><div class="sc-empty-sub">Tap + to add one</div>';wrap.appendChild(em);return;}
-  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
-  events.forEach(function(ev){
-    var dotColor=ev.color||CAT_COLORS[ev.cat]||'#a78bfa';
-    var d=new Date(ev.date+'T12:00:00');
-    var timeStr=ev.start?ev.start:d.toLocaleString('en-IN',{day:'2-digit',month:'short'});
-    var daysAway=Math.ceil((d-today)/86400000);
-    var urgClass=daysAway===0?'risk-crit':daysAway<=7?'risk-warn':'risk-ok';
-    var urgLabel=daysAway===0?'TODAY':daysAway===1?'Tomorrow':'In '+daysAway+'d';
-    var card=document.createElement('div');card.className='sc-ev-card';
-    card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div>';
-    wrap.appendChild(card);
-  });
+  var all=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var countLbl=document.getElementById('sc-events-count-lbl');if(countLbl)countLbl.textContent=all.length+' upcoming';
+  wrap.innerHTML='';
+  if(!all.length){var em=document.createElement('div');em.className='sc-ev-empty';em.innerHTML='<div class="sc-empty-ico">📅</div><div class="sc-empty-title">No upcoming events</div><div class="sc-empty-sub">Tap + to add one</div>';wrap.appendChild(em);return;}
+  var eduEvs=all.filter(function(e){return e.cat==='education';});
+  var lifeEvs=all.filter(function(e){return e.cat!=='education';});
+  /* Life Events section — expanded by default */
+  if(lifeEvs.length) wrap.appendChild(_buildEvSection('Life Events','🗓',lifeEvs,today,false));
+  /* Education section — collapsed by default */
+  if(eduEvs.length) wrap.appendChild(_buildEvSection('Education','🎓',eduEvs,today,true));
 }
 
 function renderSchedAppts(){
