@@ -1210,9 +1210,13 @@
 
       </div><!-- /sc-canvas -->
 
-      <!-- FAB -->
-      <div class="sc-fab-wrap">
-        <div class="sc-fab" id="sc-fab" onclick="openSchedSheet()">＋</div>
+      <!-- Stunning Add Button -->
+      <div class="sc-add-btn-wrap" id="sc-add-btn-wrap">
+        <button class="sc-add-btn" id="sc-fab" onclick="openSchedSheet()">
+          <span class="sc-add-btn-icon">＋</span>
+          <span class="sc-add-btn-label" id="sc-add-btn-label">Add Task</span>
+          <span class="sc-add-btn-glow"></span>
+        </button>
       </div>
 
     </div><!-- /sched-page -->
@@ -1221,9 +1225,13 @@
   <!-- Scheduler Task Add Sheet -->
   <div class="sc-sheet-backdrop" id="sc-task-sheet" onclick="if(event.target===this)closeSchedSheet('task')">
     <div class="sc-add-sheet">
-      <div class="sc-sh-handle"></div>
-      <div class="sc-sh-title" id="sc-task-sheet-title">Add Task</div>
-      <div class="sc-sh-sub">// deadline or to-do</div>
+      <div class="sc-sh-header">
+        <div>
+          <div class="sc-sh-title" id="sc-task-sheet-title">Add Task</div>
+          <div class="sc-sh-sub">// deadline or to-do</div>
+        </div>
+        <button class="sc-sh-close" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
+      </div>
       <div class="sc-sh-body">
         <div class="sc-form-section">
           <label class="sc-form-label">Title</label>
@@ -1276,9 +1284,13 @@
   <!-- Scheduler Event Add Sheet -->
   <div class="sc-sheet-backdrop" id="sc-event-sheet" onclick="if(event.target===this)closeSchedSheet('event')">
     <div class="sc-add-sheet">
-      <div class="sc-sh-handle"></div>
-      <div class="sc-sh-title" id="sc-event-sheet-title">Add Event</div>
-      <div class="sc-sh-sub">// birthday, class, deadline…</div>
+      <div class="sc-sh-header">
+        <div>
+          <div class="sc-sh-title" id="sc-event-sheet-title">Add Event</div>
+          <div class="sc-sh-sub">// birthday, class, deadline…</div>
+        </div>
+        <button class="sc-sh-close" onclick="closeSchedSheet('event')" aria-label="Close">✕</button>
+      </div>
       <div class="sc-sh-body">
         <div class="sc-form-section">
           <label class="sc-form-label">Title</label>
