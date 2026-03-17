@@ -377,8 +377,8 @@
     <div class="snav-item" id="snav-calendar" onclick="goPage('calendar')">
       <div class="snav-icon">📅</div> Calendar
     </div>
-    <div class="snav-item" id="snav-appointments" onclick="goPage('appointments')">
-      <div class="snav-icon">🗓</div> Appointments
+    <div class="snav-item" id="snav-scheduler" onclick="goPage('scheduler')">
+      <div class="snav-icon">📋</div> Agenda
     </div>
     <div class="snav-item" id="snav-health" onclick="goPage('health')">
       <div class="snav-icon">💊</div> Health<div class="bnav-alert-dot snav-alert-dot" id="health-alert-dot-snav" style="display:none;"></div>
@@ -1112,23 +1112,211 @@
     </div>
   </div>
 
-  <!-- ══════════ APPOINTMENTS HUB PAGE ══════════ -->
-  <div class="page" id="page-appointments">
-    <div class="appt-page-wrap">
+  <!-- ══════════ SCHEDULER / AGENDA PAGE ══════════ -->
+  <div class="page" id="page-scheduler">
+    <div class="sched-page">
       <!-- Header -->
-      <div class="appt-page-hdr">
+      <div class="sched-hdr">
         <div>
-          <div class="appt-page-title">🗓 Appointments Hub</div>
-          <div class="appt-page-sub">DOCTOR · VEHICLE · LAB · OTHER</div>
+          <div class="sched-hdr-title">Family Agenda</div>
+          <div class="sched-hdr-sub" id="sched-hdr-month">MARCH 2026</div>
         </div>
-        <button class="appt-add-btn" onclick="openApptSheetV4()">＋ Add</button>
+        <div class="sched-hdr-avatar" id="sched-hdr-avatar">RD</div>
       </div>
-      <!-- Stats chips -->
-      <div class="appt-stats" id="appt-stats"></div>
-      <!-- Type filter pills -->
-      <div class="appt-filter-pills" id="appt-filter-pills"></div>
-      <!-- Appointments list -->
-      <div id="appt-list-wrap"></div>
+
+      <!-- Crown switcher -->
+      <div class="sc-crown">
+        <div class="sc-crown-btn active" id="sc-btn-tasks" data-tab="tasks" onclick="switchSchTab('tasks')">
+          <div class="sc-cb-count sc-count-task sc-count-danger" id="sc-badge-tasks">0</div>
+          <span class="sc-cb-icon">✅</span>
+          <div class="sc-cb-label">Tasks</div>
+          <div class="sc-cb-pill sc-pill-task"></div>
+        </div>
+        <div class="sc-crown-divider"></div>
+        <div class="sc-crown-btn" id="sc-btn-events" data-tab="events" onclick="switchSchTab('events')">
+          <div class="sc-cb-count sc-count-event" id="sc-badge-events">0</div>
+          <span class="sc-cb-icon">📅</span>
+          <div class="sc-cb-label">Events</div>
+          <div class="sc-cb-pill sc-pill-event"></div>
+        </div>
+        <div class="sc-crown-divider"></div>
+        <div class="sc-crown-btn" id="sc-btn-appts" data-tab="appts" onclick="switchSchTab('appts')">
+          <div class="sc-cb-count sc-count-appt" id="sc-badge-appts">0</div>
+          <span class="sc-cb-icon">🗓</span>
+          <div class="sc-cb-label">Appts</div>
+          <div class="sc-cb-pill sc-pill-appt"></div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="sc-canvas" id="sc-canvas">
+
+        <!-- ── TASKS PANEL ── -->
+        <div class="sc-panel sc-active" id="sc-panel-tasks">
+          <div class="sc-overdue-banner" id="sc-overdue-banner" style="display:none;">
+            <div class="sc-ob-flash"></div>
+            <div>
+              <div class="sc-ob-text" id="sc-ob-text">items overdue</div>
+              <div class="sc-ob-sub" id="sc-ob-sub"></div>
+            </div>
+          </div>
+          <div class="sc-sec-label">
+            <div class="sc-sl-left"><div class="sc-sl-line sc-line-task"></div><div class="sc-sl-text">Deadlines</div></div>
+            <div class="sc-sl-count" id="sc-task-count-lbl">0 pending</div>
+          </div>
+          <div class="sc-task-rail" id="sc-task-rail">
+            <div class="sc-urgency-spine"></div>
+            <div class="sc-spine-zone sc-spine-z-danger">Overdue</div>
+            <div class="sc-spine-zone sc-spine-z-warn">Urgent</div>
+            <div class="sc-spine-zone sc-spine-z-ok">Safe</div>
+            <!-- tasks rendered by JS -->
+          </div>
+          <div class="sc-done-section" id="sc-done-section" style="display:none;">
+            <div class="sc-done-divider">
+              <div class="sc-dd-line"></div>
+              <div class="sc-done-label">Completed</div>
+              <div class="sc-done-count-chip" id="sc-done-count">0</div>
+              <div class="sc-dd-line"></div>
+            </div>
+            <div id="sc-done-list"></div>
+          </div>
+        </div>
+
+        <!-- ── EVENTS PANEL ── -->
+        <div class="sc-panel" id="sc-panel-events">
+          <div class="sc-sec-label">
+            <div class="sc-sl-left"><div class="sc-sl-line sc-line-event"></div><div class="sc-sl-text">Upcoming Events</div></div>
+            <div class="sc-sl-count" id="sc-events-count-lbl"></div>
+          </div>
+          <div class="sc-timeline-wrap" id="sc-timeline-wrap">
+            <div class="sc-timeline-line"></div>
+            <!-- events rendered by JS -->
+          </div>
+        </div>
+
+        <!-- ── APPOINTMENTS PANEL ── -->
+        <div class="sc-panel" id="sc-panel-appts">
+          <div class="sc-sec-label">
+            <div class="sc-sl-left"><div class="sc-sl-line sc-line-appt"></div><div class="sc-sl-text">All Appointments</div></div>
+            <div class="sc-sl-count" id="sc-appts-count-lbl"></div>
+          </div>
+          <!-- Stats chips -->
+          <div class="appt-stats sc-appt-wrap" id="sc-appt-stats" style="padding-bottom:8px;"></div>
+          <!-- Filter pills -->
+          <div class="appt-filter-pills" id="sc-appt-filter-pills" style="padding:2px 16px 10px;margin:0;"></div>
+          <!-- Appointments list -->
+          <div class="sc-appt-wrap" id="sc-appt-list-wrap"></div>
+        </div>
+
+      </div><!-- /sc-canvas -->
+
+      <!-- FAB -->
+      <div class="sc-fab-wrap">
+        <div class="sc-fab" id="sc-fab" onclick="openSchedSheet()">＋</div>
+      </div>
+
+    </div><!-- /sched-page -->
+  </div><!-- /page-scheduler -->
+
+  <!-- Scheduler Task Add Sheet -->
+  <div class="sc-sheet-backdrop" id="sc-task-sheet" onclick="if(event.target===this)closeSchedSheet('task')">
+    <div class="sc-add-sheet">
+      <div class="sc-sh-handle"></div>
+      <div class="sc-sh-title" id="sc-task-sheet-title">Add Task</div>
+      <div class="sc-sh-sub">// deadline or to-do</div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Title</label>
+        <input class="sc-form-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal">
+      </div>
+      <div class="sc-form-row">
+        <div>
+          <label class="sc-form-label">Due Date <span class="sc-optional-tag">(optional)</span></label>
+          <input class="sc-form-input" id="sct-due" type="date">
+        </div>
+        <div>
+          <label class="sc-form-label">Icon</label>
+          <input class="sc-form-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Category</label>
+        <div class="sc-cat-row" id="sct-cat-row">
+          <div class="sc-cat-chip active" data-cat="finance">💰 Finance</div>
+          <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
+          <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
+          <div class="sc-cat-chip" data-cat="property">🏠 Property</div>
+          <div class="sc-cat-chip" data-cat="vehicle">🚗 Vehicle</div>
+          <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Member</label>
+        <div class="sc-mem-row" id="sct-mem-row">
+          <div class="sc-mem-chip active" data-member="rajasekhar">👨 Raj</div>
+          <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
+          <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
+          <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
+          <div class="sc-mem-chip" data-member="all">👨‍👩‍👧‍👦 All</div>
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
+        <textarea class="sc-form-input sc-form-textarea" id="sct-notes" placeholder="Any details…"></textarea>
+      </div>
+      <input type="hidden" id="sct-edit-id">
+      <button class="sc-sh-cta" id="sct-save-btn" onclick="saveSchedTask()">SAVE TASK</button>
+      <button class="sc-sh-del" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
+    </div>
+  </div>
+
+  <!-- Scheduler Event Add Sheet -->
+  <div class="sc-sheet-backdrop" id="sc-event-sheet" onclick="if(event.target===this)closeSchedSheet('event')">
+    <div class="sc-add-sheet">
+      <div class="sc-sh-handle"></div>
+      <div class="sc-sh-title" id="sc-event-sheet-title">Add Event</div>
+      <div class="sc-sh-sub">// birthday, class, deadline…</div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Title</label>
+        <input class="sc-form-input ev-inp" id="sce-title" type="text" placeholder="e.g. Jeevan Birthday">
+      </div>
+      <div class="sc-form-row">
+        <div>
+          <label class="sc-form-label">Date</label>
+          <input class="sc-form-input ev-inp" id="sce-date" type="date">
+        </div>
+        <div>
+          <label class="sc-form-label">Time <span class="sc-optional-tag">(optional)</span></label>
+          <input class="sc-form-input ev-inp" id="sce-time" type="time">
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Category</label>
+        <div class="sc-cat-row" id="sce-cat-row">
+          <div class="sc-cat-chip active" data-cat="birthday">🎂 Birthday</div>
+          <div class="sc-cat-chip" data-cat="finance">💰 Finance</div>
+          <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
+          <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
+          <div class="sc-cat-chip" data-cat="education">🎓 Education</div>
+          <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Members</label>
+        <div class="sc-mem-row" id="sce-mem-row">
+          <div class="sc-mem-chip active" data-member="all">👨‍👩‍👧‍👦 All</div>
+          <div class="sc-mem-chip" data-member="rajasekhar">👨 Raj</div>
+          <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
+          <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
+          <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
+        </div>
+      </div>
+      <div class="sc-form-section">
+        <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
+        <textarea class="sc-form-input sc-form-textarea ev-inp" id="sce-notes" placeholder="Any details…"></textarea>
+      </div>
+      <input type="hidden" id="sce-edit-id">
+      <button class="sc-sh-cta ev-cta" id="sce-save-btn" onclick="saveSchedEvent()">SAVE EVENT</button>
+      <button class="sc-sh-del" id="sce-del-btn" style="display:none;" onclick="deleteSchedEvent()">🗑 Delete Event</button>
     </div>
   </div>
 
@@ -1153,7 +1341,6 @@
       <!-- Action buttons row -->
       <div class="health-add-row">
         <button class="h-add-btn" onclick="openAddReportSheet()">📋 Add Lab Report</button>
-        <button class="h-add-btn" onclick="openAddApptSheet()">📅 Add Appointment</button>
       </div>
 
       <!-- Report source strip -->
@@ -1168,13 +1355,6 @@
         <div class="health-sec-count" id="health-bm-count"></div>
       </div>
       <div class="biomarker-grid" id="biomarker-grid"></div>
-
-      <!-- Appointments section -->
-      <div class="health-sec-hdr" style="margin-top:6px;">
-        <div class="health-sec-title">🗓 Appointments</div>
-        <div class="health-section-action" onclick="openAddApptSheet()">+ Add</div>
-      </div>
-      <div class="appt-list" id="health-appt-list"></div>
 
       <!-- Report history -->
       <div class="health-sec-hdr" style="margin-top:6px;">
@@ -1411,6 +1591,10 @@
     </div>
     <div class="bnav-item pressable" id="bnav-budget" onclick="goPage('budget')">
       <span class="bnav-icon"><svg width="22" height="22" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="17" rx="8" ry="7" fill="url(#bn-budgetGrad)" stroke="rgba(255,255,255,.12)" stroke-width=".5"/><path d="M9.5 10C9.5 10 10 8 13 8C16 8 16.5 10 16.5 10" stroke="rgba(255,255,255,.2)" stroke-width="1.5" fill="none"/><path d="M10 10C10 10 10.5 7.5 13 7.5C15.5 7.5 16 10 16 10C16 10 14.5 9 13 9C11.5 9 10 10 10 10Z" fill="url(#bn-knotGrad)"/><text x="13" y="19.5" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="8" fill="rgba(255,255,255,.9)">$</text><ellipse cx="9.5" cy="14.5" rx="2.5" ry="1.5" fill="rgba(255,255,255,.2)" transform="rotate(-20 9.5 14.5)"/><ellipse cx="7" cy="20" rx="2.5" ry="1.2" fill="url(#bn-coinGrad)" opacity=".9"/><ellipse cx="19" cy="20" rx="2.5" ry="1.2" fill="url(#bn-coinGrad)" opacity=".9"/><defs><radialGradient id="bn-budgetGrad" cx="40%" cy="30%"><stop offset="0%" stop-color="#34d399"/><stop offset="60%" stop-color="#10b981"/><stop offset="100%" stop-color="#065f46"/></radialGradient><linearGradient id="bn-knotGrad" x1="10" y1="7" x2="16" y2="10" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#6ee7b7"/><stop offset="100%" stop-color="#10b981"/></linearGradient><radialGradient id="bn-coinGrad" cx="50%" cy="30%"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#f59e0b"/></radialGradient></defs></svg></span><span>Budget</span>
+    </div>
+    <div class="bnav-item pressable" id="bnav-scheduler" onclick="goPage('scheduler')">
+      <span class="bnav-icon"><svg width="22" height="22" viewBox="0 0 26 26" fill="none"><rect x="4" y="5" width="18" height="17" rx="4" fill="url(#bn-agendaGrad)" stroke="rgba(255,255,255,.12)" stroke-width=".5"/><rect x="8" y="3" width="2.5" height="5" rx="1.25" fill="#c4b5fd"/><rect x="15.5" y="3" width="2.5" height="5" rx="1.25" fill="#c4b5fd"/><rect x="7" y="12" width="4" height="1.5" rx=".75" fill="rgba(255,255,255,.85)"/><rect x="7" y="15.5" width="6" height="1.5" rx=".75" fill="rgba(255,255,255,.5)"/><circle cx="18" cy="13" r="4.5" fill="url(#bn-agendaDotGrad)" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><path d="M16.5 13L17.5 14L19.5 12" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="bn-agendaGrad" x1="4" y1="5" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FF8C5A"/><stop offset="100%" stop-color="#FF6B35"/></linearGradient><radialGradient id="bn-agendaDotGrad" cx="40%" cy="35%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></radialGradient></defs></svg></span><span>Agenda</span>
+      <div class="bnav-alert-dot" id="agenda-alert-dot" style="display:none;"></div>
     </div>
   </div>
 </nav>

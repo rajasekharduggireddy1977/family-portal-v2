@@ -364,13 +364,14 @@ function goPage(page) {
   if(page==='health')       { initHealthPage(); applyGmHealth(); }
   if(page==='documents')    { applyGmDocuments(); collapseAllDocSections(); }
   if(page==='budget')       { initBudget(); }
-  if(page==='appointments') { initAppointmentsPage(); }
+  if(page==='appointments') { goPage('scheduler'); return; }
+  if(page==='scheduler')    { initSchedulerPage(); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['view','members','documents','expiry','calendar','appointments','health','budget','search'];
+const PAGE_ORDER = ['view','members','documents','expiry','calendar','scheduler','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -6643,6 +6644,328 @@ function migrateApptsToV4() {
   return v4;
 }
 
+// ████████████████████████████████████████████████████████
+// § SCHEDULER     Agenda page — Tasks · Events · Appts
+// initSchedulerPage, switchSchTab, renderSchedTasks,
+// renderSchedEvents, renderSchedAppts,
+// openSchedSheet, saveSchedTask, saveSchedEvent,
+// markTaskDone, undoTaskDone, getSchedTasks, saveSchedTasks
+// ████████████████████████████████████████████████████████
+
+var _schTab = 'tasks';
+var _schTaskEditId = null;
+var _schEventEditId = null;
+var _schApptFilter = 'all';
+var _schDoneCount = 0;
+
+function getSchedTasks() {
+  try { var s = localStorage.getItem('fp_sched_tasks'); if (s) return JSON.parse(s); } catch(e) {}
+  return seedSchedTasks();
+}
+function saveSchedTasks(arr) { localStorage.setItem('fp_sched_tasks', JSON.stringify(arr)); }
+
+function seedSchedTasks() {
+  var tasks = [
+    { id:'st_prop_flat403', icon:'🏘️', title:'Property Tax \u2013 Flat 403', sub:'cdma.ap.gov.in \u00b7 ASSESS 1035037996', dueDate:'2026-02-20', cat:'property', member:'rajasekhar', notes:'Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_prop_shopg5',  icon:'🏬', title:'Property Tax \u2013 Shop G5',  sub:'cdma.ap.gov.in \u00b7 ASSESS 1035038052', dueDate:'2026-02-20', cat:'property', member:'rajasekhar', notes:'Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_car_ins',    icon:'🚗', title:'Car Insurance Renewal',   sub:'AP27AK7873 \u00b7 ICICI LOMBARD', dueDate:'2026-06-28', cat:'finance', member:'rajasekhar', notes:'Policy 3001/103498197/10/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_health_fam', icon:'👨‍👩‍👧‍👦', title:'Family Health Insurance Renewal', sub:'ICICI FLOATER \u00b7 \u20b925,812', dueDate:'2026-08-04', cat:'health', member:'rajasekhar', notes:'Policy 4193i/APRN/400529214/00/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_health_ind', icon:'🏥', title:'Individual Health Insurance Renewal', sub:'RAJASEKHAR \u00b7 \u20b921,502', dueDate:'2026-08-06', cat:'health', member:'rajasekhar', notes:'Policy 4128i/HSNR/92094505/10/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_dl',         icon:'🪪', title:'Driving Licence Expiry',  sub:'DLFAP62729122008 \u00b7 SARATHI', dueDate:'2027-01-20', cat:'government', member:'rajasekhar', notes:'Renew at Sarathi portal', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_bike_ins',   icon:'🛵', title:'Bike Insurance Renewal',  sub:'TS08HJ8438 \u00b7 ICICI LOMBARD', dueDate:'2028-02-24', cat:'finance', member:'vasundhara', notes:'Policy 3005/430080806/00/000', status:'pending', createdAt:new Date().toISOString() }
+  ];
+  saveSchedTasks(tasks);
+  return tasks;
+}
+
+function _getCalEvents() {
+  try { var s = localStorage.getItem('fp_cal_events'); if (s) return JSON.parse(s); } catch(e) {}
+  return [];
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function initSchedulerPage() {
+  _schDoneCount = 0;
+  var monthEl = document.getElementById('sched-hdr-month');
+  if (monthEl) monthEl.textContent = new Date().toLocaleString('en-IN',{month:'long',year:'numeric'}).toUpperCase();
+  var avatarEl = document.getElementById('sched-hdr-avatar');
+  if (avatarEl) { var initials={rajasekhar:'RD',vasundhara:'VD',josritha:'JD',jeevan:'JV'}; var am=typeof activeMember!=='undefined'?activeMember:'rajasekhar'; avatarEl.textContent=initials[am]||'RD'; }
+  renderSchedTasks();
+  renderSchedEvents();
+  renderSchedAppts();
+  updateSchedBadges();
+  switchSchTab(_schTab, true);
+  var canvas = document.getElementById('sc-canvas');
+  if (canvas && !canvas._scSwipeInit) {
+    canvas._scSwipeInit = true;
+    var sx = 0;
+    canvas.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; },{passive:true});
+    canvas.addEventListener('touchend', function(e){
+      var dx=e.changedTouches[0].clientX-sx, order=['tasks','events','appts'], idx=order.indexOf(_schTab);
+      if(dx<-50&&idx<order.length-1) switchSchTab(order[idx+1]);
+      if(dx>50&&idx>0) switchSchTab(order[idx-1]);
+    },{passive:true});
+  }
+  // chip onclick wiring for sct
+  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
+  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
+  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+}
+
+function switchSchTab(tab, skipAnim) {
+  var tabs = ['tasks','events','appts'];
+  if (!skipAnim && _schTab !== tab) {
+    var outEl=document.getElementById('sc-panel-'+_schTab); if(outEl){outEl.classList.remove('sc-active');outEl.classList.add('sc-exit-left');setTimeout(function(){outEl.classList.remove('sc-exit-left');},400);}
+    var outBtn=document.getElementById('sc-btn-'+_schTab); if(outBtn) outBtn.classList.remove('active');
+  } else {
+    tabs.forEach(function(t){var p=document.getElementById('sc-panel-'+t);if(p)p.classList.remove('sc-active','sc-exit-left');var b=document.getElementById('sc-btn-'+t);if(b)b.classList.remove('active');});
+  }
+  _schTab=tab;
+  var inEl=document.getElementById('sc-panel-'+tab); if(inEl) inEl.classList.add('sc-active');
+  var inBtn=document.getElementById('sc-btn-'+tab); if(inBtn) inBtn.classList.add('active');
+  var fab=document.getElementById('sc-fab'); if(fab) fab.className='sc-fab'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');
+}
+
+function updateSchedBadges() {
+  var today=new Date();today.setHours(0,0,0,0);
+  var tasks=getSchedTasks().filter(function(t){return t.status!=='done';});
+  var events=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;});
+  var appts=(typeof getApptsV4==='function'?getApptsV4():[]).filter(function(a){return new Date(a.date+'T12:00:00')>=today;});
+  var overdue=tasks.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;}).length;
+  var tb=document.getElementById('sc-badge-tasks'); if(tb){tb.textContent=tasks.length;tb.className='sc-cb-count sc-count-task'+(overdue>0?' sc-count-danger':'');}
+  var eb=document.getElementById('sc-badge-events'); if(eb) eb.textContent=events.length;
+  var ab=document.getElementById('sc-badge-appts');  if(ab) ab.textContent=appts.length;
+  var dot=document.getElementById('agenda-alert-dot'); if(dot) dot.style.display=overdue>0?'':'none';
+}
+
+function renderSchedTasks() {
+  var rail=document.getElementById('sc-task-rail'); if(!rail) return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var tasks=getSchedTasks().filter(function(t){return t.status!=='done';});
+  tasks.sort(function(a,b){
+    var da=a.dueDate?new Date(a.dueDate+'T12:00:00'):new Date('2099-12-31');
+    var db=b.dueDate?new Date(b.dueDate+'T12:00:00'):new Date('2099-12-31');
+    return da-db;
+  });
+  var overdueTasks=tasks.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;});
+  var banner=document.getElementById('sc-overdue-banner');
+  if(banner){
+    if(overdueTasks.length>0){banner.style.display='flex';var obT=document.getElementById('sc-ob-text');var obS=document.getElementById('sc-ob-sub');if(obT)obT.textContent=overdueTasks.length+' item'+(overdueTasks.length===1?'':'s')+' overdue';if(obS)obS.textContent=overdueTasks.map(function(t){return t.title;}).join(' \u00b7 ');}
+    else{banner.style.display='none';}
+  }
+  var countLbl=document.getElementById('sc-task-count-lbl'); if(countLbl) countLbl.textContent=tasks.length+' pending';
+  rail.querySelectorAll('.sc-task-row,.sc-empty').forEach(function(r){r.remove();});
+  if(!tasks.length){var em=document.createElement('div');em.className='sc-empty';em.innerHTML='<div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No pending tasks. Tap + to add one.</div>';rail.appendChild(em);return;}
+  tasks.forEach(function(task){
+    var dueDate=task.dueDate?new Date(task.dueDate+'T12:00:00'):null;
+    var daysLeft=dueDate?Math.ceil((dueDate-today)/86400000):null;
+    var isOverdue=daysLeft!==null&&daysLeft<0;
+    var isUrgent=daysLeft!==null&&daysLeft>=0&&daysLeft<=30;
+    var bodyCls=isOverdue?'bd':isUrgent?'bw':'bk';
+    var nodeCls=isOverdue?'nd':isUrgent?'nw':'nk';
+    var connCls=isOverdue?'cd':isUrgent?'cw':'ck';
+    var daysTxt=daysLeft!==null?(isOverdue?Math.abs(daysLeft):daysLeft):'—';
+    var daysLbl=daysLeft!==null?(isOverdue?'overdue':'days left'):'no date';
+    var progPct=dueDate?Math.min(100,Math.max(0,isOverdue?100:Math.round((1-daysLeft/365)*100))):0;
+    var row=document.createElement('div');row.className='sc-task-row';row.id='sct-row-'+task.id;
+    row.innerHTML='<div class="sc-tr-node '+nodeCls+'"></div><div class="sc-tr-connector '+connCls+'"></div><div class="sc-tr-body '+bodyCls+'" onclick="editSchedTask(\''+task.id+'\')"><div class="sc-tr-top"><div class="sc-tr-left"><span class="sc-tr-icon">'+(task.icon||'📋')+'</span><div class="sc-tr-text"><div class="sc-tr-name">'+escHtml(task.title)+'</div><div class="sc-tr-sub">'+escHtml(task.sub||task.notes||'')+'</div></div></div><div class="sc-tr-days"><div class="sc-trd-num">'+daysTxt+'</div><div class="sc-trd-lbl">'+daysLbl+'</div></div></div><div class="sc-tr-prog"><div class="sc-tr-prog-fill" style="width:'+progPct+'%"></div></div><div class="sc-tr-actions"><div class="sc-tr-btn sc-trb-done" onclick="event.stopPropagation();markTaskDone(\''+task.id+'\')">✓ Done</div>'+(isOverdue?'<div class="sc-tr-btn sc-trb-renew" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">🔄 Renew</div>':'')+'<div class="sc-tr-btn sc-trb-date" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">✏️ Edit</div></div></div>';
+    rail.appendChild(row);
+  });
+}
+
+function markTaskDone(id) {
+  var row=document.getElementById('sct-row-'+id); if(!row) return;
+  var body=row.querySelector('.sc-tr-body'); if(body){body.style.transition='opacity .3s,transform .3s';body.style.opacity='0';body.style.transform='translateX(20px)';}
+  setTimeout(function(){
+    row.style.maxHeight=row.offsetHeight+'px';row.style.overflow='hidden';row.style.transition='max-height .3s ease,margin .3s ease,opacity .2s';
+    requestAnimationFrame(function(){row.style.maxHeight='0';row.style.marginBottom='0';row.style.opacity='0';});
+    var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});
+    if(task){task.status='done';task.doneAt=new Date().toISOString();saveSchedTasks(tasks);}
+    _schDoneCount++;
+    if(task)_addToDoneList(task);
+    setTimeout(function(){row.style.display='none';},320);
+    renderSchedTasks();updateSchedBadges();
+  },280);
+}
+
+function _addToDoneList(task){
+  var sec=document.getElementById('sc-done-section'),list=document.getElementById('sc-done-list'),countEl=document.getElementById('sc-done-count');
+  if(!sec||!list)return;sec.style.display='';
+  var today2=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  var doneRow=document.createElement('div');doneRow.className='sc-done-row';doneRow.id='sct-done-'+task.id;
+  doneRow.style.cssText='opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;';
+  doneRow.innerHTML='<div class="sc-done-check">✓</div><span class="sc-done-ico">'+(task.icon||'📋')+'</span><div class="sc-done-info"><div class="sc-done-name">'+escHtml(task.title)+'</div><div class="sc-done-date">Completed \u00b7 '+today2+'</div></div><div class="sc-done-stamp">DONE</div><div class="sc-done-undo" onclick="undoTaskDone(\''+task.id+'\')">Undo</div>';
+  list.appendChild(doneRow);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){doneRow.style.opacity='1';doneRow.style.transform='translateY(0)';});});
+  if(countEl)countEl.textContent=_schDoneCount;
+}
+
+function undoTaskDone(id){
+  var doneRow=document.getElementById('sct-done-'+id);if(doneRow){doneRow.style.opacity='0';doneRow.style.transform='translateX(-16px)';setTimeout(function(){doneRow.remove();},300);}
+  var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});if(task){task.status='pending';delete task.doneAt;saveSchedTasks(tasks);}
+  _schDoneCount=Math.max(0,_schDoneCount-1);var countEl=document.getElementById('sc-done-count');if(countEl)countEl.textContent=_schDoneCount;
+  if(_schDoneCount===0){var sec=document.getElementById('sc-done-section');if(sec)sec.style.display='none';}
+  renderSchedTasks();updateSchedBadges();
+}
+
+function renderSchedEvents(){
+  var wrap=document.getElementById('sc-timeline-wrap');if(!wrap)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var events=_getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);}).slice(0,20);
+  var countLbl=document.getElementById('sc-events-count-lbl');if(countLbl)countLbl.textContent=events.length+' upcoming';
+  wrap.querySelectorAll('.sc-ev-card,.sc-ev-empty').forEach(function(el){el.remove();});
+  if(!events.length){var em=document.createElement('div');em.className='sc-ev-empty';em.innerHTML='<div class="sc-empty-ico">📅</div><div class="sc-empty-title">No upcoming events</div><div class="sc-empty-sub">Tap + to add one</div>';wrap.appendChild(em);return;}
+  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
+  events.forEach(function(ev){
+    var dotColor=ev.color||CAT_COLORS[ev.cat]||'#a78bfa';
+    var d=new Date(ev.date+'T12:00:00');
+    var timeStr=ev.start?ev.start:d.toLocaleString('en-IN',{day:'2-digit',month:'short'});
+    var daysAway=Math.ceil((d-today)/86400000);
+    var urgClass=daysAway===0?'risk-crit':daysAway<=7?'risk-warn':'risk-ok';
+    var urgLabel=daysAway===0?'TODAY':daysAway===1?'Tomorrow':'In '+daysAway+'d';
+    var card=document.createElement('div');card.className='sc-ev-card';
+    card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div>';
+    wrap.appendChild(card);
+  });
+}
+
+function renderSchedAppts(){
+  var wrap=document.getElementById('sc-appt-list-wrap'),statsEl=document.getElementById('sc-appt-stats'),pillWrap=document.getElementById('sc-appt-filter-pills');if(!wrap)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var all=typeof getApptsV4==='function'?getApptsV4():[];
+  if(statsEl){var counts={doctor:0,vehicle:0,lab:0,other:0};all.filter(function(a){return new Date(a.date+'T12:00:00')>=today;}).forEach(function(a){if(counts[a.type]!=null)counts[a.type]++;});statsEl.innerHTML=Object.entries(APPT_TYPES||{}).map(function(kv){var k=kv[0],t=kv[1];return'<div class="appt-stat-chip" style="background:'+t.bg+';border-color:'+t.border+';color:'+t.color+'">'+t.icon+' '+counts[k]+' '+t.label+'</div>';}).join('');}
+  if(pillWrap){var pills=[{id:'all',label:'All',icon:'🗓'},{id:'doctor',label:'Doctor',icon:'🏥'},{id:'vehicle',label:'Vehicle',icon:'🚗'},{id:'lab',label:'Lab',icon:'🧪'},{id:'other',label:'Other',icon:'📋'}];pillWrap.innerHTML=pills.map(function(p){var t=(APPT_TYPES||{})[p.id]||{};var active=_schApptFilter===p.id;return'<div class="appt-fpill'+(active?' active':'')+'" data-type="'+p.id+'"'+(active?' style="background:'+t.bg+';border-color:'+t.border+';color:'+t.color+'"':'')+' onclick="setSchApptFilter(\''+p.id+'\')">'+p.icon+' '+p.label+'</div>';}).join('');}
+  var upcoming=all.filter(function(a){return new Date(a.date+'T12:00:00')>=today;});var past=all.filter(function(a){return new Date(a.date+'T12:00:00')<today;});
+  if(_schApptFilter!=='all'){upcoming=upcoming.filter(function(a){return a.type===_schApptFilter;});past=past.filter(function(a){return a.type===_schApptFilter;});}
+  upcoming.sort(function(a,b){return a.date.localeCompare(b.date);});past.sort(function(a,b){return b.date.localeCompare(a.date);});
+  var countLbl=document.getElementById('sc-appts-count-lbl');if(countLbl)countLbl.textContent=upcoming.length+' upcoming';
+  if(!upcoming.length&&!past.length){wrap.innerHTML='<div class="sc-empty"><div class="sc-empty-ico">🗓</div><div class="sc-empty-title">No appointments yet</div><div class="sc-empty-sub">Tap + to schedule one</div></div>';return;}
+  var html='';
+  if(upcoming.length){html+='<div class="appt-section-label" style="padding:0 0 8px;">UPCOMING \u00b7 '+upcoming.length+'</div>';html+=upcoming.map(function(a){return buildApptCard(a,today);}).join('');}
+  if(past.length){html+='<div class="appt-section-label" style="padding:12px 0 8px;opacity:.6;">PAST \u00b7 '+past.length+'</div>';html+=past.slice(0,5).map(function(a){return buildApptCard(a,today,true);}).join('');}
+  wrap.innerHTML=html;
+}
+
+function setSchApptFilter(f){_schApptFilter=f;renderSchedAppts();}
+
+function openSchedSheet(){
+  if(_schTab==='tasks')      openSchedTaskSheet();
+  else if(_schTab==='events') openSchedEventSheet();
+  else if(_schTab==='appts')  openApptSheetV4();
+}
+
+function openSchedTaskSheet(prefill){
+  _schTaskEditId=null;var p=prefill||{};
+  var titleEl=document.getElementById('sc-task-sheet-title');if(titleEl)titleEl.textContent='Add Task';
+  ['sct-title','sct-due','sct-icon','sct-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='finance');});
+  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='rajasekhar');});
+  var editId=document.getElementById('sct-edit-id');if(editId)editId.value='';
+  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='none';
+  document.getElementById('sc-task-sheet').classList.add('open');
+}
+
+function editSchedTask(id){
+  var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});if(!task)return;
+  _schTaskEditId=id;
+  var titleEl=document.getElementById('sc-task-sheet-title');if(titleEl)titleEl.textContent='Edit Task';
+  var fmap={'sct-title':task.title||'','sct-due':task.dueDate||'','sct-icon':task.icon||'','sct-notes':task.notes||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(task.cat||'other'));});
+  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
+  var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
+  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='';
+  document.getElementById('sc-task-sheet').classList.add('open');
+}
+
+function saveSchedTask(){
+  var title=(document.getElementById('sct-title')?.value||'').trim();
+  var due=document.getElementById('sct-due')?.value||'';
+  var icon=(document.getElementById('sct-icon')?.value||'').trim()||'📋';
+  var notes=(document.getElementById('sct-notes')?.value||'').trim();
+  var cat=document.querySelector('#sct-cat-row .sc-cat-chip.active')?.dataset.cat||'other';
+  var member=document.querySelector('#sct-mem-row .sc-mem-chip.active')?.dataset.member||'rajasekhar';
+  var editId=document.getElementById('sct-edit-id')?.value||'';
+  if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
+  var CAT_ICONS={finance:'\u{1f4b0}',health:'\u{1f3e5}',government:'\u{1faa9}',property:'\u{1f3e0}',vehicle:'\u{1f697}',education:'\u{1f393}',birthday:'\u{1f382}',other:'\u{1f4cb}'};
+  var tasks=getSchedTasks();
+  if(editId){var idx=tasks.findIndex(function(t){return t.id===editId;});if(idx!==-1)tasks[idx]=Object.assign(tasks[idx],{title,dueDate:due,icon,notes,cat,member});}
+  else{if(icon==='📋'&&CAT_ICONS[cat])icon=CAT_ICONS[cat];tasks.push({id:'st_'+Date.now(),title,dueDate:due,icon,notes,cat,member,sub:'',status:'pending',createdAt:new Date().toISOString()});}
+  saveSchedTasks(tasks);closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
+  if(typeof showToast==='function')showToast(editId?'✅ Task updated':'✅ Task saved');
+}
+
+function deleteSchedTask(){
+  var editId=document.getElementById('sct-edit-id')?.value||'';if(!editId)return;
+  saveSchedTasks(getSchedTasks().filter(function(t){return t.id!==editId;}));
+  closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
+  if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Task deleted');
+}
+
+function openSchedEventSheet(prefill){
+  _schEventEditId=null;var p=prefill||{};
+  var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Add Event';
+  var fmap={'sce-title':p.title||'','sce-date':p.date||new Date().toISOString().slice(0,10),'sce-time':p.time||'','sce-notes':p.notes||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='birthday');});
+  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='all');});
+  var editId=document.getElementById('sce-edit-id');if(editId)editId.value='';
+  var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='none';
+  document.getElementById('sc-event-sheet').classList.add('open');
+}
+
+function editSchedEvent(id){
+  var ev=_getCalEvents().find(function(e){return e.id===id;});if(!ev)return;
+  _schEventEditId=id;
+  var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Edit Event';
+  var fmap={'sce-title':ev.title||'','sce-date':ev.date||'','sce-time':ev.start||'','sce-notes':ev.notes||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(ev.cat||'other'));});
+  var evMems=Array.isArray(ev.members)?ev.members:['all'];
+  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',evMems.includes(c.dataset.member));});
+  var editId=document.getElementById('sce-edit-id');if(editId)editId.value=id;
+  var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='';
+  document.getElementById('sc-event-sheet').classList.add('open');
+}
+
+function saveSchedEvent(){
+  var title=(document.getElementById('sce-title')?.value||'').trim();
+  var date=document.getElementById('sce-date')?.value||'';
+  var time=document.getElementById('sce-time')?.value||'';
+  var notes=(document.getElementById('sce-notes')?.value||'').trim();
+  var cat=document.querySelector('#sce-cat-row .sc-cat-chip.active')?.dataset.cat||'other';
+  var editId=document.getElementById('sce-edit-id')?.value||'';
+  var selMems=Array.from(document.querySelectorAll('#sce-mem-row .sc-mem-chip.active')).map(function(c){return c.dataset.member;});
+  if(!selMems.length)selMems=['all'];
+  if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
+  if(!date) {if(typeof showToast==='function')showToast('\u26a0\ufe0f Pick a date');return;}
+  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
+  var color=CAT_COLORS[cat]||'#a78bfa';
+  var events=_getCalEvents();
+  if(editId){var idx=events.findIndex(function(e){return e.id===editId;});if(idx!==-1)events[idx]=Object.assign(events[idx],{title,date,start:time,cat,color,members:selMems,notes});}
+  else{events.push({id:'e'+Date.now(),title,date,start:time,end:'',cat,color,members:selMems,notes});}
+  localStorage.setItem('fp_cal_events',JSON.stringify(events));
+  closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
+  if(typeof initCalendar==='function'&&typeof currentPage!=='undefined'&&currentPage==='calendar')initCalendar();
+  if(typeof showToast==='function')showToast(editId?'✅ Event updated':'✅ Event saved');
+}
+
+function deleteSchedEvent(){
+  var editId=document.getElementById('sce-edit-id')?.value||'';if(!editId)return;
+  localStorage.setItem('fp_cal_events',JSON.stringify(_getCalEvents().filter(function(e){return e.id!==editId;})));
+  closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
+  if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
+}
+
+function closeSchedSheet(type){
+  var id=type==='task'?'sc-task-sheet':'sc-event-sheet';
+  var el=document.getElementById(id);if(el)el.classList.remove('open');
+}
+
 // ██████████████████████████████████████████████████████████
 // § APPOINTMENTS_PAGE  Unified Appointments Hub
 // initAppointmentsPage, renderApptsList, openApptSheetV4,
@@ -8143,7 +8466,7 @@ function applyGmCalendar() {
    without requiring manual restore
 ═══════════════════════════════════════════════ */
 (function() {
-  var BACKUP_DATA = {"fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_appts_v4":"[{\"id\":\"av4_a1\",\"type\":\"doctor\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\",\"vehicle\":\"\"},{\"id\":\"av4_a2\",\"type\":\"doctor\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \\u00b7 6 hrs\",\"vehicle\":\"\"},{\"id\":\"av4_a3\",\"type\":\"doctor\",\"member\":\"josritha\",\"title\":\"Annual Health Check-up\",\"date\":\"2026-05-12\",\"time\":\"08:00\",\"loc\":\"Apollo Diagnostics, Hyderabad\",\"notes\":\"Full body check package\",\"vehicle\":\"\"},{\"id\":\"av4_a4\",\"type\":\"vehicle\",\"member\":\"vasundhara\",\"title\":\"Activa 125 Regular Service\",\"date\":\"2026-04-15\",\"time\":\"10:00\",\"loc\":\"Honda Service Center, KPHB\",\"notes\":\"Oil change + general check\",\"vehicle\":\"activa\"},{\"id\":\"av4_a5\",\"type\":\"lab\",\"member\":\"rajasekhar\",\"title\":\"Lipid Panel + HbA1c\",\"date\":\"2026-06-01\",\"time\":\"07:30\",\"loc\":\"Apollo Diagnostics, Ameerpet\",\"notes\":\"Fasting 10 hrs required\",\"vehicle\":\"\"}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
+  var BACKUP_DATA = {"fp_sched_tasks":"[{\"id\": \"st_prop_flat403\", \"icon\": \"\ud83c\udfd8\ufe0f\", \"title\": \"Property Tax \u2013 Flat 403\", \"sub\": \"cdma.ap.gov.in \u00b7 ASSESS 1035037996\", \"dueDate\": \"2026-02-20\", \"cat\": \"property\", \"member\": \"rajasekhar\", \"notes\": \"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_prop_shopg5\", \"icon\": \"\ud83c\udfec\", \"title\": \"Property Tax \u2013 Shop G5\", \"sub\": \"cdma.ap.gov.in \u00b7 ASSESS 1035038052\", \"dueDate\": \"2026-02-20\", \"cat\": \"property\", \"member\": \"rajasekhar\", \"notes\": \"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_car_ins\", \"icon\": \"\ud83d\ude97\", \"title\": \"Car Insurance Renewal\", \"sub\": \"AP27AK7873 \u00b7 ICICI LOMBARD\", \"dueDate\": \"2026-06-28\", \"cat\": \"finance\", \"member\": \"rajasekhar\", \"notes\": \"Policy 3001/103498197/10/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_health_fam\", \"icon\": \"\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66\", \"title\": \"Family Health Insurance Renewal\", \"sub\": \"ICICI FLOATER \u00b7 \u20b925,812\", \"dueDate\": \"2026-08-04\", \"cat\": \"health\", \"member\": \"rajasekhar\", \"notes\": \"Policy 4193i/APRN/400529214/00/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_health_ind\", \"icon\": \"\ud83c\udfe5\", \"title\": \"Individual Health Insurance Renewal\", \"sub\": \"RAJASEKHAR \u00b7 \u20b921,502\", \"dueDate\": \"2026-08-06\", \"cat\": \"health\", \"member\": \"rajasekhar\", \"notes\": \"Policy 4128i/HSNR/92094505/10/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_dl\", \"icon\": \"\ud83e\udeaa\", \"title\": \"Driving Licence Expiry\", \"sub\": \"DLFAP62729122008 \u00b7 SARATHI\", \"dueDate\": \"2027-01-20\", \"cat\": \"government\", \"member\": \"rajasekhar\", \"notes\": \"Renew at Sarathi portal\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_bike_ins\", \"icon\": \"\ud83d\udef5\", \"title\": \"Bike Insurance Renewal\", \"sub\": \"TS08HJ8438 \u00b7 ICICI LOMBARD\", \"dueDate\": \"2028-02-24\", \"cat\": \"finance\", \"member\": \"vasundhara\", \"notes\": \"Policy 3005/430080806/00/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}]","fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_appts_v4":"[{\"id\":\"av4_a1\",\"type\":\"doctor\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\",\"vehicle\":\"\"},{\"id\":\"av4_a2\",\"type\":\"doctor\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \\u00b7 6 hrs\",\"vehicle\":\"\"},{\"id\":\"av4_a3\",\"type\":\"doctor\",\"member\":\"josritha\",\"title\":\"Annual Health Check-up\",\"date\":\"2026-05-12\",\"time\":\"08:00\",\"loc\":\"Apollo Diagnostics, Hyderabad\",\"notes\":\"Full body check package\",\"vehicle\":\"\"},{\"id\":\"av4_a4\",\"type\":\"vehicle\",\"member\":\"vasundhara\",\"title\":\"Activa 125 Regular Service\",\"date\":\"2026-04-15\",\"time\":\"10:00\",\"loc\":\"Honda Service Center, KPHB\",\"notes\":\"Oil change + general check\",\"vehicle\":\"activa\"},{\"id\":\"av4_a5\",\"type\":\"lab\",\"member\":\"rajasekhar\",\"title\":\"Lipid Panel + HbA1c\",\"date\":\"2026-06-01\",\"time\":\"07:30\",\"loc\":\"Apollo Diagnostics, Ameerpet\",\"notes\":\"Fasting 10 hrs required\",\"vehicle\":\"\"}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
 
   // Load each key into localStorage only if not already present (don't overwrite fresh scrapes)
   var keys = Object.keys(BACKUP_DATA);
@@ -8473,6 +8796,7 @@ function checkPinSession() {
 // ═══════════════════════════════════════
 const BACKUP_KEYS = [
   'fp_cal_events',
+  'fp_sched_tasks',  // ← Scheduler tasks (Deadlines & To-dos)
   'fp_health_v3','fp_health_appts_v3','fp_health_reports_v3',
   'fp_appts_v4',  // ← Unified appointments (Doctor/Vehicle/Lab/Other)
   'fp_attendance_synced','fp_attendance_synced_ts',
