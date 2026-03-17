@@ -7207,6 +7207,7 @@ function saveApptV4() {
   closeApptSheetV4();
   renderApptsList();
   if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof renderSchedAppts === 'function') { renderSchedAppts(); updateSchedBadges(); }
   if (typeof auraRenderHome === 'function') auraRenderHome();
   if (typeof auraRenderOverview === 'function') auraRenderOverview();
   if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
@@ -7221,6 +7222,7 @@ function deleteApptV4(id) {
   closeApptSheetV4();
   renderApptsList();
   if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof renderSchedAppts === 'function') { renderSchedAppts(); updateSchedBadges(); }
   if (typeof auraRenderHome === 'function') auraRenderHome();
   if (typeof auraRenderOverview === 'function') auraRenderOverview();
   if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
