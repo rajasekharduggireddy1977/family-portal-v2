@@ -4042,17 +4042,38 @@ function ovRenderMonthEvents() {
   var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   labelEl.textContent = MONTH_NAMES[mo] + ' ' + yr;
 
+  var pad = function(n) { return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad(mo + 1);
+
+  // ── 1. Calendar events ──
   var calEvts = [];
   try {
     calEvts = typeof getCalEvents === 'function' ? getCalEvents() : JSON.parse(localStorage.getItem('fp_cal_events') || '[]');
   } catch(e) {}
-
-  // Filter events belonging to this month
-  var pad = function(n) { return String(n).padStart(2,'0'); };
-  var moStr = yr + '-' + pad(mo + 1);
   var monthEvts = calEvts
     .filter(function(e) { return (e.date || '').slice(0, 7) === moStr && e.cat !== 'education'; })
-    .sort(function(a, b) { return a.date.localeCompare(b.date); });
+    .map(function(e) { return { date:e.date, title:e.title||'', cat:e.cat||'other', members:e.members||[], type:'event', _nav:'calendar' }; });
+
+  // ── 2. Scheduler tasks (not done, has dueDate) ──
+  try {
+    var tasks = typeof getSchedTasks === 'function' ? getSchedTasks() : JSON.parse(localStorage.getItem('fp_sched_tasks') || '[]');
+    tasks.filter(function(t) { return t.status !== 'done' && (t.dueDate || '').slice(0, 7) === moStr; })
+      .forEach(function(t) {
+        monthEvts.push({ date:t.dueDate, title:(t.icon||'📋')+' '+t.title, cat:t.cat||'other', members:t.member?[t.member]:[], type:'task', _nav:'scheduler' });
+      });
+  } catch(e) {}
+
+  // ── 3. Appointments ──
+  try {
+    var appts = typeof getApptsV4 === 'function' ? getApptsV4() : JSON.parse(localStorage.getItem('fp_appts_v4') || '[]');
+    appts.filter(function(a) { return (a.date || '').slice(0, 7) === moStr; })
+      .forEach(function(a) {
+        monthEvts.push({ date:a.date, title:a.title||'', cat:a.type||'other', members:a.member?[a.member]:[], type:'appt', _nav:'scheduler' });
+      });
+  } catch(e) {}
+
+  // ── Sort all by date ──
+  monthEvts.sort(function(a, b) { return a.date.localeCompare(b.date); });
 
   var cntEl = document.getElementById('cw-evt-count');
   if (cntEl) cntEl.textContent = monthEvts.length;
@@ -4063,6 +4084,7 @@ function ovRenderMonthEvents() {
   }
 
   var CW_AVATARS2 = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
+  var TYPE_LABEL = { task:'📋 task', appt:'🗓 appt', event:'' };
 
   var html = '';
   monthEvts.forEach(function(e) {
@@ -4073,8 +4095,9 @@ function ovRenderMonthEvents() {
     var memberKey = ((e.members||[])[0]||'').toLowerCase();
     var av2 = CW_AVATARS2[memberKey] || null;
     var memberHtml = av2 ? '<div class="cw-person-avatar" style="background:' + av2.b + '">' + av2.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
-    var tagHtml = e.cat ? '<span class="cw-event-tag">' + e.cat + '</span>' : '';
-    html += '<div class="cw-event-item cat-' + (e.cat||'other') + '" style="' + (isPast ? 'opacity:.45;' : '') + '" onclick="goPage(\'calendar\')">'
+    var typeTag = TYPE_LABEL[e.type] ? '<span class="cw-event-tag" style="opacity:.75;">' + TYPE_LABEL[e.type] + '</span>' : '';
+    var catTag  = e.cat ? '<span class="cw-event-tag">' + e.cat + '</span>' : '';
+    html += '<div class="cw-event-item cat-' + (e.cat||'other') + '" style="' + (isPast ? 'opacity:.45;' : '') + '" onclick="goPage(\'' + e._nav + '\')">'
       + '<div class="cw-event-stripe"></div>'
       + '<div class="cw-event-date-col">'
       + '<div class="cw-event-day-num">' + day + '</div>'
@@ -4082,7 +4105,7 @@ function ovRenderMonthEvents() {
       + '</div>'
       + '<div class="cw-event-body">'
       + '<div class="cw-event-name">' + (e.title||'') + '</div>'
-      + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
+      + '<div class="cw-event-meta">' + memberHtml + catTag + typeTag + '</div>'
       + '</div>'
       + '<div class="cw-event-arrow">&#8250;</div>'
       + '</div>';
@@ -4126,6 +4149,16 @@ function cwRenderMiniCal() {
     var raw = localStorage.getItem('fp_cal_events');
     if (raw) JSON.parse(raw).filter(function(e){ return (e.date||'').slice(0,7)===moStr && e.cat!=='education'; })
       .forEach(function(e){ eventDays.add(parseInt(e.date.slice(8),10)); });
+  } catch(ex){}
+  try {
+    var tRaw = localStorage.getItem('fp_sched_tasks');
+    if (tRaw) JSON.parse(tRaw).filter(function(t){ return t.status!=='done' && (t.dueDate||'').slice(0,7)===moStr; })
+      .forEach(function(t){ eventDays.add(parseInt(t.dueDate.slice(8),10)); });
+  } catch(ex){}
+  try {
+    var aRaw = localStorage.getItem('fp_appts_v4');
+    if (aRaw) JSON.parse(aRaw).filter(function(a){ return (a.date||'').slice(0,7)===moStr; })
+      .forEach(function(a){ eventDays.add(parseInt(a.date.slice(8),10)); });
   } catch(ex){}
   var firstDay    = new Date(yr, mo, 1).getDay();
   var daysInMonth = new Date(yr, mo+1, 0).getDate();
