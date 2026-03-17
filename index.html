@@ -1224,48 +1224,52 @@
       <div class="sc-sh-handle"></div>
       <div class="sc-sh-title" id="sc-task-sheet-title">Add Task</div>
       <div class="sc-sh-sub">// deadline or to-do</div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Title</label>
-        <input class="sc-form-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal">
-      </div>
-      <div class="sc-form-row">
-        <div>
-          <label class="sc-form-label">Due Date <span class="sc-optional-tag">(optional)</span></label>
-          <input class="sc-form-input" id="sct-due" type="date">
+      <div class="sc-sh-body">
+        <div class="sc-form-section">
+          <label class="sc-form-label">Title</label>
+          <input class="sc-form-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal">
         </div>
-        <div>
-          <label class="sc-form-label">Icon</label>
-          <input class="sc-form-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
+        <div class="sc-form-row">
+          <div>
+            <label class="sc-form-label">Due Date <span class="sc-optional-tag">(optional)</span></label>
+            <input class="sc-form-input" id="sct-due" type="date">
+          </div>
+          <div>
+            <label class="sc-form-label">Icon</label>
+            <input class="sc-form-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
+          </div>
         </div>
-      </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Category</label>
-        <div class="sc-cat-row" id="sct-cat-row">
-          <div class="sc-cat-chip active" data-cat="finance">💰 Finance</div>
-          <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
-          <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
-          <div class="sc-cat-chip" data-cat="property">🏠 Property</div>
-          <div class="sc-cat-chip" data-cat="vehicle">🚗 Vehicle</div>
-          <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Category</label>
+          <div class="sc-cat-row" id="sct-cat-row">
+            <div class="sc-cat-chip active" data-cat="finance">💰 Finance</div>
+            <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
+            <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
+            <div class="sc-cat-chip" data-cat="property">🏠 Property</div>
+            <div class="sc-cat-chip" data-cat="vehicle">🚗 Vehicle</div>
+            <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+          </div>
         </div>
-      </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Member</label>
-        <div class="sc-mem-row" id="sct-mem-row">
-          <div class="sc-mem-chip active" data-member="rajasekhar">👨 Raj</div>
-          <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
-          <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
-          <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
-          <div class="sc-mem-chip" data-member="all">👨‍👩‍👧‍👦 All</div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Member</label>
+          <div class="sc-mem-row" id="sct-mem-row">
+            <div class="sc-mem-chip active" data-member="rajasekhar">👨 Raj</div>
+            <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
+            <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
+            <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
+            <div class="sc-mem-chip" data-member="all">👨‍👩‍👧‍👦 All</div>
+          </div>
         </div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
+          <textarea class="sc-form-input sc-form-textarea" id="sct-notes" placeholder="Any details…"></textarea>
+        </div>
+        <input type="hidden" id="sct-edit-id">
       </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
-        <textarea class="sc-form-input sc-form-textarea" id="sct-notes" placeholder="Any details…"></textarea>
+      <div class="sc-sh-footer">
+        <button class="sc-sh-cta" id="sct-save-btn" onclick="saveSchedTask()">SAVE TASK</button>
+        <button class="sc-sh-del" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
       </div>
-      <input type="hidden" id="sct-edit-id">
-      <button class="sc-sh-cta" id="sct-save-btn" onclick="saveSchedTask()">SAVE TASK</button>
-      <button class="sc-sh-del" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
     </div>
   </div>
 
@@ -1275,48 +1279,52 @@
       <div class="sc-sh-handle"></div>
       <div class="sc-sh-title" id="sc-event-sheet-title">Add Event</div>
       <div class="sc-sh-sub">// birthday, class, deadline…</div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Title</label>
-        <input class="sc-form-input ev-inp" id="sce-title" type="text" placeholder="e.g. Jeevan Birthday">
-      </div>
-      <div class="sc-form-row">
-        <div>
-          <label class="sc-form-label">Date</label>
-          <input class="sc-form-input ev-inp" id="sce-date" type="date">
+      <div class="sc-sh-body">
+        <div class="sc-form-section">
+          <label class="sc-form-label">Title</label>
+          <input class="sc-form-input ev-inp" id="sce-title" type="text" placeholder="e.g. Jeevan Birthday">
         </div>
-        <div>
-          <label class="sc-form-label">Time <span class="sc-optional-tag">(optional)</span></label>
-          <input class="sc-form-input ev-inp" id="sce-time" type="time">
+        <div class="sc-form-row">
+          <div>
+            <label class="sc-form-label">Date</label>
+            <input class="sc-form-input ev-inp" id="sce-date" type="date">
+          </div>
+          <div>
+            <label class="sc-form-label">Time <span class="sc-optional-tag">(optional)</span></label>
+            <input class="sc-form-input ev-inp" id="sce-time" type="time">
+          </div>
         </div>
-      </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Category</label>
-        <div class="sc-cat-row" id="sce-cat-row">
-          <div class="sc-cat-chip active" data-cat="birthday">🎂 Birthday</div>
-          <div class="sc-cat-chip" data-cat="finance">💰 Finance</div>
-          <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
-          <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
-          <div class="sc-cat-chip" data-cat="education">🎓 Education</div>
-          <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Category</label>
+          <div class="sc-cat-row" id="sce-cat-row">
+            <div class="sc-cat-chip active" data-cat="birthday">🎂 Birthday</div>
+            <div class="sc-cat-chip" data-cat="finance">💰 Finance</div>
+            <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
+            <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
+            <div class="sc-cat-chip" data-cat="education">🎓 Education</div>
+            <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+          </div>
         </div>
-      </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Members</label>
-        <div class="sc-mem-row" id="sce-mem-row">
-          <div class="sc-mem-chip active" data-member="all">👨‍👩‍👧‍👦 All</div>
-          <div class="sc-mem-chip" data-member="rajasekhar">👨 Raj</div>
-          <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
-          <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
-          <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Members</label>
+          <div class="sc-mem-row" id="sce-mem-row">
+            <div class="sc-mem-chip active" data-member="all">👨‍👩‍👧‍👦 All</div>
+            <div class="sc-mem-chip" data-member="rajasekhar">👨 Raj</div>
+            <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
+            <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
+            <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
+          </div>
         </div>
+        <div class="sc-form-section">
+          <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
+          <textarea class="sc-form-input sc-form-textarea ev-inp" id="sce-notes" placeholder="Any details…"></textarea>
+        </div>
+        <input type="hidden" id="sce-edit-id">
       </div>
-      <div class="sc-form-section">
-        <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
-        <textarea class="sc-form-input sc-form-textarea ev-inp" id="sce-notes" placeholder="Any details…"></textarea>
+      <div class="sc-sh-footer">
+        <button class="sc-sh-cta ev-cta" id="sce-save-btn" onclick="saveSchedEvent()">SAVE EVENT</button>
+        <button class="sc-sh-del" id="sce-del-btn" style="display:none;" onclick="deleteSchedEvent()">🗑 Delete Event</button>
       </div>
-      <input type="hidden" id="sce-edit-id">
-      <button class="sc-sh-cta ev-cta" id="sce-save-btn" onclick="saveSchedEvent()">SAVE EVENT</button>
-      <button class="sc-sh-del" id="sce-del-btn" style="display:none;" onclick="deleteSchedEvent()">🗑 Delete Event</button>
     </div>
   </div>
 
