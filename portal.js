@@ -366,7 +366,7 @@ function goPage(page) {
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
   // Show/hide agenda action button in bottom nav
   var _scBnavAction = document.getElementById('sc-bnav-action');
-  if (_scBnavAction) _scBnavAction.style.display = (page === 'scheduler') ? '' : 'none';
+  if (_scBnavAction) _scBnavAction.style.display = (page === 'scheduler') ? 'block' : 'none';
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
