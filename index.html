@@ -1512,13 +1512,6 @@
 
 
 
-<!-- ADD TASK — fixed above bottom nav, outside nav to avoid stacking context issues -->
-<div id="sc-bnav-action">
-  <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
-    <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
-  </button>
-</div>
-
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
   <div class="bnav-inner">
@@ -1542,6 +1535,15 @@
     </div>
   </div>
 </nav>
+
+<!-- ═══════════════ AGENDA FAB — stunning pill add button ═══════════════ -->
+<div id="sc-fab-wrap" class="sc-add-btn-wrap" style="display:none;">
+  <button class="sc-add-btn" id="sc-fab-btn" type="button" onclick="openSchedSheet()">
+    <div class="sc-add-btn-glow"></div>
+    <span class="sc-add-btn-icon">＋</span>
+    <span class="sc-add-btn-label" id="sc-fab-label">Add Task</span>
+  </button>
+</div>
 
 <!-- ═══ BUDGET RAIL — fixed above bottom nav, budget page only ═══ -->
 <div id="budget-rail" class="bgt-hidden">
