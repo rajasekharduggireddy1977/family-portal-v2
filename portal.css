@@ -6248,12 +6248,14 @@ body.dash-active #content{
 /* ── Appts panel ── */
 .sc-appt-wrap{padding:0 16px;}
 
-/* ── Stunning Add Button for scheduler ── */
-.sc-add-btn-wrap{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);left:50%;transform:translateX(-50%);z-index:150;width:calc(100% - 48px);max-width:400px;}
+/* ── Stunning Add Button for scheduler (FAB pill — root level, z-index above everything) ── */
+.sc-add-btn-wrap{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%);z-index:9500;width:calc(100% - 48px);max-width:400px;pointer-events:auto;}
+@keyframes sc-fab-rise{from{opacity:0;transform:translateX(-50%) translateY(14px) scale(0.95);}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}}
 .sc-add-btn{position:relative;width:100%;height:52px;border-radius:26px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden;background:linear-gradient(135deg,#FF6B35 0%,#ff3e78 50%,#c428ff 100%);box-shadow:0 6px 30px rgba(255,62,120,.45),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;}
 .sc-add-btn.ev-fab{background:linear-gradient(135deg,#7C3AED 0%,#9333ea 50%,#c026d3 100%);box-shadow:0 6px 30px rgba(124,58,237,.5),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18);}
 .sc-add-btn.ap-fab{background:linear-gradient(135deg,#059669 0%,#10b981 50%,#0ea5e9 100%);box-shadow:0 6px 30px rgba(5,150,105,.5),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.18);}
 .sc-add-btn:active{transform:scale(.95);}
+.sc-add-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;}
 .sc-add-btn-icon{font-size:22px;color:#fff;line-height:1;font-weight:400;margin-top:-1px;}
 .sc-add-btn-label{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:.06em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25);}
 .sc-add-btn-glow{position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.12) 50%,transparent 100%);transform:translateX(-100%);animation:sc-btn-shimmer 3s ease-in-out infinite;}
@@ -6527,32 +6529,7 @@ body.dash-active #content{
 .sct2-nav-active{opacity:1;}
 .sct2-nav-lbl{font-size:7px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sct2-text);}
 
-/* ── ADD TASK button — fixed above bottom nav, outside nav element ── */
-#sc-bnav-action{
-  display:none;
-  position:fixed;
-  bottom:calc(var(--nav-h) + 6px);
-  left:14px;right:14px;
-  z-index:9975;
-  transform:translateZ(0);
-  -webkit-transform:translateZ(0);
-  isolation:isolate;
-}
-.sct2-bnav-add-btn{
-  display:block;width:100%;padding:10px 16px;
-  background:#1A1714;color:#fff;
-  font-family:'DM Sans','Inter',sans-serif;
-  font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
-  border:none;border-radius:13px;cursor:pointer;
-  position:relative;overflow:hidden;
-  box-shadow:0 4px 14px rgba(26,23,20,0.35);
-  transition:transform 0.12s;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-  pointer-events:auto;
-  -webkit-appearance:none;appearance:none;
-}
-.sct2-bnav-add-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,transparent 60%);pointer-events:none;border-radius:inherit;}
-.sct2-bnav-add-btn:active{transform:scale(0.97);}
+/* ── old #sc-bnav-action removed — replaced by #sc-fab-wrap (.sc-add-btn-wrap) ── */
 
 /* Slide-down entrance for task sheet */
 @keyframes sct2-slideDown{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:translateY(0);}}

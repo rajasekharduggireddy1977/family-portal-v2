@@ -6377,7 +6377,8 @@ function switchSchTab(tab, skipAnim) {
   _schTab=tab;
   var inEl=document.getElementById('sc-panel-'+tab); if(inEl) inEl.classList.add('sc-active');
   var inBtn=document.getElementById('sc-btn-'+tab); if(inBtn) inBtn.classList.add('active');
-  var bnavLbl=document.getElementById('sc-bnav-btn-label'); if(bnavLbl) bnavLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appointment':'Add Task';
+  var fabLbl=document.getElementById('sc-fab-label'); if(fabLbl) fabLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appt':'Add Task';
+  var fabBtn=document.getElementById('sc-fab-btn'); if(fabBtn){fabBtn.className='sc-add-btn'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');}
 }
 
 function updateSchedBadges() {
@@ -6537,21 +6538,13 @@ function setSchApptFilter(f){_schApptFilter=f;renderSchedAppts();}
 
 /* Show ADD TASK/EVENT/APPT button only when on scheduler page AND no sheet is open */
 function _updateBnavAction(){
-  var el=document.getElementById('sc-bnav-action');if(!el)return;
+  var el=document.getElementById('sc-fab-wrap');if(!el)return;
   var taskOpen=!!(document.getElementById('sc-task-sheet')?.classList.contains('open'));
   var eventOpen=!!(document.getElementById('sc-event-sheet')?.classList.contains('open'));
   var apptEl=document.getElementById('apptv4-sheet');
   var apptOpen=apptEl?!apptEl.classList.contains('hidden'):false;
   var onSched=(typeof currentPage!=='undefined')&&currentPage==='scheduler';
-  var show=(onSched&&!taskOpen&&!eventOpen&&!apptOpen);
-  el.style.display=show?'block':'none';
-  /* Wire click once via JS — more reliable on iOS than inline onclick */
-  var btn=document.getElementById('sc-bnav-add-btn');
-  if(btn&&!btn._clickWired){
-    btn._clickWired=true;
-    btn.addEventListener('click',function(e){e.stopPropagation();openSchedSheet();});
-    btn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();openSchedSheet();},{passive:false});
-  }
+  el.style.display=(onSched&&!taskOpen&&!eventOpen&&!apptOpen)?'block':'none';
 }
 
 function openSchedSheet(){
