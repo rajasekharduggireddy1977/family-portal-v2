@@ -1200,15 +1200,16 @@
           <input class="sct2-title-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal…">
         </div>
 
-        <!-- Date + Icon -->
-        <div class="sct2-two-col">
-          <div class="sct2-mini-card" onclick="document.getElementById('sct-due').focus();document.getElementById('sct-due').showPicker&&document.getElementById('sct-due').showPicker()">
-            <label class="sct2-field-label" for="sct-due">Due Date <span class="sct2-optional">(optional)</span></label>
-            <input class="sct2-date-input" id="sct-due" type="date">
+        <!-- Date + Icon — compact inline row -->
+        <div class="sct2-form-card sct2-di-card">
+          <div class="sct2-di-left" onclick="try{document.getElementById('sct-due').showPicker()}catch(e){document.getElementById('sct-due').focus()}">
+            <span class="sct2-di-label">📅 Due Date <span class="sct2-optional">(optional)</span></span>
+            <input class="sct2-di-input" id="sct-due" type="date">
           </div>
-          <div class="sct2-mini-card">
-            <label class="sct2-field-label" for="sct-icon">Icon</label>
-            <input class="sct2-icon-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
+          <div class="sct2-di-sep"></div>
+          <div class="sct2-di-right">
+            <span class="sct2-di-label">Icon</span>
+            <input class="sct2-di-input sct2-di-icon-inp" id="sct-icon" type="text" placeholder="📋" maxlength="4">
           </div>
         </div>
 
@@ -1511,15 +1512,14 @@
 
 
 
-<!-- ADD TASK contextual button — fixed above bottom nav, shown only on Agenda -->
-<div id="sc-bnav-action">
-  <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
-    <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
-  </button>
-</div>
-
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
+  <!-- ADD TASK — inside nav panel, z-index:2 ensures it's above bnav-inner stacking context -->
+  <div id="sc-bnav-action">
+    <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
+      <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
+    </button>
+  </div>
   <div class="bnav-inner">
     <div class="bnav-selector" id="bnav-selector"></div>
     <div class="bnav-item active pressable" id="bnav-view" onclick="goPage('view')">
