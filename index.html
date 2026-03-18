@@ -1196,25 +1196,18 @@
 
         <!-- Title input -->
         <div class="sct2-form-card">
-          <label class="sct2-field-label">Task Title</label>
+          <label class="sct2-field-label" for="sct-title">Task Title</label>
           <input class="sct2-title-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal…">
-          <div class="sct2-divider"></div>
-          <div class="sct2-quick-row">
-            <span class="sct2-quick-hint">Quick add:</span>
-            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Insurance';document.getElementById('sct-title').focus()">Insurance</span>
-            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Tax Filing';document.getElementById('sct-title').focus()">Tax Filing</span>
-            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Checkup';document.getElementById('sct-title').focus()">Checkup</span>
-          </div>
         </div>
 
         <!-- Date + Icon -->
         <div class="sct2-two-col">
-          <div class="sct2-mini-card">
-            <label class="sct2-field-label">Due Date <span class="sct2-optional">(optional)</span></label>
+          <div class="sct2-mini-card" onclick="document.getElementById('sct-due').focus();document.getElementById('sct-due').showPicker&&document.getElementById('sct-due').showPicker()">
+            <label class="sct2-field-label" for="sct-due">Due Date <span class="sct2-optional">(optional)</span></label>
             <input class="sct2-date-input" id="sct-due" type="date">
           </div>
           <div class="sct2-mini-card">
-            <label class="sct2-field-label">Icon</label>
+            <label class="sct2-field-label" for="sct-icon">Icon</label>
             <input class="sct2-icon-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
           </div>
         </div>
@@ -1237,7 +1230,7 @@
 
         <!-- Member -->
         <div class="sct2-form-card">
-          <label class="sct2-field-label" style="margin-bottom:14px;">Assign To</label>
+          <label class="sct2-field-label" style="margin-bottom:10px;">Assign To</label>
           <div class="sct2-mem-row" id="sct-mem-row">
             <div class="sct2-mem-chip active" data-member="rajasekhar"><div class="sct2-avatar sct2-av-raj">R</div><span class="sct2-mem-name">Raj</span></div>
             <div class="sct2-mem-chip" data-member="vasundhara"><div class="sct2-avatar sct2-av-vasu">V</div><span class="sct2-mem-name">Vasu</span></div>
@@ -1518,14 +1511,15 @@
 
 
 
+<!-- ADD TASK contextual button — fixed above bottom nav, shown only on Agenda -->
+<div id="sc-bnav-action">
+  <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
+    <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
+  </button>
+</div>
+
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
-  <!-- Contextual action button — shown only on Agenda page -->
-  <div id="sc-bnav-action">
-    <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
-      <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
-    </button>
-  </div>
   <div class="bnav-inner">
     <div class="bnav-selector" id="bnav-selector"></div>
     <div class="bnav-item active pressable" id="bnav-view" onclick="goPage('view')">
