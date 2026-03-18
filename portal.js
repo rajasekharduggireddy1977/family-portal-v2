@@ -6575,7 +6575,7 @@ function editSchedTask(id){
   document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
   var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent=(task.cat||'other')+' ✓';
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
-  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='';
+  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='block';
   document.getElementById('sc-task-sheet').classList.add('open');
   _updateBnavAction();
 }

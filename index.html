@@ -1512,14 +1512,15 @@
 
 
 
+<!-- ADD TASK — fixed above bottom nav, outside nav to avoid stacking context issues -->
+<div id="sc-bnav-action">
+  <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
+    <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
+  </button>
+</div>
+
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
-  <!-- ADD TASK — inside nav panel, z-index:2 ensures it's above bnav-inner stacking context -->
-  <div id="sc-bnav-action">
-    <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
-      <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
-    </button>
-  </div>
   <div class="bnav-inner">
     <div class="bnav-selector" id="bnav-selector"></div>
     <div class="bnav-item active pressable" id="bnav-view" onclick="goPage('view')">
