@@ -6543,7 +6543,15 @@ function _updateBnavAction(){
   var apptEl=document.getElementById('apptv4-sheet');
   var apptOpen=apptEl?!apptEl.classList.contains('hidden'):false;
   var onSched=(typeof currentPage!=='undefined')&&currentPage==='scheduler';
-  el.style.display=(onSched&&!taskOpen&&!eventOpen&&!apptOpen)?'block':'none';
+  var show=(onSched&&!taskOpen&&!eventOpen&&!apptOpen);
+  el.style.display=show?'block':'none';
+  /* Wire click once via JS — more reliable on iOS than inline onclick */
+  var btn=document.getElementById('sc-bnav-add-btn');
+  if(btn&&!btn._clickWired){
+    btn._clickWired=true;
+    btn.addEventListener('click',function(e){e.stopPropagation();openSchedSheet();});
+    btn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();openSchedSheet();},{passive:false});
+  }
 }
 
 function openSchedSheet(){

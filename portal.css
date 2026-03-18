@@ -6533,7 +6533,10 @@ body.dash-active #content{
   position:fixed;
   bottom:calc(var(--nav-h) + 6px);
   left:14px;right:14px;
-  z-index:201;
+  z-index:9975;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
+  isolation:isolate;
 }
 .sct2-bnav-add-btn{
   display:block;width:100%;padding:10px 16px;
