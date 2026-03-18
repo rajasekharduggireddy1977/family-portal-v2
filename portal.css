@@ -6350,7 +6350,7 @@ body.dash-active #content{
    Light cream, warm tones, DM Serif Display headings
    ══════════════════════════════════════════════════════════════ */
 
-/* Full-screen shell inside the backdrop */
+/* Full-screen shell — position:absolute fills the fixed backdrop completely */
 .sct2-shell{
   --sct2-bg:#F5F3EF;
   --sct2-surface:#FFFFFF;
@@ -6364,16 +6364,12 @@ body.dash-active #content{
   --sct2-shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
   --sct2-radius:16px;
   --sct2-radius-sm:11px;
+  position:absolute;inset:0;
   display:flex;flex-direction:column;
-  width:100%;height:100%;
   background:var(--sct2-bg);
   font-family:'DM Sans','Inter',sans-serif;
   overflow:hidden;
 }
-
-/* Override backdrop layout for task sheet — full-screen */
-#sc-task-sheet{align-items:stretch;flex-direction:column;}
-#sc-task-sheet .sct2-shell{flex:1;height:100%;}
 
 /* Scrollable form content — top padding clears the fixed topbar */
 .sct2-scroll{
@@ -6439,28 +6435,18 @@ body.dash-active #content{
 }
 .sct2-title-input::placeholder{color:var(--sct2-text3);}
 
-/* Two-col for date + icon — compact */
-.sct2-two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.sct2-mini-card{
-  background:var(--sct2-surface);
-  border-radius:var(--sct2-radius-sm);
-  padding:10px 14px;
-  box-shadow:var(--sct2-shadow-sm);
-  border:1px solid var(--sct2-border);
-  cursor:pointer;
-}
-.sct2-mini-card .sct2-field-label{margin-bottom:5px;}
-.sct2-date-input{
-  width:100%;border:none;outline:none;background:transparent;
+/* Date + Icon — compact inline row (replaces two-col) */
+.sct2-di-card{display:flex;align-items:stretch;padding:0;overflow:hidden;}
+.sct2-di-left{flex:1;padding:10px 14px;cursor:pointer;min-width:0;}
+.sct2-di-right{flex:0 0 72px;padding:10px 12px;}
+.sct2-di-sep{width:1px;background:var(--sct2-border);flex-shrink:0;margin:8px 0;}
+.sct2-di-label{display:block;font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--sct2-text2);margin-bottom:4px;}
+.sct2-di-input{
+  display:block;width:100%;border:none;outline:none;background:transparent;
   font-family:'DM Sans','Inter',sans-serif;
-  font-size:13px;font-weight:500;color:var(--sct2-text);
-  cursor:pointer;
+  font-size:12px;font-weight:500;color:var(--sct2-text);
 }
-.sct2-icon-input{
-  width:100%;border:none;outline:none;background:transparent;
-  font-family:'DM Sans','Inter',sans-serif;
-  font-size:13px;font-weight:500;color:var(--sct2-text);
-}
+.sct2-di-icon-inp{text-align:center;font-size:18px;width:100%;}
 
 /* Category — compact 3-col grid */
 .sct2-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
@@ -6541,25 +6527,16 @@ body.dash-active #content{
 .sct2-nav-active{opacity:1;}
 .sct2-nav-lbl{font-size:7px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sct2-text);}
 
-/* ── ADD TASK button — fixed, sits just above bottom nav ── */
-#sc-bnav-action{
-  display:none;
-  position:fixed;
-  bottom:calc(var(--nav-h) + 2px);
-  left:14px;right:14px;
-  z-index:210;
-  padding:6px 0 4px;
-}
-@keyframes sct2-fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-#sc-bnav-action.visible{display:block;animation:sct2-fadeUp 0.2s ease both;}
+/* ── ADD TASK button — inside #bottom-nav, z-index:2 overrides bnav-inner stacking context ── */
+#sc-bnav-action{display:none;position:relative;z-index:2;padding:5px 14px 3px;}
 .sct2-bnav-add-btn{
-  width:100%;padding:11px 14px;
+  width:100%;padding:8px 14px;
   background:#1A1714;color:#fff;
   font-family:'DM Sans','Inter',sans-serif;
-  font-size:13px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
-  border:none;border-radius:16px;cursor:pointer;
+  font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  border:none;border-radius:13px;cursor:pointer;
   position:relative;overflow:hidden;
-  box-shadow:0 4px 16px rgba(26,23,20,0.28);
+  box-shadow:0 3px 10px rgba(26,23,20,0.22);
   transition:transform 0.15s;
   touch-action:manipulation;-webkit-tap-highlight-color:transparent;
 }

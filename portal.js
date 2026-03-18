@@ -364,9 +364,8 @@ function goPage(page) {
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
-  // Show/hide agenda ADD TASK button (fixed above bottom nav)
-  var _scBnavAction = document.getElementById('sc-bnav-action');
-  if (_scBnavAction) { _scBnavAction.classList.toggle('visible', page === 'scheduler'); }
+  // Show/hide agenda ADD TASK button (inside bottom nav)
+  _updateBnavAction();
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
@@ -6536,6 +6535,17 @@ function renderSchedAppts(){
 
 function setSchApptFilter(f){_schApptFilter=f;renderSchedAppts();}
 
+/* Show ADD TASK/EVENT/APPT button only when on scheduler page AND no sheet is open */
+function _updateBnavAction(){
+  var el=document.getElementById('sc-bnav-action');if(!el)return;
+  var taskOpen=!!(document.getElementById('sc-task-sheet')?.classList.contains('open'));
+  var eventOpen=!!(document.getElementById('sc-event-sheet')?.classList.contains('open'));
+  var apptEl=document.getElementById('apptv4-sheet');
+  var apptOpen=apptEl?!apptEl.classList.contains('hidden'):false;
+  var onSched=(typeof currentPage!=='undefined')&&currentPage==='scheduler';
+  el.style.display=(onSched&&!taskOpen&&!eventOpen&&!apptOpen)?'block':'none';
+}
+
 function openSchedSheet(){
   if(_schTab==='tasks')      openSchedTaskSheet();
   else if(_schTab==='events') openSchedEventSheet();
@@ -6552,6 +6562,7 @@ function openSchedTaskSheet(prefill){
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value='';
   var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='none';
   document.getElementById('sc-task-sheet').classList.add('open');
+  _updateBnavAction();
 }
 
 function editSchedTask(id){
@@ -6566,6 +6577,7 @@ function editSchedTask(id){
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
   var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='';
   document.getElementById('sc-task-sheet').classList.add('open');
+  _updateBnavAction();
 }
 
 function saveSchedTask(){
@@ -6602,6 +6614,7 @@ function openSchedEventSheet(prefill){
   var editId=document.getElementById('sce-edit-id');if(editId)editId.value='';
   var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='none';
   document.getElementById('sc-event-sheet').classList.add('open');
+  _updateBnavAction();
 }
 
 function editSchedEvent(id){
@@ -6616,6 +6629,7 @@ function editSchedEvent(id){
   var editId=document.getElementById('sce-edit-id');if(editId)editId.value=id;
   var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='';
   document.getElementById('sc-event-sheet').classList.add('open');
+  _updateBnavAction();
 }
 
 function saveSchedEvent(){
@@ -6650,6 +6664,7 @@ function deleteSchedEvent(){
 function closeSchedSheet(type){
   var id=type==='task'?'sc-task-sheet':'sc-event-sheet';
   var el=document.getElementById(id);if(el)el.classList.remove('open');
+  _updateBnavAction();
 }
 
 // ██████████████████████████████████████████████████████████
@@ -6844,6 +6859,7 @@ function _openApptSheet() {
   document.body.style.top = '-' + _sy + 'px';
   document.body.classList.add('modal-open');
   document.getElementById('apptv4-sheet').classList.remove('hidden');
+  _updateBnavAction();
 }
 
 function closeApptSheetV4() {
@@ -6852,6 +6868,7 @@ function closeApptSheetV4() {
   document.body.classList.remove('modal-open');
   document.body.style.top = '';
   window.scrollTo(0,_sy2);
+  _updateBnavAction();
 }
 
 // ── Save appointment ──
