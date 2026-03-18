@@ -364,9 +364,9 @@ function goPage(page) {
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
-  // Show/hide agenda action button in bottom nav
+  // Show/hide agenda ADD TASK button (fixed above bottom nav)
   var _scBnavAction = document.getElementById('sc-bnav-action');
-  if (_scBnavAction) _scBnavAction.style.display = (page === 'scheduler') ? 'block' : 'none';
+  if (_scBnavAction) { _scBnavAction.classList.toggle('visible', page === 'scheduler'); }
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
