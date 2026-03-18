@@ -364,6 +364,9 @@ function goPage(page) {
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
+  // Show/hide agenda action button in bottom nav
+  var _scBnavAction = document.getElementById('sc-bnav-action');
+  if (_scBnavAction) _scBnavAction.style.display = (page === 'scheduler') ? '' : 'none';
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
@@ -6357,9 +6360,9 @@ function initSchedulerPage() {
       if(dx>50&&idx>0) switchSchTab(order[idx-1]);
     },{passive:true});
   }
-  // chip onclick wiring for sct
-  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
-  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  // chip onclick wiring for sct (task form — uses sct2-* classes)
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); var badge=document.getElementById('sct2-cat-badge'); if(badge) badge.textContent=(c.dataset.cat||'other')+' ✓'; }; });
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
   document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
   document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
 }
@@ -6375,8 +6378,7 @@ function switchSchTab(tab, skipAnim) {
   _schTab=tab;
   var inEl=document.getElementById('sc-panel-'+tab); if(inEl) inEl.classList.add('sc-active');
   var inBtn=document.getElementById('sc-btn-'+tab); if(inBtn) inBtn.classList.add('active');
-  var fab=document.getElementById('sc-fab'); if(fab) fab.className='sc-add-btn'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');
-  var addLbl=document.getElementById('sc-add-btn-label'); if(addLbl) addLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appointment':'Add Task';
+  var bnavLbl=document.getElementById('sc-bnav-btn-label'); if(bnavLbl) bnavLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appointment':'Add Task';
 }
 
 function updateSchedBadges() {
@@ -6542,10 +6544,11 @@ function openSchedSheet(){
 
 function openSchedTaskSheet(prefill){
   _schTaskEditId=null;var p=prefill||{};
-  var titleEl=document.getElementById('sc-task-sheet-title');if(titleEl)titleEl.textContent='Add Task';
+  var eyebrow=document.getElementById('sc-task-sheet-title');if(eyebrow)eyebrow.textContent='New Entry';
   ['sct-title','sct-due','sct-icon','sct-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='finance');});
-  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='rajasekhar');});
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='finance');});
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='rajasekhar');});
+  var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent='Finance ✓';
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value='';
   var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='none';
   document.getElementById('sc-task-sheet').classList.add('open');
@@ -6554,11 +6557,12 @@ function openSchedTaskSheet(prefill){
 function editSchedTask(id){
   var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});if(!task)return;
   _schTaskEditId=id;
-  var titleEl=document.getElementById('sc-task-sheet-title');if(titleEl)titleEl.textContent='Edit Task';
+  var eyebrow=document.getElementById('sc-task-sheet-title');if(eyebrow)eyebrow.textContent='Edit Entry';
   var fmap={'sct-title':task.title||'','sct-due':task.dueDate||'','sct-icon':task.icon||'','sct-notes':task.notes||''};
   Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
-  document.querySelectorAll('#sct-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(task.cat||'other'));});
-  document.querySelectorAll('#sct-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(task.cat||'other'));});
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
+  var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent=(task.cat||'other')+' ✓';
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
   var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='';
   document.getElementById('sc-task-sheet').classList.add('open');
@@ -6569,8 +6573,8 @@ function saveSchedTask(){
   var due=document.getElementById('sct-due')?.value||'';
   var icon=(document.getElementById('sct-icon')?.value||'').trim()||'📋';
   var notes=(document.getElementById('sct-notes')?.value||'').trim();
-  var cat=document.querySelector('#sct-cat-row .sc-cat-chip.active')?.dataset.cat||'other';
-  var member=document.querySelector('#sct-mem-row .sc-mem-chip.active')?.dataset.member||'rajasekhar';
+  var cat=document.querySelector('#sct-cat-row .sct2-cat-chip.active')?.dataset.cat||'other';
+  var member=document.querySelector('#sct-mem-row .sct2-mem-chip.active')?.dataset.member||'rajasekhar';
   var editId=document.getElementById('sct-edit-id')?.value||'';
   if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
   var CAT_ICONS={finance:'\u{1f4b0}',health:'\u{1f3e5}',government:'\u{1faa9}',property:'\u{1f3e0}',vehicle:'\u{1f697}',education:'\u{1f393}',birthday:'\u{1f382}',other:'\u{1f4cb}'};

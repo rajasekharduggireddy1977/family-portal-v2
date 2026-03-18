@@ -1170,74 +1170,107 @@
 
       </div><!-- /sc-canvas -->
 
-      <!-- Stunning Add Button -->
-      <div class="sc-add-btn-wrap" id="sc-add-btn-wrap">
-        <button class="sc-add-btn" id="sc-fab" onclick="openSchedSheet()">
-          <span class="sc-add-btn-icon">＋</span>
-          <span class="sc-add-btn-label" id="sc-add-btn-label">Add Task</span>
-          <span class="sc-add-btn-glow"></span>
-        </button>
-      </div>
-
     </div><!-- /sched-page -->
   </div><!-- /page-scheduler -->
 
-  <!-- Scheduler Task Add Sheet -->
+  <!-- Scheduler Task Add Sheet — redesigned -->
   <div class="sc-sheet-backdrop" id="sc-task-sheet" onclick="if(event.target===this)closeSchedSheet('task')">
-    <div class="sc-add-sheet">
-      <div class="sc-sh-header">
-        <div>
-          <div class="sc-sh-title" id="sc-task-sheet-title">Add Task</div>
-          <div class="sc-sh-sub">// deadline or to-do</div>
+    <div class="sct2-shell">
+
+      <!-- Scrollable form area -->
+      <div class="sct2-scroll">
+
+        <!-- Title card -->
+        <div class="sct2-title-card">
+          <button class="sct2-close" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
+          <div class="sct2-card-eyebrow" id="sc-task-sheet-title">New Entry</div>
+          <div class="sct2-card-heading">Add a <em>Task</em><br>or Deadline</div>
         </div>
-        <button class="sc-sh-close" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
-      </div>
-      <div class="sc-sh-body">
-        <div class="sc-form-section">
-          <label class="sc-form-label">Title</label>
-          <input class="sc-form-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal">
+
+        <!-- Step dots -->
+        <div class="sct2-step-dots">
+          <div class="sct2-dot sct2-dot-active"></div>
+          <div class="sct2-dot"></div>
+          <div class="sct2-dot"></div>
         </div>
-        <div class="sc-form-row">
-          <div>
-            <label class="sc-form-label">Due Date <span class="sc-optional-tag">(optional)</span></label>
-            <input class="sc-form-input" id="sct-due" type="date">
-          </div>
-          <div>
-            <label class="sc-form-label">Icon</label>
-            <input class="sc-form-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
-          </div>
-        </div>
-        <div class="sc-form-section">
-          <label class="sc-form-label">Category</label>
-          <div class="sc-cat-row" id="sct-cat-row">
-            <div class="sc-cat-chip active" data-cat="finance">💰 Finance</div>
-            <div class="sc-cat-chip" data-cat="health">🏥 Health</div>
-            <div class="sc-cat-chip" data-cat="government">🪪 Govt</div>
-            <div class="sc-cat-chip" data-cat="property">🏠 Property</div>
-            <div class="sc-cat-chip" data-cat="vehicle">🚗 Vehicle</div>
-            <div class="sc-cat-chip" data-cat="other">📋 Other</div>
+
+        <!-- Title input -->
+        <div class="sct2-form-card">
+          <label class="sct2-field-label">Task Title</label>
+          <input class="sct2-title-input" id="sct-title" type="text" placeholder="e.g. Car Insurance Renewal…">
+          <div class="sct2-divider"></div>
+          <div class="sct2-quick-row">
+            <span class="sct2-quick-hint">Quick add:</span>
+            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Insurance';document.getElementById('sct-title').focus()">Insurance</span>
+            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Tax Filing';document.getElementById('sct-title').focus()">Tax Filing</span>
+            <span class="sct2-quick-chip" onclick="document.getElementById('sct-title').value='Checkup';document.getElementById('sct-title').focus()">Checkup</span>
           </div>
         </div>
-        <div class="sc-form-section">
-          <label class="sc-form-label">Member</label>
-          <div class="sc-mem-row" id="sct-mem-row">
-            <div class="sc-mem-chip active" data-member="rajasekhar">👨 Raj</div>
-            <div class="sc-mem-chip" data-member="vasundhara">👩 Vasu</div>
-            <div class="sc-mem-chip" data-member="josritha">👧 Josi</div>
-            <div class="sc-mem-chip" data-member="jeevan">👦 Jeevan</div>
-            <div class="sc-mem-chip" data-member="all">👨‍👩‍👧‍👦 All</div>
+
+        <!-- Date + Icon -->
+        <div class="sct2-two-col">
+          <div class="sct2-mini-card">
+            <label class="sct2-field-label">Due Date <span class="sct2-optional">(optional)</span></label>
+            <input class="sct2-date-input" id="sct-due" type="date">
+          </div>
+          <div class="sct2-mini-card">
+            <label class="sct2-field-label">Icon</label>
+            <input class="sct2-icon-input" id="sct-icon" type="text" placeholder="📋" maxlength="4">
           </div>
         </div>
-        <div class="sc-form-section">
-          <label class="sc-form-label">Notes <span class="sc-optional-tag">(optional)</span></label>
-          <textarea class="sc-form-input sc-form-textarea" id="sct-notes" placeholder="Any details…"></textarea>
+
+        <!-- Category -->
+        <div class="sct2-form-card">
+          <div class="sct2-section-hdr">
+            <label class="sct2-field-label">Category</label>
+            <span class="sct2-selected-badge" id="sct2-cat-badge">Finance ✓</span>
+          </div>
+          <div class="sct2-cat-grid" id="sct-cat-row">
+            <div class="sct2-cat-chip active" data-cat="finance"><span class="sct2-cat-emoji">💰</span><span class="sct2-cat-lbl">Finance</span></div>
+            <div class="sct2-cat-chip" data-cat="health"><span class="sct2-cat-emoji">🏥</span><span class="sct2-cat-lbl">Health</span></div>
+            <div class="sct2-cat-chip" data-cat="government"><span class="sct2-cat-emoji">🪪</span><span class="sct2-cat-lbl">Govt</span></div>
+            <div class="sct2-cat-chip" data-cat="property"><span class="sct2-cat-emoji">🏡</span><span class="sct2-cat-lbl">Property</span></div>
+            <div class="sct2-cat-chip" data-cat="vehicle"><span class="sct2-cat-emoji">🚗</span><span class="sct2-cat-lbl">Vehicle</span></div>
+            <div class="sct2-cat-chip" data-cat="other"><span class="sct2-cat-emoji">📁</span><span class="sct2-cat-lbl">Other</span></div>
+          </div>
         </div>
+
+        <!-- Member -->
+        <div class="sct2-form-card">
+          <label class="sct2-field-label" style="margin-bottom:14px;">Assign To</label>
+          <div class="sct2-mem-row" id="sct-mem-row">
+            <div class="sct2-mem-chip active" data-member="rajasekhar"><div class="sct2-avatar sct2-av-raj">R</div><span class="sct2-mem-name">Raj</span></div>
+            <div class="sct2-mem-chip" data-member="vasundhara"><div class="sct2-avatar sct2-av-vasu">V</div><span class="sct2-mem-name">Vasu</span></div>
+            <div class="sct2-mem-chip" data-member="josritha"><div class="sct2-avatar sct2-av-josi">J</div><span class="sct2-mem-name">Josi</span></div>
+            <div class="sct2-mem-chip" data-member="jeevan"><div class="sct2-avatar sct2-av-jeevan">Je</div><span class="sct2-mem-name">Jeevan</span></div>
+            <div class="sct2-mem-chip" data-member="all"><div class="sct2-avatar sct2-av-all">👥</div><span class="sct2-mem-name">All</span></div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="sct2-form-card">
+          <label class="sct2-field-label">Notes <span class="sct2-optional">OPTIONAL</span></label>
+          <textarea class="sct2-notes" id="sct-notes" rows="3" placeholder="Add any details, links, or reminders…"></textarea>
+        </div>
+
         <input type="hidden" id="sct-edit-id">
       </div>
-      <div class="sc-sh-footer">
-        <button class="sc-sh-cta" id="sct-save-btn" onclick="saveSchedTask()">SAVE TASK</button>
-        <button class="sc-sh-del" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
+
+      <!-- Bottom bar: save button + decorative nav -->
+      <div class="sct2-bottom-bar">
+        <button class="sct2-save-btn" id="sct-save-btn" onclick="saveSchedTask()">
+          <span class="sct2-save-dot"></span>Save Task
+        </button>
+        <button class="sct2-del-btn" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
+        <div class="sct2-nav-row">
+          <div class="sct2-nav-item"><span>🏠</span><span class="sct2-nav-lbl">Home</span></div>
+          <div class="sct2-nav-item"><span>👥</span><span class="sct2-nav-lbl">Members</span></div>
+          <div class="sct2-nav-item"><span>❤️</span><span class="sct2-nav-lbl">Health</span></div>
+          <div class="sct2-nav-item"><span>💰</span><span class="sct2-nav-lbl">Budget</span></div>
+          <div class="sct2-nav-item sct2-nav-active"><span>📋</span><span class="sct2-nav-lbl">Agenda</span></div>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -1487,6 +1520,12 @@
 
 <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
 <nav id="bottom-nav">
+  <!-- Contextual action button — shown only on Agenda page -->
+  <div id="sc-bnav-action">
+    <button class="sct2-bnav-add-btn" id="sc-bnav-add-btn" onclick="openSchedSheet()">
+      <span class="sct2-save-dot"></span><span id="sc-bnav-btn-label">Add Task</span>
+    </button>
+  </div>
   <div class="bnav-inner">
     <div class="bnav-selector" id="bnav-selector"></div>
     <div class="bnav-item active pressable" id="bnav-view" onclick="goPage('view')">
