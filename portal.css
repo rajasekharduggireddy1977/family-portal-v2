@@ -6292,7 +6292,7 @@ body.dash-active #content{
 @keyframes sc-btn-shimmer{0%,60%{transform:translateX(-100%);}80%,100%{transform:translateX(120%);}}
 
 /* ── Add sheet (top-anchored panel) ── */
-.sc-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:9980;display:none;align-items:flex-start;}
+.sc-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:9980;display:none;align-items:flex-start;overscroll-behavior:none;touch-action:none;}
 .sc-sheet-backdrop.open{display:flex;}
 .sc-add-sheet{display:flex!important;flex-direction:column;}
 .sc-sh-body{flex:1;overflow-y:auto;min-height:0;scrollbar-width:none;padding-bottom:4px;}
@@ -6419,12 +6419,17 @@ body.dash-active #content{
   display:flex;flex-direction:column;
   background:var(--sct2-bg);
   font-family:'DM Sans','Inter',sans-serif;
+  overscroll-behavior:none;
 }
 
 
 /* Scrollable form content — top padding clears topbar GPU layer (will-change:transform paints above backdrop) */
 .sct2-scroll{
-  flex:1;overflow-y:auto;
+  flex:1;min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
   padding:calc(env(safe-area-inset-top,0px) + var(--topbar-h,56px) + 6px) 16px var(--nav-h,76px);
   scrollbar-width:none;
 }
