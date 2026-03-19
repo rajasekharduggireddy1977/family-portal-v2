@@ -6378,7 +6378,6 @@ function initSchedulerPage() {
     btn.addEventListener('click', function(){ if(!tapped) fn(); });
   }
   _wireBtn('sct-save-btn', saveSchedTask);
-  _wireBtn('sct-del-btn', deleteSchedTask);
 }
 
 function switchSchTab(tab, skipAnim) {
@@ -6438,7 +6437,7 @@ function renderSchedTasks() {
     var daysLbl=daysLeft!==null?(isOverdue?'overdue':'days left'):'no date';
     var progPct=dueDate?Math.min(100,Math.max(0,isOverdue?100:Math.round((1-daysLeft/365)*100))):0;
     var row=document.createElement('div');row.className='sc-task-row';row.id='sct-row-'+task.id;
-    row.innerHTML='<div class="sc-tr-node '+nodeCls+'"></div><div class="sc-tr-connector '+connCls+'"></div><div class="sc-tr-body '+bodyCls+'" onclick="editSchedTask(\''+task.id+'\')"><div class="sc-tr-top"><div class="sc-tr-left"><span class="sc-tr-icon">'+(task.icon||'📋')+'</span><div class="sc-tr-text"><div class="sc-tr-name">'+escHtml(task.title)+'</div><div class="sc-tr-sub">'+escHtml(task.sub||task.notes||'')+'</div></div></div><div class="sc-tr-days"><div class="sc-trd-num">'+daysTxt+'</div><div class="sc-trd-lbl">'+daysLbl+'</div></div></div><div class="sc-tr-prog"><div class="sc-tr-prog-fill" style="width:'+progPct+'%"></div></div><div class="sc-tr-actions"><div class="sc-tr-btn sc-trb-done" onclick="event.stopPropagation();markTaskDone(\''+task.id+'\')">✓ Done</div>'+(isOverdue?'<div class="sc-tr-btn sc-trb-renew" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">🔄 Renew</div>':'')+'<div class="sc-tr-btn sc-trb-date" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">✏️ Edit</div></div></div>';
+    row.innerHTML='<div class="sc-tr-node '+nodeCls+'"></div><div class="sc-tr-connector '+connCls+'"></div><div class="sc-tr-body '+bodyCls+'" onclick="editSchedTask(\''+task.id+'\')"><div class="sc-tr-top"><div class="sc-tr-left"><span class="sc-tr-icon">'+(task.icon||'📋')+'</span><div class="sc-tr-text"><div class="sc-tr-name">'+escHtml(task.title)+'</div><div class="sc-tr-sub">'+escHtml(task.sub||task.notes||'')+'</div></div></div><div class="sc-tr-days"><div class="sc-trd-num">'+daysTxt+'</div><div class="sc-trd-lbl">'+daysLbl+'</div></div></div><div class="sc-tr-prog"><div class="sc-tr-prog-fill" style="width:'+progPct+'%"></div></div><div class="sc-tr-actions"><div class="sc-tr-btn sc-trb-done" onclick="event.stopPropagation();markTaskDone(\''+task.id+'\')">✓ Done</div>'+(isOverdue?'<div class="sc-tr-btn sc-trb-renew" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">🔄 Renew</div>':'')+'<div class="sc-tr-btn sc-trb-date" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">✏️ Edit</div>'+'<div class="sc-tr-btn sc-trb-del" onclick="event.stopPropagation();deleteSchedTaskById(\''+task.id+'\')" title="Delete">🗑</div></div></div>';
     rail.appendChild(row);
   });
 }
@@ -6576,7 +6575,6 @@ function openSchedTaskSheet(prefill){
   document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='rajasekhar');});
   var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent='Finance ✓';
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value='';
-  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='none';
   document.getElementById('sc-task-sheet').classList.add('open');
   _updateBnavAction();
 }
@@ -6591,7 +6589,6 @@ function editSchedTask(id){
   document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
   var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent=(task.cat||'other')+' ✓';
   var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
-  var delBtn=document.getElementById('sct-del-btn');if(delBtn)delBtn.style.display='block';
   document.getElementById('sc-task-sheet').classList.add('open');
   _updateBnavAction();
 }
@@ -6619,6 +6616,15 @@ function deleteSchedTask(){
   saveSchedTasks(getSchedTasks().filter(function(t){return t.id!==editId;}));
   closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
   if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Task deleted');
+}
+function deleteSchedTaskById(id){
+  var row=document.getElementById('sct-row-'+id);
+  if(row){row.style.transition='opacity .2s,transform .2s';row.style.opacity='0';row.style.transform='translateX(20px)';}
+  setTimeout(function(){
+    saveSchedTasks(getSchedTasks().filter(function(t){return t.id!==id;}));
+    renderSchedTasks();updateSchedBadges();
+    if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Task deleted');
+  },200);
 }
 
 function openSchedEventSheet(prefill){

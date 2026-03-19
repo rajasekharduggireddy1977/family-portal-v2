@@ -6231,6 +6231,7 @@ body.dash-active #content{
 .sc-trb-done{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.22);color:#34d399;}
 .sc-trb-date{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.18);color:#f59e0b;}
 .sc-trb-renew{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.22);color:#fca5a5;}
+.sc-trb-del{flex:0 0 auto;padding:7px 10px;font-size:14px;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:#ef4444;}
 
 /* ── Done section ── */
 .sc-done-section{padding:0 16px 8px;}
