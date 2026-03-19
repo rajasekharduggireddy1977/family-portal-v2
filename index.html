@@ -1075,37 +1075,25 @@
   <!-- ══════════ SCHEDULER / AGENDA PAGE ══════════ -->
   <div class="page" id="page-scheduler">
     <div class="sched-page">
-      <!-- Header -->
-      <div class="sched-hdr">
-        <div>
-          <div class="sched-hdr-title">Family Agenda</div>
-          <div class="sched-hdr-sub" id="sched-hdr-month">MARCH 2026</div>
-        </div>
-        <div class="sched-hdr-avatar" id="sched-hdr-avatar">RD</div>
-      </div>
 
-      <!-- Crown switcher -->
-      <div class="sc-crown">
-        <div class="sc-crown-btn active" id="sc-btn-tasks" data-tab="tasks" onclick="switchSchTab('tasks')">
-          <div class="sc-cb-count sc-count-task sc-count-danger" id="sc-badge-tasks">0</div>
-          <span class="sc-cb-icon">✅</span>
-          <div class="sc-cb-label">Tasks</div>
-          <div class="sc-cb-pill sc-pill-task"></div>
+      <!-- Unified app bar: title + tabs + add button -->
+      <div class="sc-unified-bar">
+        <span class="sc-ub-title">Agenda</span>
+        <div class="sc-ub-tabs">
+          <button class="sc-ub-tab active" id="sc-btn-tasks" data-tab="tasks" type="button" onclick="switchSchTab('tasks')">
+            <span class="sc-ub-ti">✅</span><span class="sc-ub-tl">Tasks</span>
+            <span class="sc-ub-badge sc-count-task sc-count-danger" id="sc-badge-tasks">0</span>
+          </button>
+          <button class="sc-ub-tab" id="sc-btn-events" data-tab="events" type="button" onclick="switchSchTab('events')">
+            <span class="sc-ub-ti">📅</span><span class="sc-ub-tl">Events</span>
+            <span class="sc-ub-badge sc-count-event" id="sc-badge-events">0</span>
+          </button>
+          <button class="sc-ub-tab" id="sc-btn-appts" data-tab="appts" type="button" onclick="switchSchTab('appts')">
+            <span class="sc-ub-ti">🗓</span><span class="sc-ub-tl">Appts</span>
+            <span class="sc-ub-badge sc-count-appt" id="sc-badge-appts">0</span>
+          </button>
         </div>
-        <div class="sc-crown-divider"></div>
-        <div class="sc-crown-btn" id="sc-btn-events" data-tab="events" onclick="switchSchTab('events')">
-          <div class="sc-cb-count sc-count-event" id="sc-badge-events">0</div>
-          <span class="sc-cb-icon">📅</span>
-          <div class="sc-cb-label">Events</div>
-          <div class="sc-cb-pill sc-pill-event"></div>
-        </div>
-        <div class="sc-crown-divider"></div>
-        <div class="sc-crown-btn" id="sc-btn-appts" data-tab="appts" onclick="switchSchTab('appts')">
-          <div class="sc-cb-count sc-count-appt" id="sc-badge-appts">0</div>
-          <span class="sc-cb-icon">🗓</span>
-          <div class="sc-cb-label">Appts</div>
-          <div class="sc-cb-pill sc-pill-appt"></div>
-        </div>
+        <button class="sc-ub-add" id="sc-ub-add-btn" type="button" onclick="openSchedSheet()">＋</button>
       </div>
 
       <!-- Canvas -->
