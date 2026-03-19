@@ -6410,36 +6410,65 @@ function updateSchedBadges() {
 function renderSchedTasks() {
   var rail=document.getElementById('sc-task-rail'); if(!rail) return;
   var today=new Date();today.setHours(0,0,0,0);
-  var tasks=getSchedTasks().filter(function(t){return t.status!=='done';});
-  tasks.sort(function(a,b){
-    var da=a.dueDate?new Date(a.dueDate+'T12:00:00'):new Date('2099-12-31');
-    var db=b.dueDate?new Date(b.dueDate+'T12:00:00'):new Date('2099-12-31');
-    return da-db;
-  });
-  var overdueTasks=tasks.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;});
+  var allTasks=getSchedTasks();
+  var pending=allTasks.filter(function(t){return t.status!=='done';});
+  var doneTasks=allTasks.filter(function(t){return t.status==='done';});
+  var pinned=pending.filter(function(t){return t.pinned;});
+  var unpinned=pending.filter(function(t){return !t.pinned;});
+  function _sortByDue(arr){return arr.sort(function(a,b){var da=a.dueDate?new Date(a.dueDate+'T12:00:00'):new Date('2099-12-31'),db=b.dueDate?new Date(b.dueDate+'T12:00:00'):new Date('2099-12-31');return da-db;});}
+  _sortByDue(pinned);_sortByDue(unpinned);
+  var doneCount=doneTasks.length,total=allTasks.length,pct=total>0?Math.round(doneCount/total*100):0;
+  var overdueTasks=pending.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;});
   var banner=document.getElementById('sc-overdue-banner');
-  if(banner){
-    if(overdueTasks.length>0){banner.style.display='flex';var obT=document.getElementById('sc-ob-text');var obS=document.getElementById('sc-ob-sub');if(obT)obT.textContent=overdueTasks.length+' item'+(overdueTasks.length===1?'':'s')+' overdue';if(obS)obS.textContent=overdueTasks.map(function(t){return t.title;}).join(' \u00b7 ');}
-    else{banner.style.display='none';}
-  }
-  var countLbl=document.getElementById('sc-task-count-lbl'); if(countLbl) countLbl.textContent=tasks.length+' pending';
-  rail.querySelectorAll('.sc-task-row,.sc-empty').forEach(function(r){r.remove();});
-  if(!tasks.length){var em=document.createElement('div');em.className='sc-empty';em.innerHTML='<div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No pending tasks. Tap + to add one.</div>';rail.appendChild(em);return;}
-  tasks.forEach(function(task){
-    var dueDate=task.dueDate?new Date(task.dueDate+'T12:00:00'):null;
-    var daysLeft=dueDate?Math.ceil((dueDate-today)/86400000):null;
-    var isOverdue=daysLeft!==null&&daysLeft<0;
-    var isUrgent=daysLeft!==null&&daysLeft>=0&&daysLeft<=30;
-    var bodyCls=isOverdue?'bd':isUrgent?'bw':'bk';
-    var nodeCls=isOverdue?'nd':isUrgent?'nw':'nk';
-    var connCls=isOverdue?'cd':isUrgent?'cw':'ck';
-    var daysTxt=daysLeft!==null?(isOverdue?Math.abs(daysLeft):daysLeft):'—';
-    var daysLbl=daysLeft!==null?(isOverdue?'overdue':'days left'):'no date';
-    var progPct=dueDate?Math.min(100,Math.max(0,isOverdue?100:Math.round((1-daysLeft/365)*100))):0;
-    var row=document.createElement('div');row.className='sc-task-row';row.id='sct-row-'+task.id;
-    row.innerHTML='<div class="sc-tr-node '+nodeCls+'"></div><div class="sc-tr-connector '+connCls+'"></div><div class="sc-tr-body '+bodyCls+'" onclick="editSchedTask(\''+task.id+'\')"><div class="sc-tr-top"><div class="sc-tr-left"><span class="sc-tr-icon">'+(task.icon||'📋')+'</span><div class="sc-tr-text"><div class="sc-tr-name">'+escHtml(task.title)+'</div><div class="sc-tr-sub">'+escHtml(task.sub||task.notes||'')+'</div></div></div><div class="sc-tr-days"><div class="sc-trd-num">'+daysTxt+'</div><div class="sc-trd-lbl">'+daysLbl+'</div></div></div><div class="sc-tr-prog"><div class="sc-tr-prog-fill" style="width:'+progPct+'%"></div></div><div class="sc-tr-actions"><div class="sc-tr-btn sc-trb-done" onclick="event.stopPropagation();markTaskDone(\''+task.id+'\')">✓ Done</div>'+'<div class="sc-tr-btn sc-trb-date" onclick="event.stopPropagation();editSchedTask(\''+task.id+'\')">✏️ Edit</div>'+'<div class="sc-tr-btn sc-trb-del" onclick="event.stopPropagation();deleteSchedTaskById(\''+task.id+'\')" title="Delete">🗑</div></div></div>';
-    rail.appendChild(row);
-  });
+  if(banner){if(overdueTasks.length>0){banner.style.display='flex';var obT=document.getElementById('sc-ob-text'),obS=document.getElementById('sc-ob-sub');if(obT)obT.textContent=overdueTasks.length+' item'+(overdueTasks.length===1?'':'s')+' overdue';if(obS)obS.textContent=overdueTasks.map(function(t){return t.title;}).join(' \u00b7 ');}else{banner.style.display='none';}}
+  var countLbl=document.getElementById('sc-task-count-lbl');if(countLbl)countLbl.textContent=pending.length+' pending';
+  var oldDone=document.getElementById('sc-done-section');if(oldDone)oldDone.style.display='none';
+  rail.innerHTML='';
+  if(!allTasks.length){rail.innerHTML='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';return;}
+  function _bc(t){if(!t.dueDate)return 'ok';var d=new Date(t.dueDate+'T12:00:00'),diff=Math.ceil((d-today)/86400000);if(diff<0)return 'urgent';if(diff<=30)return 'soon';return 'ok';}
+  function _bl(t){if(!t.dueDate)return 'No date';var d=new Date(t.dueDate+'T12:00:00'),diff=Math.ceil((d-today)/86400000);if(diff<0)return 'Overdue';if(diff===0)return 'Today';if(diff===1)return 'Tomorrow';return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+  function _card(t){var bc=_bc(t),bl=_bl(t),isDone=t.status==='done',isOvd=bc==='urgent'&&!isDone;return '<div class="sct2-card'+(isOvd?' sct2-overdue':'')+(isDone?' sct2-done-card':'')+'" data-id="'+escHtml(t.id)+'">'+'<div class="sct2-emoji">'+(t.icon||'📋')+'</div>'+'<div class="sct2-body"><div class="sct2-name">'+escHtml(t.title)+'</div><div class="sct2-ref">'+escHtml(t.sub||t.notes||'')+'</div></div>'+'<div class="sct2-right"><span class="sct2-badge '+bc+'">'+bl+'</span>'+(t.pinned&&!isDone?'<div class="sct2-pin-pip"></div>':'')+'<button class="sct2-more-btn" data-id="'+escHtml(t.id)+'">···</button></div>'+'</div>';}
+  function _sec(label,arr){if(!arr.length)return '';var h='<div class="sct2-sec-head"><span class="sct2-sec-label">'+label+'</span><div class="sct2-sec-line"></div></div>';arr.forEach(function(t){h+=_card(t);});return h;}
+  var html='<div class="sct2-prog-wrap"><div class="sct2-pbar"><div class="sct2-pfill" style="width:'+pct+'%"></div></div><span class="sct2-plabel">'+doneCount+' / '+total+'</span></div>';
+  if(pinned.length)html+=_sec('📌 Pinned',pinned);
+  if(unpinned.length)html+=_sec('🗂 Tasks',unpinned);
+  if(doneTasks.length)html+=_sec('✅ Done',doneTasks);
+  if(!pinned.length&&!unpinned.length&&!doneTasks.length)html+='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';
+  rail.innerHTML=html;
+  rail.querySelectorAll('.sct2-more-btn').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var id=btn.dataset.id;if(window._sct2MenuId===id){_sct2CloseMenu();return;}_sct2OpenMenu(id,btn);});});
+}
+
+function _sct2OpenMenu(id,btn){
+  _sct2CloseMenu();
+  window._sct2MenuId=id;
+  var tasks=getSchedTasks(),task=tasks.find(function(t){return t.id===id;});
+  if(!task)return;
+  var card=btn.closest('.sct2-card');if(card)card.classList.add('sct2-menu-open');
+  var dim=document.createElement('div');dim.className='sct2-menu-dim';dim.id='sct2-dim';dim.addEventListener('click',_sct2CloseMenu);
+  var popup=document.createElement('div');popup.className='sct2-menu-popup';popup.id='sct2-popup';
+  var pinLbl=task.pinned?'Unpin':'Pin',pinIco=task.pinned?'📍':'📌';
+  var doneLbl=task.status==='done'?'Undo done':'Mark done',doneIco=task.status==='done'?'↩️':'✅';
+  popup.innerHTML='<button class="sct2-mi" data-action="edit"><span class="sct2-mi-ico">✏️</span><span class="sct2-mi-lbl">Edit</span></button>'
+    +'<button class="sct2-mi" data-action="pin"><span class="sct2-mi-ico">'+pinIco+'</span><span class="sct2-mi-lbl">'+pinLbl+'</span></button>'
+    +'<button class="sct2-mi" data-action="done"><span class="sct2-mi-ico">'+doneIco+'</span><span class="sct2-mi-lbl">'+doneLbl+'</span></button>'
+    +'<button class="sct2-mi sct2-mi-del" data-action="delete"><span class="sct2-mi-ico">🗑️</span><span class="sct2-mi-lbl">Delete</span></button>';
+  popup.querySelectorAll('[data-action]').forEach(function(item){item.addEventListener('click',function(e){e.stopPropagation();var action=item.dataset.action,ts=getSchedTasks(),t=ts.find(function(x){return x.id===id;});
+    if(action==='edit'){_sct2CloseMenu();editSchedTask(id);}
+    else if(action==='pin'){if(t){t.pinned=!t.pinned;saveSchedTasks(ts);}; _sct2CloseMenu();renderSchedTasks();updateSchedBadges();}
+    else if(action==='done'){if(t){if(t.status==='done'){t.status='pending';delete t.doneAt;}else{t.status='done';t.doneAt=new Date().toISOString();}saveSchedTasks(ts);}_sct2CloseMenu();renderSchedTasks();updateSchedBadges();}
+    else if(action==='delete'){_sct2CloseMenu();deleteSchedTaskById(id);}
+  });});
+  var r=btn.getBoundingClientRect();
+  popup.style.top=(r.bottom+6)+'px';
+  popup.style.right=(window.innerWidth-r.right+2)+'px';
+  document.body.appendChild(dim);document.body.appendChild(popup);
+}
+
+function _sct2CloseMenu(){
+  document.querySelectorAll('.sct2-card.sct2-menu-open').forEach(function(c){c.classList.remove('sct2-menu-open');});
+  var d=document.getElementById('sct2-dim'),p=document.getElementById('sct2-popup');
+  if(d)d.remove();if(p)p.remove();
+  window._sct2MenuId=null;
 }
 
 function markTaskDone(id) {

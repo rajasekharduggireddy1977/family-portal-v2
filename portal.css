@@ -6373,6 +6373,56 @@ body.dash-active #content{
 [data-theme="light"] .sc-sh-close{background:rgba(0,0,0,.1);border-color:rgba(0,0,0,.18);color:#555;}
 [data-theme="light"] .sc-ev-section-badge{background:rgba(0,0,0,.07);color:#777;}
 
+/* ── Compact task cards — sct2 redesign ── */
+.sct2-prog-wrap{display:flex;align-items:center;gap:8px;padding:8px 14px 4px;}
+.sct2-pbar{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.sct2-pfill{height:100%;background:#1D9E75;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+.sct2-plabel{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);white-space:nowrap;}
+.sct2-sec-head{display:flex;align-items:center;gap:6px;padding:10px 14px 4px;}
+.sct2-sec-label{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;white-space:nowrap;}
+.sct2-sec-line{flex:1;height:.5px;background:rgba(255,255,255,.1);}
+.sct2-card{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:2px 10px;background:rgba(255,255,255,.04);border-radius:12px;border:.5px solid rgba(255,255,255,.08);cursor:pointer;position:relative;transition:border-color .15s,background .15s;}
+.sct2-card:active{background:rgba(255,255,255,.08);}
+.sct2-card.sct2-overdue{border-left:2.5px solid #ef4444;border-radius:0 12px 12px 0;}
+.sct2-card.sct2-done-card{opacity:.42;}
+.sct2-card.sct2-done-card .sct2-name{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3);}
+.sct2-card.sct2-menu-open{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.08);}
+.sct2-emoji{font-size:18px;line-height:1;flex-shrink:0;width:24px;text-align:center;}
+.sct2-body{flex:1;min-width:0;}
+.sct2-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px;line-height:1.3;}
+.sct2-ref{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sct2-right{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.sct2-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;line-height:1.4;white-space:nowrap;font-family:'DM Mono',monospace;letter-spacing:.03em;}
+.sct2-badge.urgent{background:rgba(239,68,68,.15);color:#fca5a5;}
+.sct2-badge.soon{background:rgba(245,158,11,.12);color:#fcd34d;}
+.sct2-badge.ok{background:rgba(52,211,153,.1);color:#6ee7b7;}
+.sct2-pin-pip{width:5px;height:5px;border-radius:50%;background:#60a5fa;flex-shrink:0;}
+.sct2-more-btn{font-size:15px;line-height:1;color:var(--text3);padding:4px 2px 4px 6px;background:none;border:none;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;font-family:monospace;letter-spacing:-.05em;}
+.sct2-more-btn:active{opacity:.55;}
+/* sct2 popup menu */
+.sct2-menu-dim{position:fixed;inset:0;z-index:9990;}
+.sct2-menu-popup{position:fixed;background:var(--surface,#18181f);border:.5px solid rgba(255,255,255,.14);border-radius:14px;z-index:9991;min-width:164px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.52),0 2px 8px rgba(0,0,0,.3);animation:sct2-pop-in .15s ease both;}
+@keyframes sct2-pop-in{from{opacity:0;transform:scale(.88) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.sct2-mi{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
+.sct2-mi:not(:last-child){border-bottom:.5px solid rgba(255,255,255,.07);}
+.sct2-mi:active{background:rgba(255,255,255,.06);}
+.sct2-mi-ico{font-size:14px;line-height:1;width:18px;text-align:center;flex-shrink:0;}
+.sct2-mi-lbl{font-size:13px;color:var(--text);font-weight:500;}
+.sct2-mi-del .sct2-mi-lbl{color:#ff4f4f;}
+/* light theme overrides */
+[data-theme="light"] .sct2-card{background:#fff;border-color:rgba(0,0,0,.08);}
+[data-theme="light"] .sct2-card:active,[data-theme="light"] .sct2-card.sct2-menu-open{background:#f4f4f5;}
+[data-theme="light"] .sct2-sec-line{background:rgba(0,0,0,.1);}
+[data-theme="light"] .sct2-pbar{background:rgba(0,0,0,.08);}
+[data-theme="light"] .sct2-badge.urgent{background:#FCEBEB;color:#A32D2D;}
+[data-theme="light"] .sct2-badge.soon{background:#FAEEDA;color:#854F0B;}
+[data-theme="light"] .sct2-badge.ok{background:#EAF3DE;color:#3B6D11;}
+[data-theme="light"] .sct2-menu-popup{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 8px 32px rgba(0,0,0,.16);}
+[data-theme="light"] .sct2-mi:not(:last-child){border-bottom-color:rgba(0,0,0,.07);}
+[data-theme="light"] .sct2-mi:active{background:rgba(0,0,0,.04);}
+[data-theme="light"] .sct2-mi-lbl{color:#111;}
+[data-theme="light"] .sct2-more-btn{color:#aaa;}
+
 /* ── Scheduler mobile tweaks ── */
 @media(max-width:480px){
   .sched-hdr-title{font-size:18px;letter-spacing:-.3px;}
