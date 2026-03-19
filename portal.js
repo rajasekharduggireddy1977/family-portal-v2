@@ -6422,7 +6422,6 @@ function renderSchedTasks() {
   var banner=document.getElementById('sc-overdue-banner');
   if(banner){if(overdueTasks.length>0){banner.style.display='flex';var obT=document.getElementById('sc-ob-text'),obS=document.getElementById('sc-ob-sub');if(obT)obT.textContent=overdueTasks.length+' item'+(overdueTasks.length===1?'':'s')+' overdue';if(obS)obS.textContent=overdueTasks.map(function(t){return t.title;}).join(' \u00b7 ');}else{banner.style.display='none';}}
   var countLbl=document.getElementById('sc-task-count-lbl');if(countLbl)countLbl.textContent=pending.length+' pending';
-  var oldDone=document.getElementById('sc-done-section');if(oldDone)oldDone.style.display='none';
   rail.innerHTML='';
   if(!allTasks.length){rail.innerHTML='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';return;}
   function _bc(t){if(!t.dueDate)return 'ok';var d=new Date(t.dueDate+'T12:00:00'),diff=Math.ceil((d-today)/86400000);if(diff<0)return 'urgent';if(diff<=30)return 'soon';return 'ok';}
@@ -6435,7 +6434,7 @@ function renderSchedTasks() {
   if(doneTasks.length)html+=_sec('✅ Done',doneTasks);
   if(!pinned.length&&!unpinned.length&&!doneTasks.length)html+='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';
   rail.innerHTML=html;
-  rail.querySelectorAll('.sct2-more-btn').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();var id=btn.dataset.id;if(window._sct2MenuId===id){_sct2CloseMenu();return;}_sct2OpenMenu(id,btn);});});
+  if(!rail._sct2Bound){rail._sct2Bound=true;rail.addEventListener('click',function(e){var btn=e.target.closest('.sct2-more-btn');if(!btn)return;e.stopPropagation();var id=btn.dataset.id;if(window._sct2MenuId===id){_sct2CloseMenu();return;}_sct2OpenMenu(id,btn);});}
 }
 
 function _sct2OpenMenu(id,btn){
@@ -6465,46 +6464,13 @@ function _sct2OpenMenu(id,btn){
 }
 
 function _sct2CloseMenu(){
-  document.querySelectorAll('.sct2-card.sct2-menu-open').forEach(function(c){c.classList.remove('sct2-menu-open');});
+  var rail=document.getElementById('sc-task-rail');
+  if(rail)rail.querySelectorAll('.sct2-card.sct2-menu-open').forEach(function(c){c.classList.remove('sct2-menu-open');});
   var d=document.getElementById('sct2-dim'),p=document.getElementById('sct2-popup');
   if(d)d.remove();if(p)p.remove();
   window._sct2MenuId=null;
 }
 
-function markTaskDone(id) {
-  var row=document.getElementById('sct-row-'+id); if(!row) return;
-  var body=row.querySelector('.sc-tr-body'); if(body){body.style.transition='opacity .3s,transform .3s';body.style.opacity='0';body.style.transform='translateX(20px)';}
-  setTimeout(function(){
-    row.style.maxHeight=row.offsetHeight+'px';row.style.overflow='hidden';row.style.transition='max-height .3s ease,margin .3s ease,opacity .2s';
-    requestAnimationFrame(function(){row.style.maxHeight='0';row.style.marginBottom='0';row.style.opacity='0';});
-    var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});
-    if(task){task.status='done';task.doneAt=new Date().toISOString();saveSchedTasks(tasks);}
-    _schDoneCount++;
-    if(task)_addToDoneList(task);
-    setTimeout(function(){row.style.display='none';},320);
-    renderSchedTasks();updateSchedBadges();
-  },280);
-}
-
-function _addToDoneList(task){
-  var sec=document.getElementById('sc-done-section'),list=document.getElementById('sc-done-list'),countEl=document.getElementById('sc-done-count');
-  if(!sec||!list)return;sec.style.display='';
-  var today2=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-  var doneRow=document.createElement('div');doneRow.className='sc-done-row';doneRow.id='sct-done-'+task.id;
-  doneRow.style.cssText='opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;';
-  doneRow.innerHTML='<div class="sc-done-check">✓</div><span class="sc-done-ico">'+(task.icon||'📋')+'</span><div class="sc-done-info"><div class="sc-done-name">'+escHtml(task.title)+'</div><div class="sc-done-date">Completed \u00b7 '+today2+'</div></div><div class="sc-done-stamp">DONE</div><div class="sc-done-undo" onclick="undoTaskDone(\''+task.id+'\')">Undo</div>';
-  list.appendChild(doneRow);
-  requestAnimationFrame(function(){requestAnimationFrame(function(){doneRow.style.opacity='1';doneRow.style.transform='translateY(0)';});});
-  if(countEl)countEl.textContent=_schDoneCount;
-}
-
-function undoTaskDone(id){
-  var doneRow=document.getElementById('sct-done-'+id);if(doneRow){doneRow.style.opacity='0';doneRow.style.transform='translateX(-16px)';setTimeout(function(){doneRow.remove();},300);}
-  var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});if(task){task.status='pending';delete task.doneAt;saveSchedTasks(tasks);}
-  _schDoneCount=Math.max(0,_schDoneCount-1);var countEl=document.getElementById('sc-done-count');if(countEl)countEl.textContent=_schDoneCount;
-  if(_schDoneCount===0){var sec=document.getElementById('sc-done-section');if(sec)sec.style.display='none';}
-  renderSchedTasks();updateSchedBadges();
-}
 
 function _buildEvCard(ev,today){
   var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
@@ -6840,11 +6806,11 @@ function buildApptCard(a, today, isPast) {
     ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);background:rgba(255,79,79,.1);padding:2px 7px;border-radius:6px">TODAY</span>`
     : '';
   const metaParts = [];
-  if (a.time) metaParts.push('🕐 ' + a.time);
-  if (a.loc) metaParts.push(a.loc);
+  if (a.time) metaParts.push('🕐 ' + escHtml(a.time));
+  if (a.loc) metaParts.push(escHtml(a.loc));
   if (a.vehicle) metaParts.push('🚗 ' + (a.vehicle === 'activa' ? 'Activa' : 'i10'));
-  metaParts.push('👤 ' + memberName);
-  return `<div class="appt-v4-card pressable" onclick="editApptV4('${a.id}')" style="border-left:3px solid ${t.color};opacity:${isPast?'.55':'1'}">
+  metaParts.push('👤 ' + escHtml(memberName));
+  return `<div class="appt-v4-card pressable" onclick="editApptV4('${escHtml(a.id)}')" style="border-left:3px solid ${t.color};opacity:${isPast?'.55':'1'}">
     <div class="appt-v4-datecol">
       <div class="appt-v4-dd">${dd}</div>
       <div class="appt-v4-mm">${mm}</div>
@@ -6852,11 +6818,11 @@ function buildApptCard(a, today, isPast) {
     </div>
     <div class="appt-v4-body">
       <div class="appt-v4-row1">
-        <div class="appt-v4-title">${a.title}</div>
+        <div class="appt-v4-title">${escHtml(a.title)}</div>
         ${urgBadge}
       </div>
       <div class="appt-v4-row2">
-        <span class="appt-v4-type-inline" style="color:${t.color}">${t.icon} ${t.label}</span>
+        <span class="appt-v4-type-inline" style="color:${t.color}">${t.icon} ${escHtml(t.label)}</span>
         <span class="appt-v4-meta2">· ${metaParts.join(' · ')}</span>
       </div>
     </div>
