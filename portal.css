@@ -6527,6 +6527,10 @@ body.dash-active #content{
 }
 .sct2-notes::placeholder{color:var(--sct2-text3);}
 
+/* Reminder input */
+.sct2-reminder-input{width:100%;border:none;outline:none;background:transparent;font-family:'DM Sans','Inter',sans-serif;font-size:13px;color:var(--sct2-text);line-height:1.55;}
+.sct2-reminder-input::placeholder{color:var(--sct2-text3);}
+
 /* Bottom bar — frosted, save btn + decorative nav */
 .sct2-bottom-bar{
   flex-shrink:0;
