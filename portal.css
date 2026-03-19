@@ -6399,7 +6399,6 @@ body.dash-active #content{
   flex:1;text-align:center;
   font-size:13px;font-weight:700;letter-spacing:0.4px;color:var(--sct2-text);
 }
-.sct2-title-card{display:none;}
 .sct2-step-dots{display:none;}
 
 /* Full-screen shell — position:absolute fills the fixed backdrop completely */
@@ -6435,8 +6434,8 @@ body.dash-active #content{
 .sct2-title-card{
   background:var(--sct2-text);
   border-radius:var(--sct2-radius);
-  padding:14px 18px;
-  margin-bottom:10px;
+  padding:10px 14px 11px;
+  margin-bottom:8px;
   position:relative;overflow:hidden;
 }
 .sct2-title-card::before{content:'';position:absolute;top:-24px;right:-24px;width:80px;height:80px;background:rgba(255,255,255,0.04);border-radius:50%;}
@@ -6456,7 +6455,7 @@ body.dash-active #content{
 }
 .sct2-card-heading{
   font-family:'DM Serif Display','Georgia',serif;
-  font-size:22px;color:#fff;line-height:1.15;
+  font-size:17px;color:#fff;line-height:1.2;
   position:relative;z-index:1;
 }
 .sct2-card-heading em{font-style:italic;color:var(--sct2-accent);}
@@ -6554,10 +6553,10 @@ body.dash-active #content{
 /* Bottom bar — frosted, save btn + decorative nav */
 .sct2-bottom-bar{
   flex-shrink:0;
-  background:rgba(245,243,239,0.97);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  background:var(--sct2-bg);
   border-top:1px solid rgba(0,0,0,0.06);
   padding:10px 16px var(--nav-h,76px);
+  position:relative;z-index:1;
 }
 .sct2-save-btn{
   width:100%;padding:13px;
@@ -6565,12 +6564,12 @@ body.dash-active #content{
   font-family:'DM Sans','Inter',sans-serif;
   font-size:13px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
   border:none;border-radius:var(--sct2-radius);cursor:pointer;
-  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 16px rgba(26,23,20,0.22);
   transition:transform 0.15s;touch-action:manipulation;
+  pointer-events:auto;user-select:none;-webkit-user-select:none;
 }
-.sct2-save-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);}
-.sct2-save-btn:active{transform:scale(0.98);}
+.sct2-save-btn:active{transform:scale(0.98);background:#2a2420;}
 .sct2-save-dot{display:inline-block;width:6px;height:6px;background:#E8612A;border-radius:50%;margin-right:7px;vertical-align:middle;}
 .sct2-del-btn{
   width:100%;margin-top:6px;padding:9px;

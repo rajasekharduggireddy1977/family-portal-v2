@@ -1180,11 +1180,11 @@
       <!-- Scrollable form area -->
       <div class="sct2-scroll">
 
-        <!-- Compact header (inside scroll so topbar GPU layer doesn't cover it) -->
-        <div class="sct2-compact-header">
-          <button class="sct2-close-sm" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
-          <span class="sct2-compact-title" id="sc-task-sheet-title">New Entry</span>
-          <div style="width:28px;"></div>
+        <!-- Minimal dark title card -->
+        <div class="sct2-title-card">
+          <button class="sct2-close" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
+          <div class="sct2-card-eyebrow" id="sc-task-sheet-title">New Entry</div>
+          <div class="sct2-card-heading">Add a <em>Task</em> or Deadline</div>
         </div>
 
         <!-- Title input -->
@@ -1251,9 +1251,11 @@
 
       <!-- Bottom bar: save button + decorative nav -->
       <div class="sct2-bottom-bar">
-        <button class="sct2-save-btn" id="sct-save-btn" onclick="saveSchedTask()">
+        <div class="sct2-save-btn" id="sct-save-btn" role="button" tabindex="0"
+          onclick="saveSchedTask()"
+          ontouchend="saveSchedTask();event.preventDefault();">
           <span class="sct2-save-dot"></span>Save Task
-        </button>
+        </div>
         <button class="sct2-del-btn" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
       </div>
 
