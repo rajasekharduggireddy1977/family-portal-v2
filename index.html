@@ -1076,9 +1076,14 @@
   <div class="page" id="page-scheduler">
     <div class="sched-page">
 
-      <!-- Unified app bar: title + tabs + add button -->
+      <!-- Unified app bar: two-row — title+add / tabs -->
       <div class="sc-unified-bar">
-        <span class="sc-ub-title">Agenda</span>
+        <div class="sc-ub-top">
+          <span class="sc-ub-title">Agenda</span>
+          <button class="sc-ub-add" id="sc-ub-add-btn" type="button" onclick="openSchedSheet()">
+            <span class="sc-ub-add-plus">＋</span><span class="sc-ub-add-lbl">New</span>
+          </button>
+        </div>
         <div class="sc-ub-tabs">
           <button class="sc-ub-tab active" id="sc-btn-tasks" data-tab="tasks" type="button" onclick="switchSchTab('tasks')">
             <span class="sc-ub-ti">✅</span><span class="sc-ub-tl">Tasks</span>
@@ -1093,7 +1098,6 @@
             <span class="sc-ub-badge sc-count-appt" id="sc-badge-appts">0</span>
           </button>
         </div>
-        <button class="sc-ub-add" id="sc-ub-add-btn" type="button" onclick="openSchedSheet()">＋</button>
       </div>
 
       <!-- Canvas -->
