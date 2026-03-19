@@ -2039,10 +2039,10 @@
       </div>
 
       <div class="tb-mg-grid a s6" style="grid-template-columns:repeat(3,1fr)">
-        <div class="tb-mg-card" onclick="closeTbMore();setTimeout(()=>{if(typeof toggleAIPanel==='function')toggleAIPanel()},80)">
-          <div class="tb-mg-ico">✨</div>
-          <div class="tb-mg-t1">AI Assistant</div>
-          <div class="tb-mg-t2">Family AI</div>
+        <div class="tb-mg-card" onclick="openVsvcModal();closeTbMore()">
+          <div class="tb-mg-ico">🚗</div>
+          <div class="tb-mg-t1">Vehicle Service</div>
+          <div class="tb-mg-t2">Logs &amp; history</div>
         </div>
         <div class="tb-mg-card" onclick="moreMenuAction('documents');closeTbMore()">
           <div class="tb-mg-ico">📁</div>
@@ -2059,11 +2059,11 @@
       <div class="tb-mg-div-full a s8"></div>
 
       <div class="a s9">
-        <div class="tb-mg-card tb-mg-wide" onclick="openVsvcModal();closeTbMore()">
-          <div class="tb-mg-ico">🚗</div>
+        <div class="tb-mg-card tb-mg-wide" onclick="closeTbMore();setTimeout(()=>{if(typeof toggleAIPanel==='function')toggleAIPanel()},80)">
+          <div class="tb-mg-ico">✨</div>
           <div>
-            <div class="tb-mg-t1">Vehicle Service</div>
-            <div class="tb-mg-t2">Logs &amp; history</div>
+            <div class="tb-mg-t1">AI Assistant</div>
+            <div class="tb-mg-t2">Family AI</div>
           </div>
         </div>
       </div>

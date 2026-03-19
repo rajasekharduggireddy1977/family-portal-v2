@@ -370,24 +370,24 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-mg-card{
   display:flex;flex-direction:column;
   padding:8px 9px 7px;border-radius:11px;
-  background:rgba(255,255,255,.20);
-  border:.5px solid rgba(255,255,255,.50);
-  box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.60);
+  background:rgba(255,255,255,.10);
+  border:.5px solid rgba(255,255,255,.38);
+  box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.45);
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   transition:background .14s ease,transform .16s cubic-bezier(.34,1.4,.64,1);
 }
-.tb-mg-card:hover{background:rgba(255,255,255,.34);}
-.tb-mg-card:active{background:rgba(255,255,255,.50);transform:scale(.95);}
+.tb-mg-card:hover{background:rgba(255,255,255,.22);}
+.tb-mg-card:active{background:rgba(255,255,255,.36);transform:scale(.95);}
 
-/* Wide card (Vehicle Service) */
+/* Wide card (AI Assistant) */
 .tb-mg-wide{
   flex-direction:row;align-items:center;gap:12px;
   margin:2px 6px 3px;padding:9px 12px;border-radius:13px;
-  background:rgba(255,255,255,.20);
-  border:.5px solid rgba(255,255,255,.62);
+  background:rgba(255,255,255,.10);
+  border:.5px solid rgba(255,255,255,.38);
 }
-.tb-mg-wide:hover{background:rgba(255,255,255,.32);}
+.tb-mg-wide:hover{background:rgba(255,255,255,.22);}
 .tb-mg-wide:active{transform:scale(.97);}
 
 /* Icon squircle — glass with specular */
