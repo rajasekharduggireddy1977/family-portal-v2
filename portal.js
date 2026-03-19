@@ -6839,19 +6839,26 @@ function buildApptCard(a, today, isPast) {
     : !isPast && daysAway === 0
     ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);background:rgba(255,79,79,.1);padding:2px 7px;border-radius:6px">TODAY</span>`
     : '';
-  return `<div class="appt-v4-card pressable" onclick="editApptV4('${a.id}')" style="border-left:4px solid ${t.color};opacity:${isPast?'.55':'1'}">
+  const metaParts = [];
+  if (a.time) metaParts.push('🕐 ' + a.time);
+  if (a.loc) metaParts.push(a.loc);
+  if (a.vehicle) metaParts.push('🚗 ' + (a.vehicle === 'activa' ? 'Activa' : 'i10'));
+  metaParts.push('👤 ' + memberName);
+  return `<div class="appt-v4-card pressable" onclick="editApptV4('${a.id}')" style="border-left:3px solid ${t.color};opacity:${isPast?'.55':'1'}">
     <div class="appt-v4-datecol">
       <div class="appt-v4-dd">${dd}</div>
       <div class="appt-v4-mm">${mm}</div>
       <div class="appt-v4-dow">${dow}</div>
     </div>
     <div class="appt-v4-body">
-      <div class="appt-v4-type-badge" style="color:${t.color};background:${t.bg};border-color:${t.border}">${t.icon} ${t.label}</div>
-      <div class="appt-v4-title">${a.title}</div>
-      ${a.time ? `<div class="appt-v4-meta">🕐 ${a.time}${a.loc ? ' · ' + a.loc : ''}</div>` : (a.loc ? `<div class="appt-v4-meta">📍 ${a.loc}</div>` : '')}
-      ${a.vehicle ? `<div class="appt-v4-meta">🚗 ${a.vehicle === 'activa' ? 'Honda Activa 125 · TS08HJ8438' : 'Hyundai i10 · AP27AK7873'}</div>` : ''}
-      ${a.notes ? `<div class="appt-v4-notes">${a.notes}</div>` : ''}
-      <div class="appt-v4-member">👤 ${memberName} ${urgBadge}</div>
+      <div class="appt-v4-row1">
+        <div class="appt-v4-title">${a.title}</div>
+        ${urgBadge}
+      </div>
+      <div class="appt-v4-row2">
+        <span class="appt-v4-type-inline" style="color:${t.color}">${t.icon} ${t.label}</span>
+        <span class="appt-v4-meta2">· ${metaParts.join(' · ')}</span>
+      </div>
     </div>
     <div class="appt-v4-chevron">›</div>
   </div>`;
