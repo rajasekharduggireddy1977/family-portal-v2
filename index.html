@@ -2040,7 +2040,7 @@
 
       <div class="tb-mg-div-in a s6"></div>
 
-      <div class="tb-mg-grid a s6">
+      <div class="tb-mg-grid a s6" style="grid-template-columns:repeat(3,1fr)">
         <div class="tb-mg-card" onclick="closeTbMore();setTimeout(()=>{if(typeof toggleAIPanel==='function')toggleAIPanel()},80)">
           <div class="tb-mg-ico">✨</div>
           <div class="tb-mg-t1">AI Assistant</div>
@@ -2051,25 +2051,10 @@
           <div class="tb-mg-t1">Documents</div>
           <div class="tb-mg-t2">All docs</div>
         </div>
-      </div>
-
-      <div class="tb-mg-div-in a s7"></div>
-
-      <div class="tb-mg-grid a s7" style="grid-template-columns:repeat(3,1fr)">
         <div class="tb-mg-card" onclick="moreMenuAction('expiry');closeTbMore()">
           <div class="tb-mg-ico">⏰</div>
           <div class="tb-mg-t1">Expiry</div>
           <div class="tb-mg-t2">Track renewals</div>
-        </div>
-        <div class="tb-mg-card" onclick="goPage('scheduler');closeTbMore()">
-          <div class="tb-mg-ico">📅</div>
-          <div class="tb-mg-t1">Events</div>
-          <div class="tb-mg-t2">Agenda</div>
-        </div>
-        <div class="tb-mg-card" onclick="moreMenuAction('appointments');closeTbMore()">
-          <div class="tb-mg-ico">🗓</div>
-          <div class="tb-mg-t1">Appts</div>
-          <div class="tb-mg-t2">Hub</div>
         </div>
       </div>
 

@@ -371,13 +371,17 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-mg-card{
   display:flex;flex-direction:column;
   padding:9px 10px 8px;border-radius:13px;
-  background:transparent;
+  background:rgba(255,255,255,.16);
+  border:.5px solid rgba(255,255,255,.42);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.55);
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
   transition:background .14s ease,transform .16s cubic-bezier(.34,1.4,.64,1);
 }
-.tb-mg-card:hover{background:rgba(255,255,255,.32);}
-.tb-mg-card:active{background:rgba(255,255,255,.48);transform:scale(.95);}
+.tb-mg-card:hover{background:rgba(255,255,255,.30);}
+.tb-mg-card:active{background:rgba(255,255,255,.46);transform:scale(.95);}
 
 /* Wide card (Vehicle Service) */
 .tb-mg-wide{
