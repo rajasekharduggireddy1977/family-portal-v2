@@ -6364,6 +6364,22 @@ function initSchedulerPage() {
   document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
   document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
   document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  // Save button — addEventListener only (inline onclick/ontouchend unreliable on iOS Safari
+  // inside position:fixed stacking contexts). touchend fires instantly + prevents synthetic
+  // click; click handler is desktop-only fallback via tapped flag.
+  var _sbt = document.getElementById('sct-save-btn');
+  if (_sbt && !_sbt._wired) {
+    _sbt._wired = true;
+    var _sbtTapped = false;
+    _sbt.addEventListener('touchstart', function(){ _sbtTapped = false; }, {passive:true});
+    _sbt.addEventListener('touchend', function(e){
+      e.preventDefault();
+      _sbtTapped = true;
+      saveSchedTask();
+      setTimeout(function(){ _sbtTapped = false; }, 600);
+    }, {passive:false});
+    _sbt.addEventListener('click', function(){ if(!_sbtTapped) saveSchedTask(); });
+  }
 }
 
 function switchSchTab(tab, skipAnim) {
