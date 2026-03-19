@@ -1885,70 +1885,91 @@
 </div>
 
 <!-- ═══ APPOINTMENTS V4 ADD/EDIT SHEET ═══ -->
-<div class="apptv4-sheet hidden" id="apptv4-sheet" onclick="if(event.target===this)closeApptSheetV4()">
-  <div class="apptv4-card">
-    <div class="apptv4-handle"></div>
-    <div class="apptv4-hdr">
-      <div class="apptv4-title" id="apptv4-sheet-title">Add Appointment</div>
-      <button onclick="closeApptSheetV4()" class="apptv4-close">✕</button>
-    </div>
+<div class="sc-sheet-backdrop" id="apptv4-sheet" onclick="if(event.target===this)closeApptSheetV4()">
+  <div class="sct2-shell">
+    <div class="sct2-scroll">
 
-    <!-- Type selector -->
-    <div class="apptv4-sec-label">TYPE</div>
-    <div class="apptf-type-row">
-      <button class="apptf-type-btn active" data-type="doctor"  onclick="_selectApptType('doctor')">🏥<span>Doctor</span></button>
-      <button class="apptf-type-btn"        data-type="vehicle" onclick="_selectApptType('vehicle')">🚗<span>Vehicle</span></button>
-      <button class="apptf-type-btn"        data-type="lab"     onclick="_selectApptType('lab')">🧪<span>Lab</span></button>
-      <button class="apptf-type-btn"        data-type="other"   onclick="_selectApptType('other')">📋<span>Other</span></button>
-    </div>
-
-    <!-- Member selector -->
-    <div class="apptv4-sec-label">MEMBER</div>
-    <div class="apptf-member-row" id="apptf-member-row">
-      <button class="apptf-member-chip active" data-member="rajasekhar" onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👨 Raj</button>
-      <button class="apptf-member-chip" data-member="vasundhara" onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👩 Vasu</button>
-      <button class="apptf-member-chip" data-member="josritha"   onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👧 Josi</button>
-      <button class="apptf-member-chip" data-member="jeevan"     onclick="document.querySelectorAll('.apptf-member-chip').forEach(c=>c.classList.toggle('active',c===this))">👦 Jeevan</button>
-    </div>
-
-    <!-- Vehicle selector (shown only for vehicle type) -->
-    <div id="apptf-vehicle-row" style="display:none">
-      <div class="apptv4-sec-label">VEHICLE</div>
-      <select id="apptf-vehicle" class="apptf-input">
-        <option value="">Select vehicle…</option>
-        <option value="activa">🛵 Honda Activa 125 · TS08HJ8438</option>
-        <option value="i10">🚗 Hyundai i10 · AP27AK7873</option>
-      </select>
-    </div>
-
-    <!-- Fields -->
-    <div class="apptv4-sec-label">TITLE</div>
-    <input id="apptf-title" class="apptf-input" type="text" placeholder="e.g. Cardiology Consultation" autocomplete="off">
-
-    <div class="apptv4-fields-row">
-      <div style="flex:1">
-        <div class="apptv4-sec-label">DATE</div>
-        <input id="apptf-date" class="apptf-input" type="date">
+      <!-- Title card -->
+      <div class="sct2-title-card">
+        <button class="sct2-close" onclick="closeApptSheetV4()" aria-label="Close">✕</button>
+        <div class="sct2-card-eyebrow" id="apptv4-sheet-title">New Appointment</div>
+        <div class="sct2-card-heading">Schedule an <em>Appointment</em></div>
       </div>
-      <div style="flex:1">
-        <div class="apptv4-sec-label">TIME</div>
-        <input id="apptf-time" class="apptf-input" type="time">
+
+      <!-- Type -->
+      <div class="sct2-form-card">
+        <div class="sct2-section-hdr">
+          <label class="sct2-field-label">Type</label>
+          <span class="sct2-selected-badge" id="apptf-type-badge">Doctor ✓</span>
+        </div>
+        <div class="sct2-cat-row" id="apptf-type-row">
+          <div class="sct2-cat-chip active" data-type="doctor"  onclick="_selectApptType('doctor')"><span class="sct2-cat-emoji">🏥</span><span class="sct2-cat-lbl">Doctor</span></div>
+          <div class="sct2-cat-chip"        data-type="vehicle" onclick="_selectApptType('vehicle')"><span class="sct2-cat-emoji">🚗</span><span class="sct2-cat-lbl">Vehicle</span></div>
+          <div class="sct2-cat-chip"        data-type="lab"     onclick="_selectApptType('lab')"><span class="sct2-cat-emoji">🧪</span><span class="sct2-cat-lbl">Lab</span></div>
+          <div class="sct2-cat-chip"        data-type="other"   onclick="_selectApptType('other')"><span class="sct2-cat-emoji">📋</span><span class="sct2-cat-lbl">Other</span></div>
+        </div>
       </div>
-    </div>
 
-    <div class="apptv4-sec-label">LOCATION / DOCTOR</div>
-    <input id="apptf-loc" class="apptf-input" type="text" placeholder="e.g. Yashoda Hospitals, KPHB" autocomplete="off">
+      <!-- Member -->
+      <div class="sct2-form-card">
+        <label class="sct2-field-label" style="margin-bottom:10px;">Member</label>
+        <div class="sct2-mem-row" id="apptf-member-row">
+          <div class="sct2-mem-chip active" data-member="rajasekhar" onclick="document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c=>c.classList.toggle('active',c===this))"><div class="sct2-avatar sct2-av-raj">R</div></div>
+          <div class="sct2-mem-chip"        data-member="vasundhara" onclick="document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c=>c.classList.toggle('active',c===this))"><div class="sct2-avatar sct2-av-vasu">V</div></div>
+          <div class="sct2-mem-chip"        data-member="josritha"   onclick="document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c=>c.classList.toggle('active',c===this))"><div class="sct2-avatar sct2-av-josi">J</div></div>
+          <div class="sct2-mem-chip"        data-member="jeevan"     onclick="document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c=>c.classList.toggle('active',c===this))"><div class="sct2-avatar sct2-av-jeevan">Je</div></div>
+        </div>
+      </div>
 
-    <div class="apptv4-sec-label">NOTES</div>
-    <textarea id="apptf-notes" class="apptf-input apptf-textarea" placeholder="Fasting required, bring reports…" rows="2"></textarea>
+      <!-- Vehicle (shown only for vehicle type) -->
+      <div class="sct2-form-card" id="apptf-vehicle-row" style="display:none">
+        <label class="sct2-field-label" for="apptf-vehicle">Vehicle</label>
+        <select id="apptf-vehicle" class="sct2-title-input">
+          <option value="">Select vehicle…</option>
+          <option value="activa">🛵 Honda Activa 125 · TS08HJ8438</option>
+          <option value="i10">🚗 Hyundai i10 · AP27AK7873</option>
+        </select>
+      </div>
 
-    <!-- Actions -->
-    <div class="apptv4-actions">
-      <button id="apptv4-del-btn" class="apptv4-del-btn" style="display:none" onclick="deleteApptV4(this.dataset.id)">🗑 Delete</button>
-      <button class="apptv4-save-btn" onclick="saveApptV4()">✓ Save Appointment</button>
-    </div>
-  </div>
-</div>
+      <!-- Title -->
+      <div class="sct2-form-card">
+        <label class="sct2-field-label" for="apptf-title">Title</label>
+        <input class="sct2-title-input" id="apptf-title" type="text" placeholder="e.g. Cardiology Consultation" autocomplete="off">
+      </div>
+
+      <!-- Date + Time -->
+      <div class="sct2-form-card sct2-di-card">
+        <div class="sct2-di-left" onclick="try{document.getElementById('apptf-date').showPicker()}catch(e){document.getElementById('apptf-date').focus()}">
+          <span class="sct2-di-label">📅 Date</span>
+          <input class="sct2-di-input" id="apptf-date" type="date">
+        </div>
+        <div class="sct2-di-sep"></div>
+        <div class="sct2-di-right" onclick="try{document.getElementById('apptf-time').showPicker()}catch(e){document.getElementById('apptf-time').focus()}">
+          <span class="sct2-di-label">⏰ Time <span class="sct2-optional">(optional)</span></span>
+          <input class="sct2-di-input" id="apptf-time" type="time">
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="sct2-form-card">
+        <label class="sct2-field-label" for="apptf-loc">Location / Doctor</label>
+        <input class="sct2-title-input" id="apptf-loc" type="text" placeholder="e.g. Yashoda Hospitals, KPHB" autocomplete="off">
+      </div>
+
+      <!-- Notes -->
+      <div class="sct2-form-card">
+        <label class="sct2-field-label">Notes <span class="sct2-optional">OPTIONAL</span></label>
+        <textarea class="sct2-notes" id="apptf-notes" rows="2" placeholder="Fasting required, bring reports…"></textarea>
+      </div>
+
+      <button class="sct2-save-btn" type="button" onclick="saveApptV4()">
+        <span class="sct2-save-dot"></span>Save Appointment
+      </button>
+      <button class="sct2-del-btn" id="apptv4-del-btn" type="button" style="display:none" onclick="deleteApptV4(this.dataset.id)">🗑 Delete Appointment</button>
+
+    </div><!-- /sct2-scroll -->
+  </div><!-- /sct2-shell -->
+</div><!-- /apptv4-sheet -->
 
 <!-- Widget picker sheet -->
 <div class="wp-sheet hidden" id="wp-sheet" onclick="if(event.target===this)closeWidgetPicker()">

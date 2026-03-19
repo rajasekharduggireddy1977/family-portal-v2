@@ -6556,7 +6556,7 @@ function _updateBnavAction(){
   var taskOpen=!!(document.getElementById('sc-task-sheet')?.classList.contains('open'));
   var eventOpen=!!(document.getElementById('sc-event-sheet')?.classList.contains('open'));
   var apptEl=document.getElementById('apptv4-sheet');
-  var apptOpen=apptEl?!apptEl.classList.contains('hidden'):false;
+  var apptOpen=apptEl?apptEl.classList.contains('open'):false;
   var onSched=(typeof currentPage!=='undefined')&&currentPage==='scheduler';
   el.style.display=(onSched&&!taskOpen&&!eventOpen&&!apptOpen)?'block':'none';
 }
@@ -6858,7 +6858,7 @@ function editApptV4(id) {
   Object.entries(fields).forEach(([id,val]) => { const el = document.getElementById(id); if (el) el.value = val; });
   const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = a.vehicle || '';
   // Set member
-  document.querySelectorAll('.apptf-member-chip').forEach(c => c.classList.toggle('active', c.dataset.member === a.member));
+  document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c => c.classList.toggle('active', c.dataset.member === a.member));
   const delBtn = document.getElementById('apptv4-del-btn');
   if (delBtn) { delBtn.style.display = ''; delBtn.dataset.id = id; }
   _openApptSheet();
@@ -6872,36 +6872,30 @@ function _resetApptSheet() {
   });
   const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = '';
   _selectApptType('doctor');
-  document.querySelectorAll('.apptf-member-chip').forEach(c => c.classList.toggle('active', c.dataset.member === 'rajasekhar'));
+  document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c => c.classList.toggle('active', c.dataset.member === 'rajasekhar'));
 }
 
 var _apptSheetType = 'doctor';
 function _selectApptType(type) {
   _apptSheetType = type;
-  document.querySelectorAll('.apptf-type-btn').forEach(b => {
-    const active = b.dataset.type === type;
-    b.classList.toggle('active', active);
+  document.querySelectorAll('#apptf-type-row .sct2-cat-chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
   });
+  const badge = document.getElementById('apptf-type-badge');
+  const LABELS = {doctor:'Doctor',vehicle:'Vehicle',lab:'Lab',other:'Other'};
+  if (badge) badge.textContent = (LABELS[type]||type) + ' ✓';
   // Show vehicle selector only for vehicle type
   const vrow = document.getElementById('apptf-vehicle-row');
   if (vrow) vrow.style.display = type === 'vehicle' ? 'block' : 'none';
 }
 
 function _openApptSheet() {
-  var _sy = window.scrollY||window.pageYOffset;
-  document.body.dataset.scrollY = _sy;
-  document.body.style.top = '-' + _sy + 'px';
-  document.body.classList.add('modal-open');
-  document.getElementById('apptv4-sheet').classList.remove('hidden');
+  document.getElementById('apptv4-sheet').classList.add('open');
   _updateBnavAction();
 }
 
 function closeApptSheetV4() {
-  document.getElementById('apptv4-sheet').classList.add('hidden');
-  var _sy2 = parseInt(document.body.dataset.scrollY||'0',10);
-  document.body.classList.remove('modal-open');
-  document.body.style.top = '';
-  window.scrollTo(0,_sy2);
+  document.getElementById('apptv4-sheet').classList.remove('open');
   _updateBnavAction();
 }
 
@@ -6913,7 +6907,7 @@ function saveApptV4() {
   const loc    = document.getElementById('apptf-loc')?.value.trim() || '';
   const notes  = document.getElementById('apptf-notes')?.value.trim() || '';
   const vehicle = (document.getElementById('apptf-vehicle')?.value || '').trim();
-  const member = document.querySelector('.apptf-member-chip.active')?.dataset.member || 'rajasekhar';
+  const member = document.querySelector('#apptf-member-row .sct2-mem-chip.active')?.dataset.member || 'rajasekhar';
 
   if (!title) { showToast('⚠️ Enter a title'); return; }
   if (!date)  { showToast('⚠️ Pick a date');  return; }
