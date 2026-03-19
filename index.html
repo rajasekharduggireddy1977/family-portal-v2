@@ -1177,22 +1177,15 @@
   <div class="sc-sheet-backdrop" id="sc-task-sheet" onclick="if(event.target===this)closeSchedSheet('task')">
     <div class="sct2-shell">
 
+      <!-- Compact header -->
+      <div class="sct2-compact-header">
+        <button class="sct2-close-sm" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
+        <span class="sct2-compact-title" id="sc-task-sheet-title">New Entry</span>
+        <div style="width:28px;"></div>
+      </div>
+
       <!-- Scrollable form area -->
       <div class="sct2-scroll">
-
-        <!-- Title card -->
-        <div class="sct2-title-card">
-          <button class="sct2-close" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
-          <div class="sct2-card-eyebrow" id="sc-task-sheet-title">New Entry</div>
-          <div class="sct2-card-heading">Add a <em>Task</em><br>or Deadline</div>
-        </div>
-
-        <!-- Step dots -->
-        <div class="sct2-step-dots">
-          <div class="sct2-dot sct2-dot-active"></div>
-          <div class="sct2-dot"></div>
-          <div class="sct2-dot"></div>
-        </div>
 
         <!-- Title input -->
         <div class="sct2-form-card">
@@ -1225,7 +1218,7 @@
             <label class="sct2-field-label">Category</label>
             <span class="sct2-selected-badge" id="sct2-cat-badge">Finance ✓</span>
           </div>
-          <div class="sct2-cat-grid" id="sct-cat-row">
+          <div class="sct2-cat-row" id="sct-cat-row">
             <div class="sct2-cat-chip active" data-cat="finance"><span class="sct2-cat-emoji">💰</span><span class="sct2-cat-lbl">Finance</span></div>
             <div class="sct2-cat-chip" data-cat="health"><span class="sct2-cat-emoji">🏥</span><span class="sct2-cat-lbl">Health</span></div>
             <div class="sct2-cat-chip" data-cat="government"><span class="sct2-cat-emoji">🪪</span><span class="sct2-cat-lbl">Govt</span></div>
@@ -1239,18 +1232,18 @@
         <div class="sct2-form-card">
           <label class="sct2-field-label" style="margin-bottom:10px;">Assign To</label>
           <div class="sct2-mem-row" id="sct-mem-row">
-            <div class="sct2-mem-chip active" data-member="rajasekhar"><div class="sct2-avatar sct2-av-raj">R</div><span class="sct2-mem-name">Raj</span></div>
-            <div class="sct2-mem-chip" data-member="vasundhara"><div class="sct2-avatar sct2-av-vasu">V</div><span class="sct2-mem-name">Vasu</span></div>
-            <div class="sct2-mem-chip" data-member="josritha"><div class="sct2-avatar sct2-av-josi">J</div><span class="sct2-mem-name">Josi</span></div>
-            <div class="sct2-mem-chip" data-member="jeevan"><div class="sct2-avatar sct2-av-jeevan">Je</div><span class="sct2-mem-name">Jeevan</span></div>
-            <div class="sct2-mem-chip" data-member="all"><div class="sct2-avatar sct2-av-all">👥</div><span class="sct2-mem-name">All</span></div>
+            <div class="sct2-mem-chip active" data-member="rajasekhar"><div class="sct2-avatar sct2-av-raj">R</div></div>
+            <div class="sct2-mem-chip" data-member="vasundhara"><div class="sct2-avatar sct2-av-vasu">V</div></div>
+            <div class="sct2-mem-chip" data-member="josritha"><div class="sct2-avatar sct2-av-josi">J</div></div>
+            <div class="sct2-mem-chip" data-member="jeevan"><div class="sct2-avatar sct2-av-jeevan">Je</div></div>
+            <div class="sct2-mem-chip" data-member="all"><div class="sct2-avatar sct2-av-all">👥</div></div>
           </div>
         </div>
 
         <!-- Notes -->
         <div class="sct2-form-card">
           <label class="sct2-field-label">Notes <span class="sct2-optional">OPTIONAL</span></label>
-          <textarea class="sct2-notes" id="sct-notes" rows="3" placeholder="Add any details, links, or reminders…"></textarea>
+          <textarea class="sct2-notes" id="sct-notes" rows="2" placeholder="Add any details, links, or reminders…"></textarea>
         </div>
 
         <input type="hidden" id="sct-edit-id">
@@ -1262,13 +1255,6 @@
           <span class="sct2-save-dot"></span>Save Task
         </button>
         <button class="sct2-del-btn" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
-        <div class="sct2-nav-row">
-          <div class="sct2-nav-item"><span>🏠</span><span class="sct2-nav-lbl">Home</span></div>
-          <div class="sct2-nav-item"><span>👥</span><span class="sct2-nav-lbl">Members</span></div>
-          <div class="sct2-nav-item"><span>❤️</span><span class="sct2-nav-lbl">Health</span></div>
-          <div class="sct2-nav-item"><span>💰</span><span class="sct2-nav-lbl">Budget</span></div>
-          <div class="sct2-nav-item sct2-nav-active"><span>📋</span><span class="sct2-nav-lbl">Agenda</span></div>
-        </div>
       </div>
 
     </div>

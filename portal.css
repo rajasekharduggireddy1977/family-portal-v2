@@ -6382,6 +6382,27 @@ body.dash-active #content{
    Light cream, warm tones, DM Serif Display headings
    ══════════════════════════════════════════════════════════════ */
 
+/* Compact header — replaces tall dark title card */
+.sct2-compact-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;
+  background:var(--sct2-bg);
+  border-bottom:1px solid var(--sct2-border);
+  flex-shrink:0;
+}
+.sct2-close-sm{
+  width:28px;height:28px;border-radius:50%;border:none;
+  background:var(--sct2-surface2);color:var(--sct2-text2);
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;flex-shrink:0;
+}
+.sct2-compact-title{
+  flex:1;text-align:center;
+  font-size:13px;font-weight:700;letter-spacing:0.4px;color:var(--sct2-text);
+}
+.sct2-title-card{display:none;}
+.sct2-step-dots{display:none;}
+
 /* Full-screen shell — position:absolute fills the fixed backdrop completely */
 .sct2-shell{
   --sct2-bg:#F5F3EF;
@@ -6403,10 +6424,10 @@ body.dash-active #content{
   overflow:hidden;
 }
 
-/* Scrollable form content — top padding clears the fixed topbar */
+/* Scrollable form content — header is in normal flow, no top offset needed */
 .sct2-scroll{
   flex:1;overflow-y:auto;
-  padding:calc(env(safe-area-inset-top,0px) + 58px) 16px 10px;
+  padding:8px 16px 10px;
   scrollbar-width:none;
 }
 .sct2-scroll::-webkit-scrollbar{display:none;}
@@ -6450,7 +6471,7 @@ body.dash-active #content{
 .sct2-form-card{
   background:var(--sct2-surface);
   border-radius:var(--sct2-radius);
-  padding:12px 16px;margin-bottom:8px;
+  padding:8px 14px;margin-bottom:6px;
   box-shadow:var(--sct2-shadow-sm);
   border:1px solid var(--sct2-border);
 }
@@ -6480,28 +6501,29 @@ body.dash-active #content{
 }
 .sct2-di-icon-inp{text-align:center;font-size:18px;width:100%;}
 
-/* Category — compact 3-col grid */
-.sct2-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+/* Category — horizontal scroll pill row */
+.sct2-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .sct2-section-hdr .sct2-field-label{margin-bottom:0;}
 .sct2-selected-badge{font-size:9px;font-weight:600;color:var(--sct2-accent);background:var(--sct2-accent-lt);padding:2px 7px;border-radius:20px;}
-.sct2-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.sct2-cat-row{display:flex;flex-direction:row;overflow-x:auto;gap:6px;scrollbar-width:none;padding-bottom:2px;}
+.sct2-cat-row::-webkit-scrollbar{display:none;}
 .sct2-cat-chip{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  padding:9px 6px;border-radius:var(--sct2-radius-sm);
+  display:flex;flex-direction:row;align-items:center;gap:4px;
+  padding:6px 10px;border-radius:20px;flex-shrink:0;
   background:var(--sct2-surface2);border:1.5px solid transparent;
-  cursor:pointer;transition:all 0.15s ease;touch-action:manipulation;
+  cursor:pointer;transition:all 0.15s ease;touch-action:manipulation;white-space:nowrap;
 }
-.sct2-cat-emoji{font-size:18px;}
-.sct2-cat-lbl{font-size:10px;font-weight:600;color:var(--sct2-text2);}
+.sct2-cat-emoji{font-size:14px;}
+.sct2-cat-lbl{font-size:11px;font-weight:600;color:var(--sct2-text2);}
 .sct2-cat-chip.active{background:var(--sct2-accent-lt);border-color:var(--sct2-accent);}
 .sct2-cat-chip.active .sct2-cat-lbl{color:var(--sct2-accent);}
 
 /* Members — compact pills */
 .sct2-mem-row{display:flex;gap:6px;flex-wrap:wrap;}
 .sct2-mem-chip{
-  display:flex;align-items:center;gap:6px;
-  padding:6px 11px 6px 7px;border-radius:50px;
-  background:var(--sct2-surface2);border:1.5px solid transparent;
+  display:flex;align-items:center;justify-content:center;
+  padding:4px;border-radius:50%;
+  background:transparent;border:2px solid transparent;
   cursor:pointer;transition:all 0.15s ease;touch-action:manipulation;
 }
 .sct2-avatar{
@@ -6514,16 +6536,15 @@ body.dash-active #content{
 .sct2-av-josi  {background:linear-gradient(135deg,#1DB87A,#159E67);}
 .sct2-av-jeevan{background:linear-gradient(135deg,#9B5CF6,#7C3ADA);}
 .sct2-av-all   {background:linear-gradient(135deg,#555,#333);font-size:12px;}
-.sct2-mem-name{font-size:11px;font-weight:600;color:var(--sct2-text2);}
-.sct2-mem-chip.active{background:var(--sct2-surface);border-color:var(--sct2-text);box-shadow:var(--sct2-shadow-sm);}
-.sct2-mem-chip.active .sct2-mem-name{color:var(--sct2-text);}
+.sct2-mem-name{display:none;}
+.sct2-mem-chip.active{border-color:var(--sct2-accent);box-shadow:0 0 0 2px var(--sct2-accent-lt);}
 
 /* Notes — compact */
 .sct2-notes{
   width:100%;border:none;outline:none;background:transparent;
   font-family:'DM Sans','Inter',sans-serif;
   font-size:13px;color:var(--sct2-text);line-height:1.55;
-  resize:none;min-height:52px;
+  resize:none;min-height:36px;
 }
 .sct2-notes::placeholder{color:var(--sct2-text3);}
 
@@ -6537,7 +6558,7 @@ body.dash-active #content{
   background:rgba(245,243,239,0.97);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(0,0,0,0.06);
-  padding:10px 16px 0;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
 }
 .sct2-save-btn{
   width:100%;padding:13px;
@@ -6558,7 +6579,7 @@ body.dash-active #content{
   border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);
   color:#e53e3e;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation;
 }
-.sct2-nav-row{display:flex;justify-content:space-around;align-items:center;padding:6px 4px calc(10px + env(safe-area-inset-bottom,0px));}
+.sct2-nav-row{display:none;}
 .sct2-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 8px;border-radius:8px;cursor:default;opacity:0.35;font-size:16px;}
 .sct2-nav-active{opacity:1;}
 .sct2-nav-lbl{font-size:7px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sct2-text);}
