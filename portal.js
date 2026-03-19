@@ -6362,8 +6362,8 @@ function initSchedulerPage() {
   // chip onclick wiring for sct (task form — uses sct2-* classes)
   document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); var badge=document.getElementById('sct2-cat-badge'); if(badge) badge.textContent=(c.dataset.cat||'other')+' ✓'; }; });
   document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
-  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); }; });
-  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); var badge=document.getElementById('sce2-cat-badge'); if(badge) badge.textContent=(c.dataset.cat||'other')+' ✓'; }; });
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
   // Wire Save + Delete buttons via addEventListener (reliable on iOS Safari in scroll context)
   function _wireBtn(id, fn) {
     var btn = document.getElementById(id);
@@ -6486,7 +6486,7 @@ function _buildEvCard(ev,today){
   var urgClass=daysAway===0?'risk-crit':daysAway<=7?'risk-warn':'risk-ok';
   var urgLabel=daysAway===0?'TODAY':daysAway===1?'Tomorrow':'In '+daysAway+'d';
   var card=document.createElement('div');card.className='sc-ev-card';
-  card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div>';
+  card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div><div class="sc-ev-del-btn" onclick="event.stopPropagation();deleteSchedEventById(\''+ev.id+'\')" title="Delete">🗑</div>';
   return card;
 }
 
@@ -6632,8 +6632,9 @@ function openSchedEventSheet(prefill){
   var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Add Event';
   var fmap={'sce-title':p.title||'','sce-date':p.date||new Date().toISOString().slice(0,10),'sce-time':p.time||'','sce-notes':p.notes||''};
   Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
-  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='birthday');});
-  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='all');});
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='birthday');});
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='all');});
+  var badge=document.getElementById('sce2-cat-badge');if(badge)badge.textContent='Birthday ✓';
   var editId=document.getElementById('sce-edit-id');if(editId)editId.value='';
   var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='none';
   document.getElementById('sc-event-sheet').classList.add('open');
@@ -6646,9 +6647,10 @@ function editSchedEvent(id){
   var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Edit Event';
   var fmap={'sce-title':ev.title||'','sce-date':ev.date||'','sce-time':ev.start||'','sce-notes':ev.notes||''};
   Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
-  document.querySelectorAll('#sce-cat-row .sc-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(ev.cat||'other'));});
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(ev.cat||'other'));});
   var evMems=Array.isArray(ev.members)?ev.members:['all'];
-  document.querySelectorAll('#sce-mem-row .sc-mem-chip').forEach(function(c){c.classList.toggle('active',evMems.includes(c.dataset.member));});
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',evMems.includes(c.dataset.member));});
+  var badge=document.getElementById('sce2-cat-badge');if(badge)badge.textContent=(ev.cat||'other')+' ✓';
   var editId=document.getElementById('sce-edit-id');if(editId)editId.value=id;
   var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='';
   document.getElementById('sc-event-sheet').classList.add('open');
@@ -6660,9 +6662,9 @@ function saveSchedEvent(){
   var date=document.getElementById('sce-date')?.value||'';
   var time=document.getElementById('sce-time')?.value||'';
   var notes=(document.getElementById('sce-notes')?.value||'').trim();
-  var cat=document.querySelector('#sce-cat-row .sc-cat-chip.active')?.dataset.cat||'other';
+  var cat=document.querySelector('#sce-cat-row .sct2-cat-chip.active')?.dataset.cat||'other';
   var editId=document.getElementById('sce-edit-id')?.value||'';
-  var selMems=Array.from(document.querySelectorAll('#sce-mem-row .sc-mem-chip.active')).map(function(c){return c.dataset.member;});
+  var selMems=Array.from(document.querySelectorAll('#sce-mem-row .sct2-mem-chip.active')).map(function(c){return c.dataset.member;});
   if(!selMems.length)selMems=['all'];
   if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
   if(!date) {if(typeof showToast==='function')showToast('\u26a0\ufe0f Pick a date');return;}
@@ -6682,6 +6684,15 @@ function deleteSchedEvent(){
   localStorage.setItem('fp_cal_events',JSON.stringify(getCalEvents().filter(function(e){return e.id!==editId;})));
   closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
   if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
+}
+function deleteSchedEventById(id){
+  var cards=document.querySelectorAll('.sc-ev-card');
+  cards.forEach(function(c){if(c.querySelector('[onclick*="\''+id+'\'"]'))c.style.cssText='transition:opacity .2s,transform .2s;opacity:0;transform:translateX(20px);';});
+  setTimeout(function(){
+    localStorage.setItem('fp_cal_events',JSON.stringify(getCalEvents().filter(function(e){return e.id!==id;})));
+    renderSchedEvents();updateSchedBadges();
+    if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
+  },200);
 }
 
 function closeSchedSheet(type){

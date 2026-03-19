@@ -6275,6 +6275,8 @@ body.dash-active #content{
 .sc-ev-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.03em;margin-bottom:5px;}
 .sc-ev-cat{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;padding:2px 7px;border-radius:16px;letter-spacing:.06em;text-transform:uppercase;font-family:'DM Mono',monospace;}
 .sc-ev-empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:13px;}
+.sc-ev-del-btn{display:flex;align-items:center;justify-content:center;width:30px;flex-shrink:0;font-size:14px;opacity:0.45;cursor:pointer;padding-top:10px;transition:opacity .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.sc-ev-del-btn:active{opacity:1;}
 
 /* ── Event section groups ── */
 .sc-ev-section{margin-bottom:6px;}
@@ -6602,4 +6604,5 @@ body.dash-active #content{
 
 /* Slide-down entrance for task sheet */
 @keyframes sct2-slideDown{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:translateY(0);}}
-#sc-task-sheet.open .sct2-shell{animation:sct2-slideDown 0.26s cubic-bezier(0.34,1.2,0.64,1) both;}
+#sc-task-sheet.open .sct2-shell,
+#sc-event-sheet.open .sct2-shell{animation:sct2-slideDown 0.26s cubic-bezier(0.34,1.2,0.64,1) both;}
