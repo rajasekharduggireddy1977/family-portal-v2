@@ -6425,7 +6425,7 @@ body.dash-active #content{
 /* Scrollable form content — top padding clears topbar GPU layer (will-change:transform paints above backdrop) */
 .sct2-scroll{
   flex:1;overflow-y:auto;
-  padding:calc(env(safe-area-inset-top,0px) + var(--topbar-h,56px) + 6px) 16px 10px;
+  padding:calc(env(safe-area-inset-top,0px) + var(--topbar-h,56px) + 6px) 16px var(--nav-h,76px);
   scrollbar-width:none;
 }
 .sct2-scroll::-webkit-scrollbar{display:none;}
@@ -6551,14 +6551,9 @@ body.dash-active #content{
 .sct2-reminder-input::placeholder{color:var(--sct2-text3);}
 
 /* Bottom bar — frosted, save btn + decorative nav */
-.sct2-bottom-bar{
-  flex-shrink:0;
-  background:var(--sct2-bg);
-  border-top:1px solid rgba(0,0,0,0.06);
-  padding:10px 16px var(--nav-h,76px);
-  position:relative;z-index:1;
-}
+.sct2-bottom-bar{display:none;}
 .sct2-save-btn{
+  margin-top:12px;
   width:100%;padding:13px;
   background:#1A1714;color:#fff;
   font-family:'DM Sans','Inter',sans-serif;
@@ -6573,10 +6568,12 @@ body.dash-active #content{
 .sct2-save-btn:active{transform:scale(0.98);background:#2a2420;}
 .sct2-save-dot{display:inline-block;width:6px;height:6px;background:#E8612A;border-radius:50%;margin-right:7px;vertical-align:middle;}
 .sct2-del-btn{
-  width:100%;margin-top:6px;padding:9px;
+  width:100%;margin-top:8px;padding:11px;
   border-radius:var(--sct2-radius-sm);
   border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);
-  color:#e53e3e;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation;
+  color:#e53e3e;font-size:12px;font-weight:600;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;appearance:none;
 }
 .sct2-nav-row{display:none;}
 .sct2-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 8px;border-radius:8px;cursor:default;opacity:0.35;font-size:16px;}

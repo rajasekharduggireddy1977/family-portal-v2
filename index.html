@@ -1247,18 +1247,17 @@
         </div>
 
         <input type="hidden" id="sct-edit-id">
-      </div>
 
-      <!-- Bottom bar: save button + decorative nav -->
-      <div class="sct2-bottom-bar">
+        <!-- Action buttons — inside scroll, no fixed-bar stacking context issues -->
         <button class="sct2-save-btn" id="sct-save-btn" type="button">
           <span class="sct2-save-dot"></span>Save Task
         </button>
-        <button class="sct2-del-btn" id="sct-del-btn" style="display:none;" onclick="deleteSchedTask()">🗑 Delete Task</button>
-      </div>
+        <button class="sct2-del-btn" id="sct-del-btn" type="button" style="display:none;">🗑 Delete Task</button>
 
-    </div>
-  </div>
+      </div><!-- /sct2-scroll -->
+
+    </div><!-- /sct2-shell -->
+  </div><!-- /sc-task-sheet -->
 
   <!-- Scheduler Event Add Sheet -->
   <div class="sc-sheet-backdrop" id="sc-event-sheet" onclick="if(event.target===this)closeSchedSheet('event')">
