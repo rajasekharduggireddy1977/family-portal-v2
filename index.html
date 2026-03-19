@@ -1177,15 +1177,15 @@
   <div class="sc-sheet-backdrop" id="sc-task-sheet" onclick="if(event.target===this)closeSchedSheet('task')">
     <div class="sct2-shell">
 
-      <!-- Compact header -->
-      <div class="sct2-compact-header">
-        <button class="sct2-close-sm" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
-        <span class="sct2-compact-title" id="sc-task-sheet-title">New Entry</span>
-        <div style="width:28px;"></div>
-      </div>
-
       <!-- Scrollable form area -->
       <div class="sct2-scroll">
+
+        <!-- Compact header (inside scroll so topbar GPU layer doesn't cover it) -->
+        <div class="sct2-compact-header">
+          <button class="sct2-close-sm" onclick="closeSchedSheet('task')" aria-label="Close">✕</button>
+          <span class="sct2-compact-title" id="sc-task-sheet-title">New Entry</span>
+          <div style="width:28px;"></div>
+        </div>
 
         <!-- Title input -->
         <div class="sct2-form-card">
