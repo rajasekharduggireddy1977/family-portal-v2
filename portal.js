@@ -8743,10 +8743,11 @@ var _tlMonthOffset = 0; // 0=current month, 1=next, -1=prev
 /* Chip data — NO apostrophes in strings to avoid HTML attribute breakage */
 var AI_CHIPS = {
   dashboard: [
-    ["skip", "Can Josritha skip classes today?"],
-    ["predict", "Predict Josritha attendance for each subject by semester end and tell me which subjects are at risk of being barred"],
-    ["report", "Give Josritha full attendance risk report"],
-    ["docs", "Which family documents are expiring soon?"]
+    ["members_info", "__local_family_members"],
+    ["josritha_edu", "__local_josritha_edu"],
+    ["exp",          "Which documents or policies are expiring soon and what should be done?"],
+    ["ins",          "Summarize all family insurance policies and their status"],
+    ["prop_tax",     "What is the status of family property tax payments for Ongole properties?"]
   ],
   members: [
     ["skip", "Can Josritha skip classes today?"],
@@ -8769,6 +8770,9 @@ var AI_CHIPS = {
 };
 
 var AI_CHIP_LABELS = {
+  members_info: "👨‍👩‍👧‍👦 Family members",
+  josritha_edu: "🎓 Josritha's education",
+  prop_tax:     "🏠 Property taxes",
   skip: "🏃 Can she skip today?",
   predict: "🔮 Predict semester end",
   report: "📊 Attendance risk",
@@ -8779,7 +8783,7 @@ var AI_CHIP_LABELS = {
   miss: "🎯 How many can she miss?",
   events: "📅 Events coming up?",
   tip: "💡 Family tip",
-  exp: "⚠️ What is expiring?",
+  exp: "⚠️ What's expiring?",
   ins: "🏥 Insurance summary",
   hlth: "🏥 Health summary",
   appt: "💊 Appointments due?"
@@ -9173,6 +9177,97 @@ function aiPanelClear() {
   if (typeof haptic === 'function') haptic('light');
 }
 
+function aiPanelLocalHandler(text) {
+  if (text === '__local_family_members') return _aiBuildFamilyMembersCard();
+  if (text === '__local_josritha_edu')   return _aiBuildJosrithaEduCard();
+  return null;
+}
+
+function _aiInfoRow(label, val, mono) {
+  return '<div style="display:flex;align-items:baseline;gap:6px;line-height:2;">'
+    + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;">' + label + '</span>'
+    + '<span style="font-size:11px;color:var(--text2);' + (mono ? 'font-family:\'DM Mono\',monospace;' : '') + '">' + val + '</span>'
+    + '</div>';
+}
+
+function _aiBuildFamilyMembersCard() {
+  var members = [
+    { name:'Rajasekhar Reddy Duggireddy', role:'Father',   dob:'21 Jan 1977', aadhaar:'610617784861', pan:'AICPD3992N', mobile:'9640656595', color:'#3b6fd4' },
+    { name:'Vasundhara Duggireddy',       role:'Mother',   dob:'26 Aug 1982', aadhaar:'337231069560', pan:'BDXPD9514R', mobile:'9652948966', color:'#9333ea' },
+    { name:'Josritha Duggireddy',         role:'Daughter', dob:'26 Feb 2006', aadhaar:'831664586848', pan:'—',          mobile:'9392932602', color:'#ec4899' },
+    { name:'Jeevan Vidyadhar Duggireddy', role:'Son',      dob:'22 Aug 2010', aadhaar:'691829467739', pan:'—',          mobile:'9063359446', color:'#0d9488' }
+  ];
+  var s = '<div style="font-family:Inter,sans-serif;">'
+    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">👨‍👩‍👧‍👦 Family Members</div>';
+  members.forEach(function(m) {
+    s += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;margin-bottom:7px;">';
+    s += '<div style="font-weight:700;font-size:12px;color:' + m.color + ';margin-bottom:5px;">' + m.name
+       + '<span style="font-weight:400;font-size:10px;color:var(--text3);margin-left:6px;">· ' + m.role + '</span></div>';
+    s += _aiInfoRow('DOB', m.dob, false);
+    s += '<div style="display:flex;align-items:baseline;gap:6px;line-height:2;">'
+       + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;">Aadhaar</span>'
+       + '<span style="font-size:11px;color:var(--text2);font-family:\'DM Mono\',monospace;">' + m.aadhaar + '</span>'
+       + '<button onclick="navigator.clipboard.writeText(\'' + m.aadhaar + '\').then(function(){showToast(\'Copied!\');})" '
+       + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:9px;padding:2px 6px;cursor:pointer;font-family:\'DM Mono\',monospace;">copy</button>'
+       + '</div>';
+    s += _aiInfoRow('PAN', m.pan, true);
+    s += _aiInfoRow('Mobile', m.mobile, true);
+    s += '</div>';
+  });
+  return s + '</div>';
+}
+
+function _aiEduSection(title, rows, warn) {
+  var bg = warn ? 'rgba(239,68,68,.06)' : 'rgba(255,255,255,.04)';
+  var border = warn ? 'rgba(239,68,68,.2)' : 'rgba(255,255,255,.08)';
+  var tc = warn ? '#f87171' : '#a78bfa';
+  var s = '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:10px 12px;margin-bottom:7px;">';
+  s += '<div style="font-weight:700;font-size:11px;color:' + tc + ';margin-bottom:5px;">' + title + '</div>';
+  s += '<div style="font-size:11px;color:var(--text2);font-family:\'DM Mono\',monospace;line-height:2;">';
+  rows.forEach(function(r) { s += r + '<br>'; });
+  return s + '</div></div>';
+}
+
+function _aiBuildJosrithaEduCard() {
+  var s = '<div style="font-family:Inter,sans-serif;">'
+    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">🎓 Josritha\'s Education</div>';
+  s += _aiEduSection('10th / SSC', [
+    'Board: CBSE',
+    'School: Global Edge School, Hyderabad',
+    'Roll No: 20164403',
+    'Year: 2022 · Result: PASS'
+  ]);
+  s += _aiEduSection('Intermediate / 12th', [
+    'Board: BIE, Andhra Pradesh',
+    'College: Sri Harshini Junior College, Ongole',
+    'Reg No: 2417214778',
+    'Marks: 878 / 1000 · Grade: A · PASS'
+  ]);
+  s += _aiEduSection('B.Tech (Current)', [
+    'KL Deemed to be University — KLH Campus',
+    'Roll No: 2420030493',
+    'CGPA: 9.24 (Till Sem 3)',
+    'Sem 1: SGPA 9.26 · Sem 2: SGPA 9.29 · Sem 3: SGPA 9.17'
+  ]);
+  var attRaw = localStorage.getItem('fp_attendance_synced');
+  if (attRaw) {
+    try {
+      var att = JSON.parse(attRaw);
+      var risky = att.filter(function(a) { return Math.round(a.present / a.total * 100) < 75; });
+      if (risky.length) {
+        s += _aiEduSection('⚠️ Subjects Below 75%', risky.map(function(a) {
+          return a.subject + ' — ' + Math.round(a.present / a.total * 100) + '% (' + a.present + '/' + a.total + ')';
+        }), true);
+      } else {
+        s += _aiEduSection('Attendance', ['All subjects ≥ 75% ✓']);
+      }
+    } catch(e) {}
+  } else {
+    s += _aiEduSection('Subjects Below 75%', ['Upload attendance data to view.']);
+  }
+  return s + '</div>';
+}
+
 async function aiPanelSend() {
   if (aiPanelBusy) return;
   var input   = document.getElementById('ai-panel-input');
@@ -9189,6 +9284,17 @@ async function aiPanelSend() {
   aiPanelAppendMsg('user', text);
   aiPanelHistory.push({role: 'user', content: text});
   aiPanelShowTyping();
+
+  var localResp = aiPanelLocalHandler(text);
+  if (localResp) {
+    setTimeout(function() {
+      aiPanelRemoveTyping();
+      aiPanelAppendMsg('ai', localResp);
+      aiPanelBusy = false;
+      if (sendBtn) sendBtn.disabled = false;
+    }, 350);
+    return;
+  }
 
   try {
     var key = (typeof groqGetKey === 'function') ? groqGetKey() : '';
