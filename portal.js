@@ -8781,6 +8781,7 @@ var AI_CHIP_LABELS = {
   members_info:    "👨‍👩‍👧‍👦 Family members",
   josritha_edu:    "🎓 Josritha's education",
   vehicle_details: "🚗 Vehicle details",
+  balance_assets:  "💰 Balance assets",
   prop_tax:        "🏠 Property taxes",
   skip: "🏃 Can she skip today?",
   predict: "🔮 Predict semester end",
