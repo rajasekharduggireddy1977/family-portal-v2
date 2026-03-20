@@ -3806,7 +3806,7 @@ input:focus, button:focus-visible {
 /* Panel header */
 #ai-panel-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px 12px;
+  padding: 35px 16px 12px;
   background: linear-gradient(135deg, rgba(124,58,237,.18), rgba(79,70,229,.12));
   border-bottom: 1px solid rgba(124,58,237,.2);
   flex-shrink: 0;
