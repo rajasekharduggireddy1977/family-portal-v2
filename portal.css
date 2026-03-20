@@ -12,7 +12,7 @@
   --radius:14px;--radius-sm:8px;
   --shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 8px 48px rgba(0,0,0,.6);
   --topbar-h:56px;
-  --sat: 15px; /* flat top padding — all devices */
+  --sat: 30px; /* flat top padding — all devices */
   --nav-h:calc(60px + env(safe-area-inset-bottom));
   --pulse-h:52px;
   --pulse-gap:8px;
@@ -250,7 +250,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border2);
   box-shadow:0 2px 16px rgba(0,0,0,.35);
-  display:flex;align-items:flex-end;padding:15px 16px 10px;
+  display:flex;align-items:flex-end;padding:30px 16px 10px;
   justify-content:space-between;
   gap:12px;
   -webkit-transform:translateZ(0);
@@ -1297,7 +1297,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   body::before{width:900px;height:900px;}
 
   /* Topbar */
-  #topbar{padding:15px 32px 10px;align-items:flex-end;}
+  #topbar{padding:30px 32px 10px;align-items:flex-end;}
   .tb-title{font-size:17px;}
   .tb-clock{font-size:13px;}
 
