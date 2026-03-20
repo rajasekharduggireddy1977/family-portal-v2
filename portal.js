@@ -10983,10 +10983,7 @@ var _bvSS=[
 function bvPos(i) { return ((i-_bvActive)+_bvN)%_bvN; }
 
 function bvLayout() {
-  var front=document.getElementById('bvc'+_bvActive);
-  var h=front?front.offsetHeight:420;
   var carousel=document.getElementById('bv-carousel');
-  if (carousel) carousel.style.height=Math.max(h+20,350)+'px';
   for (var i=0;i<_bvN;i++) {
     var el=document.getElementById('bvc'+i); if(!el) continue;
     var p=bvPos(i); var s=_bvSS[Math.min(p,3)];
@@ -10994,6 +10991,11 @@ function bvLayout() {
     el.style.zIndex=s.zi; el.style.pointerEvents=s.pe; el.style.boxShadow=s.sh;
     el.setAttribute('data-pos',p);
   }
+  // Measure after browser paints so scrollHeight reflects actual rendered height
+  requestAnimationFrame(function() {
+    var front=document.getElementById('bvc'+_bvActive);
+    if (carousel && front) carousel.style.height=(front.scrollHeight+40)+'px';
+  });
 }
 
 function bvGoTo(idx) {
