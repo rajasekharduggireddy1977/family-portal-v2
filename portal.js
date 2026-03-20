@@ -5052,7 +5052,7 @@ function showMemberDetail(memberId, tab) {
         <div class="mdet-completion">✓ ${(SECTION_TABS[m.id]||['identity']).length}/${(SECTION_TABS[m.id]||['identity']).length} sections · All docs linked</div>
         <div class="mdet-meta" style="margin-top:8px;">
           <div class="mdet-meta-item"><span class="mdet-meta-icon">🎂</span><span class="mdet-meta-val">${m.dob} · Age ${age(m.dob)}</span></div>
-          ${m.mobile?`<div class="mdet-meta-item"><span class="mdet-meta-icon">📱</span><span class="mdet-meta-val">${m.mobile}</span></div>`:''}
+          ${m.mobile?`<div class="mdet-meta-item"><span class="mdet-meta-icon">📱</span><a href="tel:${m.mobile}" class="mdet-meta-val mdet-meta-tel" title="Tap to call">${m.mobile}</a></div>`:''}
           ${m.gender?`<div class="mdet-meta-item"><span class="mdet-meta-icon">👤</span><span class="mdet-meta-val">${m.gender}</span></div>`:''}
           ${m.address?`<div class="mdet-meta-item" style="align-items:flex-start"><span class="mdet-meta-icon">📍</span><span class="mdet-meta-val" style="font-size:11px;line-height:1.4">${m.address}</span></div>`:''}
         </div>
@@ -5098,11 +5098,12 @@ function renderMemberTab(m, tab) {
 }
 
 // Field builder
-function fld(key, val, highlight=false, copyable=false) {
+function fld(key, val, highlight=false, copyable=false, viewSrc=null) {
   if(!val) return '';
   const vH = highlight ? `<span class="field-highlight">${val}</span>` : `<span>${val}</span>`;
-  const cH = copyable ? `<button class="copy-btn" onclick="copyVal('${String(val).replace(/'/g,"\\'")}',this)" title="Copy">⎘</button>` : '';
-  return `<div class="field-row"><span class="field-key">${key}</span><span class="field-val">${vH}${cH}</span></div>`;
+  const cH = copyable ? `<button class="copy-btn" onclick="copyVal('${String(val).replace(/'/g,"\\'")}',this)" title="Copy">📋</button>` : '';
+  const vB = viewSrc && DOC_LINKS[viewSrc] ? `<a href="${DOC_LINKS[viewSrc]}" target="_blank" class="view-doc-btn" title="View document">👁️</a>` : '';
+  return `<div class="field-row"><span class="field-key">${key}</span><span class="field-val">${vH}${cH}${vB}</span></div>`;
 }
 
 function docCard(title, badge, badgeStyle, content, src) {
@@ -5120,14 +5121,17 @@ const VehB='background:rgba(79,127,255,.15);color:var(--blue2)';
 
 function renderIdentityTab(m) {
   const id=m.sections.identity; let html='';
-  if(id.aadhaar) html+=docCard('Aadhaar Card','Identity',IB,fld('Aadhaar No.',id.aadhaar.number,true,true)+fld('VID',id.aadhaar.vid,true,true)+fld('Enrolment',id.aadhaar.enrolment)+fld('Issued',id.aadhaar.issued),id.aadhaar.src);
-  if(id.pan) html+=docCard('PAN Card','Identity',IB,fld('PAN Number',id.pan.number,true,true)+fld('Issued',id.pan.issuedOn)+(id.pan.fathersName?fld("Father's Name",id.pan.fathersName):'')+(id.pan.dob?fld('DOB',id.pan.dob):''),id.pan.src);
+  if(id.aadhaar) html+=docCard('Aadhaar Card','Identity',IB,fld('Aadhaar No.',id.aadhaar.number,true,true,id.aadhaar.src)+fld('VID',id.aadhaar.vid,true,true)+fld('Enrolment',id.aadhaar.enrolment)+fld('Issued',id.aadhaar.issued),id.aadhaar.src);
+  if(id.pan) html+=docCard('PAN Card','Identity',IB,fld('PAN Number',id.pan.number,true,true,id.pan.src)+fld('Issued',id.pan.issuedOn)+(id.pan.fathersName?fld("Father's Name",id.pan.fathersName):'')+(id.pan.dob?fld('DOB',id.pan.dob):''),id.pan.src);
   if(id.dl) html+=docCard('Driving Licence','Identity',IB,fld('DL Number',id.dl.number,true,true)+fld('Valid Until',id.dl.validUntil)+fld('Classes',id.dl.classes)+fld('Issuing RTA',id.dl.rta)+fld('First Issued',id.dl.firstIssued),id.dl.src);
   if(id.voter) html+=docCard('Voter ID','Identity',IB,fld('EPIC No.',id.voter.epic,true,true)+fld('Assembly',id.voter.assembly)+fld('Address',id.voter.address),id.voter.src);
   if(id.passport) html+=docCard('Passport','Identity',IB,fld('Passport No.',id.passport.number,true,true)+fld('Nationality',id.passport.nationality)+fld('DOB / Sex',id.passport.dob+' / '+id.passport.sex)+fld('US H1B Visa','Issued: '+id.passport.visaIssued+' | Expired: '+id.passport.visaExpiry)+fld('Issuing Post',id.passport.issuingPost)+fld('US Control No.',id.passport.controlNo),id.passport.src);
   if(id.marriageCert) html+=docCard('Marriage Certificate','Document',DB,fld('Act',id.marriageCert.act)+fld('Husband',id.marriageCert.husband)+fld('Wife',id.marriageCert.wife)+fld('Date',id.marriageCert.date)+fld('Registrar',id.marriageCert.registrar),id.marriageCert.src);
   if(id.birthCert) html+=docCard('Birth Certificate','Document',DB,fld('Name',id.birthCert.name)+fld('DOB',id.birthCert.dob)+fld('Place of Birth',id.birthCert.placeOfBirth||id.birthCert.place)+fld('Father',id.birthCert.father)+fld('Mother',id.birthCert.mother)+fld('Reg No.',id.birthCert.regNo),id.birthCert.src);
-  html+=docCard('Personal Info','Record',IB,fld('Full Name',m.name)+fld('Date of Birth',m.dob)+fld('Gender',m.gender)+fld('Mobile',m.mobile,false,true)+(m.altMobile?fld('Alt. Mobile',m.altMobile,false,true):'')+(m.address?fld('Address',m.address):''));
+  const _ins0 = m.sections.insurance&&m.sections.insurance[0];
+  const _insPolicy = _ins0?(_ins0.policy||null):null;
+  const _insSrc = _ins0&&!_ins0.note?(_ins0.src||null):null;
+  html+=docCard('Personal Info','Record',IB,fld('Full Name',m.name)+fld('Date of Birth',m.dob)+fld('Gender',m.gender)+fld('Mobile',m.mobile,false,true)+(m.altMobile?fld('Alt. Mobile',m.altMobile,false,true):'')+(_insPolicy?fld('Insurance Policy',_insPolicy,false,true,_insSrc):'')+(m.address?fld('Address',m.address):''));
   return html;
 }
 
