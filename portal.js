@@ -9204,11 +9204,11 @@ function _aiDocRow(label, val, mono, copyText, viewSrc) {
   var mono_style = mono ? 'font-family:\'DM Mono\',monospace;' : '';
   var copyBtn = copyText
     ? '<button onclick="navigator.clipboard.writeText(\'' + copyText + '\').then(function(){showToast(\'Copied!\');})" title="Copy" '
-      + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:13px;padding:1px 5px;cursor:pointer;line-height:1;flex-shrink:0;">📋</button>'
+      + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:9px;padding:1px 4px;cursor:pointer;line-height:1;flex-shrink:0;">📋</button>'
     : '';
   var viewBtn = (viewSrc && DOC_LINKS && DOC_LINKS[viewSrc])
     ? '<a href="' + DOC_LINKS[viewSrc] + '" target="_blank" title="View document" '
-      + 'style="font-size:13px;text-decoration:none;padding:1px 4px;color:var(--text3);flex-shrink:0;">👁️</a>'
+      + 'style="font-size:9px;text-decoration:none;padding:1px 3px;color:var(--text3);flex-shrink:0;">👁️</a>'
     : '';
   return '<div style="display:flex;align-items:center;gap:5px;line-height:2;">'
     + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">' + label + '</span>'
@@ -9257,7 +9257,7 @@ function _aiBuildFamilyMembersCard() {
        + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">Mobile</span>'
        + '<a href="tel:' + m.mobile + '" style="font-size:11px;color:var(--blue2);font-family:\'DM Mono\',monospace;text-decoration:none;flex:1;">' + m.mobile + '</a>'
        + '</div>';
-    s += _aiDocRow('Insurance', m.insurance, true, m.insurance, m.insSrc);
+    s += _aiDocRow('Insurance', m.insurance, true, null, m.insSrc);
     s += '</div>';
   });
   return s + '</div>';
