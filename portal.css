@@ -3771,46 +3771,35 @@ input:focus, button:focus-visible {
 @keyframes aiThink { to { transform: rotate(360deg); } }
 
 /* Panel backdrop */
-#ai-panel-backdrop {
-  position: fixed; inset: 0; z-index: 8999;
-  background: rgba(0,0,0,.45);
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  opacity: 0; pointer-events: none;
-  transition: opacity .28s ease;
-}
-#ai-panel-backdrop.visible { opacity: 1; pointer-events: all; }
+#ai-panel-backdrop { display: none; }
 
-/* Panel container */
+/* Panel container — full screen */
 #ai-panel {
   position: fixed;
-  bottom: calc(var(--nav-h) + 0px);
-  right: 0;
-  width: min(380px, 100vw);
-  height: min(82vh, 720px);
+  inset: 0;
   z-index: 9000;
   display: flex; flex-direction: column;
-  transition: transform .3s cubic-bezier(.32,.72,0,1), opacity .3s ease;
-  transform-origin: bottom right;
+  transition: transform .32s cubic-bezier(.32,.72,0,1), opacity .32s ease;
+  transform-origin: bottom center;
 }
 #ai-panel.ai-panel-closed {
-  transform: translateY(32px) scale(0.96);
+  transform: translateY(100%);
   opacity: 0;
   pointer-events: none;
 }
 #ai-panel.ai-panel-open {
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
   opacity: 1;
   pointer-events: all;
 }
 #ai-panel-inner {
-  margin: 0 10px 10px 0;
+  margin: 0;
   height: 100%;
-  background: var(--surface);
-  border: 1px solid rgba(124,58,237,.3);
-  border-radius: 20px;
+  background: var(--bg);
+  border: none;
+  border-radius: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(124,58,237,.15), inset 0 1px 0 rgba(255,255,255,.06);
   -webkit-overflow-scrolling: touch;
 }
 
