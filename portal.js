@@ -11002,8 +11002,22 @@ function bvLayout() {
 }
 
 function bvGoTo(idx) {
-  _bvActive=((idx%_bvN)+_bvN)%_bvN;
-  bvLayout(); setTimeout(bvLayout,300);
+  var n=((idx%_bvN)+_bvN)%_bvN;
+  if (n===_bvActive) return;
+  // Flip out old front card
+  var oldEl=document.getElementById('bvc'+_bvActive);
+  if (oldEl) oldEl.classList.add('bv-flip-out');
+  // Panel glow burst
+  var wrap=document.querySelector('.bv-wrap');
+  if (wrap){wrap.classList.remove('bv-glow');void wrap.offsetWidth;wrap.classList.add('bv-glow');setTimeout(function(){wrap.classList.remove('bv-glow');},600);}
+  // Flip in new front card after flip-out midpoint
+  setTimeout(function(){
+    if (oldEl) oldEl.classList.remove('bv-flip-out');
+    _bvActive=n;
+    bvLayout();
+    var newEl=document.getElementById('bvc'+_bvActive);
+    if (newEl){newEl.classList.add('bv-flip-in');setTimeout(function(){newEl.classList.remove('bv-flip-in');},620);}
+  },300);
 }
 
 // ── Edit Sheet ──

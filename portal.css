@@ -5724,7 +5724,28 @@ body.dash-active #content{
 .bv-stage-lbl::before{content:'';width:12px;height:1px;background:#c9a84c;display:block;}
 
 /* Carousel */
-.bv-carousel{position:relative;margin:0 14px;transition:height 0.5s cubic-bezier(.4,0,.2,1);}
+.bv-carousel{position:relative;margin:0 14px;transition:height 0.5s cubic-bezier(.4,0,.2,1);perspective:1400px;perspective-origin:50% 30%;}
+
+/* ── Flip animations ── */
+@keyframes bv-fo{
+  0%  {transform:scale(1) rotateY(0deg) rotateX(0deg);filter:brightness(1);}
+  35% {transform:scale(1.04) rotateY(-50deg) rotateX(-3deg);filter:brightness(1.8) saturate(1.5);}
+  100%{transform:scale(0.86) rotateY(-90deg) rotateX(6deg);filter:brightness(0.3);opacity:0;}
+}
+@keyframes bv-fi{
+  0%  {transform:scale(0.86) rotateY(90deg) rotateX(6deg);filter:brightness(0.3);opacity:0;}
+  45% {transform:scale(1.07) rotateY(-14deg) rotateX(-5deg);filter:brightness(1.7) saturate(1.4);opacity:1;}
+  72% {transform:scale(1.02) rotateY(6deg) rotateX(2deg);filter:brightness(1.1);}
+  88% {transform:scale(0.99) rotateY(-2deg) rotateX(0deg);}
+  100%{transform:scale(1) rotateY(0deg) rotateX(0deg);filter:brightness(1);}
+}
+@keyframes bv-gb{
+  0%,100%{box-shadow:0 0 0 1px rgba(100,140,255,0.12),0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);}
+  38%{box-shadow:0 0 90px rgba(160,190,255,0.28),0 0 150px rgba(120,160,255,0.14),0 0 0 1px rgba(180,210,255,0.25),inset 0 1px 0 rgba(255,255,255,0.12);}
+}
+.bv-flip-out{animation:bv-fo 0.32s cubic-bezier(.4,0,.8,.6) forwards !important;transition:none !important;}
+.bv-flip-in {animation:bv-fi 0.58s cubic-bezier(.17,.67,.34,1.15) both !important;transition:none !important;}
+.bv-wrap.bv-glow{animation:bv-gb 0.58s ease-out;}
 
 /* Card */
 /* Card — glass wrapper (two-section: colored top + glass rows below) */
