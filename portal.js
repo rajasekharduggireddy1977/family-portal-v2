@@ -2008,6 +2008,7 @@ function vehOpenSheet(id) {
     + '<input id="veh-date" type="date" value="' + new Date().toISOString().slice(0,10) + '" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);">'
     + '<input id="veh-km" type="number" placeholder="KM" style="width:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);">'
     + '</div>'
+    + '<input id="veh-amount" type="number" placeholder="Amount paid (₹)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<input id="veh-note" placeholder="Notes (optional)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<input id="veh-next" type="date" placeholder="Next service due" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<div onclick="vehSaveService()" style="padding:11px;border-radius:10px;background:var(--blue-dim);border:1px solid rgba(79,127,255,.25);color:var(--blue2);font-size:13px;font-weight:700;text-align:center;cursor:pointer;font-family:\'Inter\',sans-serif;">Save Service Log</div>'
@@ -2023,16 +2024,17 @@ function vehCloseSheet() {
 }
 
 function vehSaveService() {
-  var type = document.getElementById('veh-type');
-  var date = document.getElementById('veh-date');
-  var km   = document.getElementById('veh-km');
-  var note = document.getElementById('veh-note');
-  var next = document.getElementById('veh-next');
+  var type   = document.getElementById('veh-type');
+  var date   = document.getElementById('veh-date');
+  var km     = document.getElementById('veh-km');
+  var amount = document.getElementById('veh-amount');
+  var note   = document.getElementById('veh-note');
+  var next   = document.getElementById('veh-next');
   if (!type||!date||!date.value) return;
   var data = getVehData();
   if (!data[_vehActiveId]) data[_vehActiveId] = { history: [] };
   if (!data[_vehActiveId].history) data[_vehActiveId].history = [];
-  data[_vehActiveId].history.push({ type: type.value, date: date.value, km: km?km.value:'', note: note?note.value:'' });
+  data[_vehActiveId].history.push({ type: type.value, date: date.value, km: km?km.value:'', amount: amount?amount.value:'', note: note?note.value:'' });
   data[_vehActiveId].lastService = date.value;
   if (next && next.value) data[_vehActiveId].nextService = next.value;
   saveVehData(data);
@@ -8743,11 +8745,12 @@ var _tlMonthOffset = 0; // 0=current month, 1=next, -1=prev
 /* Chip data — NO apostrophes in strings to avoid HTML attribute breakage */
 var AI_CHIPS = {
   dashboard: [
-    ["members_info", "__local_family_members"],
-    ["josritha_edu", "__local_josritha_edu"],
-    ["exp",          "Which documents or policies are expiring soon and what should be done?"],
-    ["ins",          "Summarize all family insurance policies and their status"],
-    ["prop_tax",     "What is the status of family property tax payments for Ongole properties?"]
+    ["members_info",    "__local_family_members"],
+    ["josritha_edu",    "__local_josritha_edu"],
+    ["vehicle_details", "__local_vehicle_details"],
+    ["exp",             "Which documents or policies are expiring soon and what should be done?"],
+    ["ins",             "Summarize all family insurance policies and their status"],
+    ["prop_tax",        "What is the status of family property tax payments for Ongole properties?"]
   ],
   members: [
     ["skip", "Can Josritha skip classes today?"],
@@ -8770,9 +8773,10 @@ var AI_CHIPS = {
 };
 
 var AI_CHIP_LABELS = {
-  members_info: "👨‍👩‍👧‍👦 Family members",
-  josritha_edu: "🎓 Josritha's education",
-  prop_tax:     "🏠 Property taxes",
+  members_info:    "👨‍👩‍👧‍👦 Family members",
+  josritha_edu:    "🎓 Josritha's education",
+  vehicle_details: "🚗 Vehicle details",
+  prop_tax:        "🏠 Property taxes",
   skip: "🏃 Can she skip today?",
   predict: "🔮 Predict semester end",
   report: "📊 Attendance risk",
@@ -9181,6 +9185,7 @@ function aiPanelClear() {
 function aiPanelLocalHandler(text) {
   if (text === '__local_family_members') return _aiBuildFamilyMembersCard();
   if (text === '__local_josritha_edu')   return _aiBuildJosrithaEduCard();
+  if (text === '__local_vehicle_details') return _aiBuildVehicleCard();
   return null;
 }
 
@@ -9266,6 +9271,38 @@ function _aiBuildJosrithaEduCard() {
   } else {
     s += _aiEduSection('Subjects Below 75%', ['Upload attendance data to view.']);
   }
+  return s + '</div>';
+}
+
+function _aiBuildVehicleCard() {
+  var vins = {
+    activa: { name:'Honda Activa 125', reg:'TS08HJ8438', year:'2021', policy:'3005/430080806/00/000', expiry:'Feb 24, 2028', icon:'🛵', color:'rgba(167,139,250,.1)' },
+    i10:    { name:'Hyundai i10 Sportz', reg:'AP27AK7873', year:'2011', policy:'3001/103498197/10/000', expiry:'Jun 28, 2026', icon:'🚗', color:'rgba(79,127,255,.1)' }
+  };
+  var svc = (typeof getVehData === 'function') ? getVehData() : {};
+  var s = '<div style="font-family:Inter,sans-serif;">'
+    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">🚗 Vehicle Details</div>';
+  ['activa','i10'].forEach(function(id) {
+    var v = vins[id];
+    var vd = svc[id] || {};
+    var hist = vd.history || [];
+    var last = hist.length ? hist[hist.length - 1] : null;
+    var lastDate = vd.lastService || (last ? last.date : '—');
+    var lastKm   = last && last.km     ? last.km + ' km' : '—';
+    var lastAmt  = last && last.amount ? '₹' + last.amount : '—';
+    s += '<div style="background:' + v.color + ';border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;margin-bottom:8px;">';
+    s += '<div style="font-weight:700;font-size:12px;color:var(--text1);margin-bottom:6px;">' + v.icon + ' ' + v.name + '</div>';
+    s += _aiInfoRow('Reg No',   v.reg,    true);
+    s += _aiInfoRow('Year',     v.year,   false);
+    s += _aiInfoRow('KMS',      lastKm,   true);
+    s += _aiInfoRow('Last Svc', lastDate, true);
+    s += _aiInfoRow('Amt Paid', lastAmt,  true);
+    s += _aiInfoRow('Policy',   v.policy, true);
+    s += _aiInfoRow('Expiry',   v.expiry, false);
+    s += _aiInfoRow('RC No',    '—',      true);
+    s += '</div>';
+  });
+  s += '<div style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace;padding:2px 0;">KMS · Last Svc · Amount from service log</div>';
   return s + '</div>';
 }
 
