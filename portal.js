@@ -8752,6 +8752,7 @@ var AI_CHIPS = {
     ["members_info",    "__local_family_members"],
     ["josritha_edu",    "__local_josritha_edu"],
     ["vehicle_details", "__local_vehicle_details"],
+    ["balance_assets",  "__local_balance_assets"],
     ["exp",             "Which documents or policies are expiring soon and what should be done?"],
     ["ins",             "Summarize all family insurance policies and their status"],
     ["prop_tax",        "What is the status of family property tax payments for Ongole properties?"]
@@ -9187,9 +9188,10 @@ function aiPanelClear() {
 }
 
 function aiPanelLocalHandler(text) {
-  if (text === '__local_family_members') return _aiBuildFamilyMembersCard();
-  if (text === '__local_josritha_edu')   return _aiBuildJosrithaEduCard();
+  if (text === '__local_family_members')  return _aiBuildFamilyMembersCard();
+  if (text === '__local_josritha_edu')    return _aiBuildJosrithaEduCard();
   if (text === '__local_vehicle_details') return _aiBuildVehicleCard();
+  if (text === '__local_balance_assets')  return _aiBuildBalanceCard();
   return null;
 }
 
@@ -9272,6 +9274,141 @@ function _aiEduSection(title, rows, warn) {
   s += '<div style="font-size:11px;color:var(--text2);font-family:\'DM Mono\',monospace;line-height:2;">';
   rows.forEach(function(r) { s += r + '<br>'; });
   return s + '</div></div>';
+}
+
+function _aiBuildBalanceCard() {
+  var bv = bvGetData();
+  var bd = bgtGetData();
+  var calc = bgtCalc(bd);
+
+  function fmt(n) { return '\u20b9' + Math.abs(n).toLocaleString('en-IN'); }
+
+  var banks    = bv.banks || [];
+  var bankTotal = banks.reduce(function(s,b){ return s + (b.assets||[]).reduce(function(ss,a){return ss+(a.amount||0);},0); }, 0);
+  var nb       = bd.assets.nonBanking || [];
+  var nbTotal  = nb.reduce(function(s,r){ return s+(r.amount||0); }, 0);
+  var mTotal   = bd.monthly.reduce(function(s,r){return s+r.amount;},0);
+  var yTotal   = bd.yearly.reduce(function(s,r){return s+r.amount;},0);
+  var yAvg     = Math.round(yTotal / 12);
+  var burnTotal = mTotal + yAvg;
+  var gross    = bankTotal + nbTotal;
+
+  // ── helpers ──────────────────────────────────────────────────────────
+  function secBar(icon, label, amt, col) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0 5px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px;">'
+      + '<span style="font-size:9px;font-weight:700;color:'+col+';font-family:\'DM Mono\',monospace;letter-spacing:.8px;text-transform:uppercase;">'+icon+' '+label+'</span>'
+      + '<span style="font-size:12px;font-weight:800;color:'+col+';font-family:\'DM Mono\',monospace;">'+fmt(amt)+'</span>'
+      + '</div>';
+  }
+
+  // ── Banking breakdown ─────────────────────────────────────────────────
+  var banksHtml = banks.map(function(bank) {
+    var bAmt = (bank.assets||[]).reduce(function(s,a){return s+(a.amount||0);},0);
+    var rows = (bank.assets||[]).map(function(a) {
+      var pct = bAmt > 0 ? Math.round(a.amount / bAmt * 100) : 0;
+      return '<div style="display:flex;align-items:center;gap:6px;padding:2px 0 2px 6px;">'
+        + '<span style="font-size:10px;width:14px;flex-shrink:0;line-height:1;">'+a.icon+'</span>'
+        + '<span style="font-size:9px;color:var(--text3);flex:1;font-family:\'DM Mono\',monospace;">'+a.section+'</span>'
+        + '<div style="width:36px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;flex-shrink:0;overflow:hidden;">'
+          + '<div style="width:'+pct+'%;height:100%;background:rgba(79,127,255,.55);border-radius:2px;"></div>'
+        + '</div>'
+        + '<span style="font-size:10px;color:var(--text2);font-family:\'DM Mono\',monospace;min-width:66px;text-align:right;">'+fmt(a.amount)+'</span>'
+        + '</div>';
+    }).join('');
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 9px;margin-bottom:5px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+        + '<span style="font-size:11px;font-weight:700;color:var(--blue2);">🏦 '+bank.name+'</span>'
+        + '<span style="font-size:11px;font-weight:800;color:var(--text1);font-family:\'DM Mono\',monospace;">'+fmt(bAmt)+'</span>'
+      + '</div>'
+      + rows
+      + '</div>';
+  }).join('');
+
+  // ── Non-banking breakdown (group by type) ────────────────────────────
+  var NB_ICON  = {life_ins:'🛡️',gold:'🥇',mutual_fund:'📈',property:'🏠',vehicle:'🚗',fd:'🔒',personal_loan:'🤝',other:'💰'};
+  var NB_LABEL = {life_ins:'Life Insurance',gold:'Gold',mutual_fund:'Mutual Fund',property:'Property',vehicle:'Vehicle',fd:'Fixed Deposit',personal_loan:'Loans Given',other:'Other'};
+  var nbGroups = {};
+  nb.forEach(function(r){
+    var t = r.type||'other';
+    if (!nbGroups[t]) nbGroups[t]={items:[],total:0};
+    nbGroups[t].items.push(r);
+    nbGroups[t].total += r.amount||0;
+  });
+  var nbHtml = Object.keys(nbGroups).map(function(t) {
+    var g = nbGroups[t];
+    var sub = g.items.length > 1 ? g.items.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 18px;">'
+        + '<span style="font-size:9px;color:var(--text3);font-family:\'DM Mono\',monospace;">'+r.item+'</span>'
+        + '<span style="font-size:9px;color:var(--text2);font-family:\'DM Mono\',monospace;">'+fmt(r.amount)+'</span>'
+        + '</div>';
+    }).join('') : '';
+    return '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(167,139,250,.09);border-radius:7px;padding:6px 9px;margin-bottom:4px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+        + '<span style="font-size:10px;font-weight:600;color:#c084fc;">'+(NB_ICON[t]||'💰')+' '+(NB_LABEL[t]||t)+'</span>'
+        + '<span style="font-size:11px;font-weight:700;color:var(--text1);font-family:\'DM Mono\',monospace;">'+fmt(g.total)+'</span>'
+      + '</div>'
+      + sub
+      + '</div>';
+  }).join('');
+
+  // ── Expenditure rows ─────────────────────────────────────────────────
+  var expRows = [
+    {icon:'📅', label:'Monthly Recurring', amt:mTotal,    col:'#fb923c'},
+    {icon:'📆', label:'Yearly One-time',   amt:yTotal,    col:'#f97316'},
+    {icon:'📊', label:'Avg Monthly (total)',amt:burnTotal, col:'#ef4444'}
+  ].map(function(e){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">'
+      + '<span style="font-size:10px;color:var(--text3);">'+e.icon+' '+e.label+'</span>'
+      + '<span style="font-size:11px;font-weight:700;color:'+e.col+';font-family:\'DM Mono\',monospace;">'+fmt(e.amt)+'</span>'
+      + '</div>';
+  }).join('');
+
+  // ── Assemble ─────────────────────────────────────────────────────────
+  var s = '<div style="font-family:Inter,sans-serif;">';
+
+  // Hero header
+  s += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">'
+    + '<div>'
+      + '<div style="font-weight:800;font-size:13px;color:var(--text1);">💰 Balance Sheet</div>'
+      + '<div style="font-size:9px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-top:2px;">Live · vault &amp; budget</div>'
+    + '</div>'
+    + '<div style="text-align:right;">'
+      + '<div style="font-size:19px;font-weight:900;color:#34d399;font-family:\'DM Mono\',monospace;letter-spacing:-0.5px;">'+fmt(gross)+'</div>'
+      + '<div style="font-size:9px;color:var(--text3);margin-top:1px;font-family:\'DM Mono\',monospace;">GROSS ASSETS</div>'
+    + '</div>'
+    + '</div>';
+
+  // Banking section
+  s += '<div style="background:rgba(79,127,255,.04);border:1px solid rgba(79,127,255,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+  s += secBar('🏦','Banking Assets', bankTotal, 'var(--blue2)');
+  s += banksHtml;
+  s += '</div>';
+
+  // Non-banking section
+  if (nb.length) {
+    s += '<div style="background:rgba(167,139,250,.03);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+    s += secBar('🌐','Non-Banking Assets', nbTotal, '#c084fc');
+    s += nbHtml;
+    s += '</div>';
+  }
+
+  // Expenditure section
+  s += '<div style="background:rgba(251,146,60,.03);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+  s += '<div style="font-size:9px;font-weight:700;color:#fb923c;font-family:\'DM Mono\',monospace;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">📊 Expenditure</div>';
+  s += expRows;
+  s += '</div>';
+
+  // Total balance footer
+  s += '<div style="background:linear-gradient(135deg,rgba(52,211,153,.09),rgba(16,185,129,.04));border:1px solid rgba(52,211,153,.28);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">'
+    + '<div>'
+      + '<div style="font-size:10px;font-weight:700;color:#34d399;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.5px;">Total Balance</div>'
+      + '<div style="font-size:9px;color:var(--text3);margin-top:2px;">Banking + Non-Banking</div>'
+    + '</div>'
+    + '<div style="font-size:17px;font-weight:900;color:#34d399;font-family:\'DM Mono\',monospace;">'+fmt(gross)+'</div>'
+    + '</div>';
+
+  s += '</div>';
+  return s;
 }
 
 function _aiBuildJosrithaEduCard() {
