@@ -9200,12 +9200,49 @@ function _aiInfoRow(label, val, mono) {
     + '</div>';
 }
 
+function _aiDocRow(label, val, mono, copyText, viewSrc) {
+  var mono_style = mono ? 'font-family:\'DM Mono\',monospace;' : '';
+  var copyBtn = copyText
+    ? '<button onclick="navigator.clipboard.writeText(\'' + copyText + '\').then(function(){showToast(\'Copied!\');})" title="Copy" '
+      + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:13px;padding:1px 5px;cursor:pointer;line-height:1;flex-shrink:0;">📋</button>'
+    : '';
+  var viewBtn = (viewSrc && DOC_LINKS && DOC_LINKS[viewSrc])
+    ? '<a href="' + DOC_LINKS[viewSrc] + '" target="_blank" title="View document" '
+      + 'style="font-size:13px;text-decoration:none;padding:1px 4px;color:var(--text3);flex-shrink:0;">👁️</a>'
+    : '';
+  return '<div style="display:flex;align-items:center;gap:5px;line-height:2;">'
+    + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">' + label + '</span>'
+    + '<span style="font-size:11px;color:var(--text2);' + mono_style + 'flex:1;">' + val + '</span>'
+    + copyBtn + viewBtn
+    + '</div>';
+}
+
 function _aiBuildFamilyMembersCard() {
   var members = [
-    { name:'Rajasekhar Reddy Duggireddy', role:'Father',   dob:'21 Jan 1977', aadhaar:'610617784861', pan:'AICPD3992N', mobile:'9640656595', color:'#3b6fd4' },
-    { name:'Vasundhara Duggireddy',       role:'Mother',   dob:'26 Aug 1982', aadhaar:'337231069560', pan:'BDXPD9514R', mobile:'9652948966', color:'#9333ea' },
-    { name:'Josritha Duggireddy',         role:'Daughter', dob:'26 Feb 2006', aadhaar:'831664586848', pan:'—',          mobile:'9392932602', color:'#ec4899' },
-    { name:'Jeevan Vidyadhar Duggireddy', role:'Son',      dob:'22 Aug 2010', aadhaar:'691829467739', pan:'—',          mobile:'9063359446', color:'#0d9488' }
+    { name:'Rajasekhar Reddy Duggireddy', role:'Father',   dob:'21 Jan 1977',
+      aadhaar:'6106 1778 4861', aadhaarSrc:'ID_Rajasekhar_Aadhaar_6106-1778-4861.pdf',
+      pan:'AICPD3992N',         panSrc:'ID_Rajasekhar_PANCard_AICPD3992N.pdf',
+      mobile:'9640656595',
+      insurance:'4128i/HSNR/92094505/10/000', insSrc:'INS_Rajasekhar_HealthInsurance_ICICI_Individual_2025-26.pdf',
+      color:'#3b6fd4' },
+    { name:'Vasundhara Duggireddy',       role:'Mother',   dob:'26 Aug 1982',
+      aadhaar:'3372 3106 9560', aadhaarSrc:'ID_Vasundhara_Aadhaar_3372-3106-9560.pdf',
+      pan:'BDXPD9514R',         panSrc:'ID_Vasundhara_PANCard_BDXPD9514R.pdf',
+      mobile:'9652948966',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#9333ea' },
+    { name:'Josritha Duggireddy',         role:'Daughter', dob:'26 Feb 2006',
+      aadhaar:'8316 6458 6848', aadhaarSrc:'ID_Josritha_Aadhaar_8316-6458-6848.pdf',
+      pan:'—',                  panSrc:null,
+      mobile:'9392932602',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#ec4899' },
+    { name:'Jeevan Vidyadhar Duggireddy', role:'Son',      dob:'22 Aug 2010',
+      aadhaar:'6918 2946 7739', aadhaarSrc:'ID_Jeevan_Aadhaar_6918-2946-7739.pdf',
+      pan:'—',                  panSrc:null,
+      mobile:'9063359446',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#0d9488' }
   ];
   var s = '<div style="font-family:Inter,sans-serif;">'
     + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">👨‍👩‍👧‍👦 Family Members</div>';
@@ -9214,14 +9251,13 @@ function _aiBuildFamilyMembersCard() {
     s += '<div style="font-weight:700;font-size:12px;color:' + m.color + ';margin-bottom:5px;">' + m.name
        + '<span style="font-weight:400;font-size:10px;color:var(--text3);margin-left:6px;">· ' + m.role + '</span></div>';
     s += _aiInfoRow('DOB', m.dob, false);
-    s += '<div style="display:flex;align-items:baseline;gap:6px;line-height:2;">'
-       + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;">Aadhaar</span>'
-       + '<span style="font-size:11px;color:var(--text2);font-family:\'DM Mono\',monospace;">' + m.aadhaar + '</span>'
-       + '<button onclick="navigator.clipboard.writeText(\'' + m.aadhaar + '\').then(function(){showToast(\'Copied!\');})" '
-       + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:9px;padding:2px 6px;cursor:pointer;font-family:\'DM Mono\',monospace;">copy</button>'
+    s += _aiDocRow('Aadhaar', m.aadhaar, true, m.aadhaar.replace(/ /g,''), m.aadhaarSrc);
+    s += _aiDocRow('PAN', m.pan, true, m.pan !== '—' ? m.pan : null, m.panSrc);
+    s += '<div style="display:flex;align-items:center;gap:5px;line-height:2;">'
+       + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">Mobile</span>'
+       + '<a href="tel:' + m.mobile + '" style="font-size:11px;color:var(--blue2);font-family:\'DM Mono\',monospace;text-decoration:none;flex:1;">' + m.mobile + '</a>'
        + '</div>';
-    s += _aiInfoRow('PAN', m.pan, true);
-    s += _aiInfoRow('Mobile', m.mobile, true);
+    s += _aiDocRow('Insurance', m.insurance, true, m.insurance, m.insSrc);
     s += '</div>';
   });
   return s + '</div>';
