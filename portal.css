@@ -5698,7 +5698,7 @@ body.dash-active #content{
 /* ═══════════════════════════════════════════════════════════
    BANK VAULT CAROUSEL  (.bv-*)
    ═══════════════════════════════════════════════════════════ */
-.bv-wrap{position:relative;background:linear-gradient(145deg,#0a0e1a 0%,#0d1425 40%,#111a35 70%,#0a1020 100%);border-radius:18px;overflow:hidden;margin-bottom:14px;padding-bottom:10px;box-shadow:0 0 0 1px rgba(100,140,255,0.12),0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);}
+.bv-wrap{position:relative;background:linear-gradient(145deg,#0a0e1a 0%,#0d1425 40%,#111a35 70%,#0a1020 100%);border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 0 0 1px rgba(100,140,255,0.12),0 8px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);}
 
 /* Twinkling stars background */
 .bv-sf{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
@@ -5724,7 +5724,7 @@ body.dash-active #content{
 .bv-stage-lbl::before{content:'';width:12px;height:1px;background:#c9a84c;display:block;}
 
 /* Carousel */
-.bv-carousel{position:relative;margin:0 14px;transition:height 0.5s cubic-bezier(.4,0,.2,1);perspective:1400px;perspective-origin:50% 30%;}
+.bv-carousel{position:relative;margin:0 14px 3px;transition:height 0.5s cubic-bezier(.4,0,.2,1);perspective:1400px;perspective-origin:50% 30%;}
 
 /* ── Flip animations ── */
 @keyframes bv-fo{

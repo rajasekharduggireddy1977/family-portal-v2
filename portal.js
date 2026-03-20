@@ -10932,10 +10932,6 @@ function bvRenderCards(d) {
   _bvN = d.banks.length;
   if (_bvActive >= _bvN) _bvActive = 0;
   carousel.innerHTML = d.banks.map(function(bank,idx){return bvCardHtml(bank,idx);}).join('');
-  var dots = document.getElementById('bv-dots');
-  if (dots) dots.innerHTML = d.banks.map(function(_,i){
-    return '<div class="bv-dot'+(i===_bvActive?' bv-dot-on':'')+'"></div>';
-  }).join('');
 }
 
 function bvSetupTapHandlers() {
@@ -10998,7 +10994,6 @@ function bvLayout() {
     el.style.zIndex=s.zi; el.style.pointerEvents=s.pe; el.style.boxShadow=s.sh;
     el.setAttribute('data-pos',p);
   }
-  document.querySelectorAll('.bv-dot').forEach(function(d,i){d.classList.toggle('bv-dot-on',i===_bvActive);});
 }
 
 function bvGoTo(idx) {
