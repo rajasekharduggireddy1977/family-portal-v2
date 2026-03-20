@@ -10986,7 +10986,7 @@ function bvLayout() {
   var front=document.getElementById('bvc'+_bvActive);
   var h=front?front.offsetHeight:420;
   var carousel=document.getElementById('bv-carousel');
-  if (carousel) carousel.style.height=Math.max(h+20,350)+'px';
+  if (carousel) carousel.style.height=(h+40)+'px';
   for (var i=0;i<_bvN;i++) {
     var el=document.getElementById('bvc'+i); if(!el) continue;
     var p=bvPos(i); var s=_bvSS[Math.min(p,3)];
