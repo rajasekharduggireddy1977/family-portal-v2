@@ -10886,54 +10886,43 @@ function bvNetworkHtml(n) {
 
 function bvCardHtml(bank, idx) {
   var total = bvBankTotal(bank);
-  // Group consecutive assets by section
-  var sections = [];
-  (bank.assets||[]).forEach(function(a) {
-    var last = sections[sections.length-1];
-    if (last && last.name===(a.section||'')) { last.items.push(a); }
-    else { sections.push({name:a.section||'',items:[a]}); }
-  });
-  var assetsHtml = sections.map(function(sec,si) {
-    return '<div class="bv-ca-slbl"'+(si>0?' style="padding-top:4px;"':'')+'>'+sec.name+'</div>'+
-      sec.items.map(function(a) {
-        var pct = total>0 ? Math.round(a.amount/total*100) : 0;
-        return '<div class="bv-ca-item">'+
-          '<div class="bv-ca-left"><div class="bv-ca-ico '+a.cls+'">'+a.icon+'</div>'+
-          '<div><div class="bv-ca-name">'+a.label+'</div><div class="bv-ca-type">'+a.sub+'</div>'+
-          '<div class="bv-ca-bw"><div class="bv-ca-bar"><div class="bv-ca-bf" style="width:'+pct+'%;background:rgba(255,255,255,0.65);"></div></div></div></div></div>'+
-          '<div class="bv-ca-right"><div class="bv-ca-amt">'+bgtFmt(a.amount)+'</div>'+
-          '<div class="bv-ca-pct">'+pct+'%</div></div></div>';
-      }).join('');
-  }).join('');
-  return '<div class="bv-card '+bank.bg+'" id="bvc'+idx+'" data-idx="'+idx+'" data-pos="'+idx+'">' +
-    '<div class="bv-blob" style="width:190px;height:190px;background:'+(bank.blob||'rgba(255,255,255,0.1)')+';top:-60px;right:-20px;--bd:7.5s;"></div>'+
-    '<div class="bv-sweep"></div><div class="bv-refl"></div>'+
-    '<div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>'+
-    '<div class="bv-copy-toast" id="bv-toast'+idx+'">Copied!</div>'+
-    '<div class="bv-cc">'+
-      '<div class="bv-card-top">'+
-        '<div><div class="bv-bank-name">'+bank.name+'</div><div class="bv-bank-sub">'+bank.sub+'</div></div>'+
-        '<div style="display:flex;align-items:center;gap:5px;">'+
-          '<div class="bv-ct-badge">'+bgtFmt(total)+'</div>'+
-          '<div class="bv-edit-btn" onclick="bvOpenEditSheet('+idx+');event.stopPropagation();">✏</div>'+
-        '</div>'+
+  var theme = bank.bg.replace('bv-bg-','');
+  var rowsHtml = (bank.assets||[]).map(function(a) {
+    return '<div class="bv-gl-row">'+
+      '<div class="bv-gl-ico">'+a.icon+'</div>'+
+      '<div class="bv-gl-text">'+
+        '<div class="bv-gl-name">'+a.label+'</div>'+
+        '<div class="bv-gl-sub">'+a.sub+'</div>'+
       '</div>'+
-      '<div class="bv-chip-r">'+
-        '<div class="bv-chip"><div class="bv-chip-i"></div></div>'+
-        '<div class="bv-acct-wrap">'+
-          '<div class="bv-acct-num">'+bank.acct+'</div>'+
+      '<div class="bv-gl-amt">'+bgtFmt(a.amount)+'</div>'+
+    '</div>';
+  }).join('');
+  return '<div class="bv-card" id="bvc'+idx+'" data-idx="'+idx+'" data-pos="'+idx+'">' +
+    '<div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>'+
+    '<div class="bv-top-card bv-tc-'+theme+'">'+
+      '<div class="bv-copy-toast" id="bv-toast'+idx+'">Copied!</div>'+
+      '<div class="bv-blob" style="width:190px;height:190px;background:'+(bank.blob||'rgba(255,255,255,0.1)')+';top:-60px;right:-20px;--bd:7.5s;"></div>'+
+      '<div class="bv-sweep"></div><div class="bv-refl"></div>'+
+      '<div class="bv-tc-top-row">'+
+        '<span class="bv-tc-acno">'+bank.acct+'</span>'+
+        '<div style="display:flex;align-items:center;gap:6px;">'+
           '<div class="bv-copy-btn" onclick="bvCopyAcct(\''+bank.acct+'\',\'bv-toast'+idx+'\');event.stopPropagation();">'+
             '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'+
           '</div>'+
+          '<div class="bv-edit-btn" onclick="bvOpenEditSheet('+idx+');event.stopPropagation();">✏</div>'+
         '</div>'+
       '</div>'+
+      '<div class="bv-tc-bal-lbl">Total Balance</div>'+
+      '<div class="bv-tc-bal-row">'+
+        '<div class="bv-tc-bal-amt">'+bgtFmt(total)+'</div>'+
+        '<div class="bv-tc-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="white"><path d="M7 14l5-5 5 5z"/></svg>Active</div>'+
+      '</div>'+
+      '<div class="bv-tc-footer">'+
+        '<div><div class="bv-tc-bank-name">'+bank.name+'</div><div class="bv-tc-bank-sub">'+bank.sub+'</div></div>'+
+        '<div class="bv-tc-right"><div class="bv-tc-holder">'+bank.holder+'</div>'+bvNetworkHtml(bank.network)+'</div>'+
+      '</div>'+
     '</div>'+
-    '<div class="bv-cdiv"></div>'+
-    '<div class="bv-cassets">'+assetsHtml+'</div>'+
-    '<div class="bv-cbot">'+
-      '<div><div class="bv-cbot-lbl">Account Holder</div><div class="bv-cbot-name">'+bank.holder+'</div></div>'+
-      bvNetworkHtml(bank.network)+
-    '</div>'+
+    '<div class="bv-rows-wrap">'+rowsHtml+'</div>'+
   '</div>';
 }
 
