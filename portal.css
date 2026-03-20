@@ -5821,6 +5821,7 @@ body.dash-active #content{
 .bv-edit-btn:hover{background:rgba(255,255,255,0.22);}
 .bv-card[data-pos="0"] .bv-edit-btn{opacity:1;pointer-events:auto;}
 .bv-card:not([data-pos="0"]) .bv-edit-btn{opacity:0;pointer-events:none;}
+.bv-card:not([data-pos="0"]) .bv-rows-wrap{display:none;}
 
 /* ── Edit sheet form ── */
 .bv-edit-form{display:flex;flex-direction:column;gap:10px;}
