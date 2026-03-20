@@ -9050,6 +9050,7 @@ function toggleAIPanel() {
     fab.classList.add('panel-open');
     document.body.classList.add('ai-panel-open');
     fabIcon.textContent = '\u2715';
+    aiPanelClear();
     aiPanelUpdateChips();
     aiPanelUpdateStatus();
     aiPanelAutoGreet();

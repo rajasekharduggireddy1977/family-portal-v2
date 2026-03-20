@@ -3802,6 +3802,8 @@ input:focus, button:focus-visible {
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
 }
+/* Prevent background scroll when AI panel is open */
+body.ai-panel-open { overflow: hidden; touch-action: none; }
 
 /* Panel header */
 #ai-panel-header {
