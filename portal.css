@@ -5148,6 +5148,26 @@ body.dash-active #content{
 #bgt-p1 .bgt-grid { gap: 3px !important; }
 #bgt-p1 .bgt-m-3stat-top { padding: 9px 8px !important; margin-bottom: 6px !important; }
 
+/* ── Assets panel compact (scoped to #bgt-p2) ── */
+#bgt-p2 .bv-hero{padding:10px 14px 6px !important;}
+#bgt-p2 .bv-eyebrow{margin-bottom:2px !important;}
+#bgt-p2 .bv-amt{font-size:22px !important;}
+#bgt-p2 .bv-sub{margin-top:1px !important;}
+#bgt-p2 .bv-pills{margin-top:4px !important;}
+#bgt-p2 .bv-stage-hdr{padding:0 14px 4px !important;}
+#bgt-p2 .bv-wrap{margin-bottom:8px !important;}
+#bgt-p2 .nb-card{padding:10px 11px 9px !important;}
+#bgt-p2 .nb-ico-wrap{width:30px !important;height:30px !important;font-size:15px !important;border-radius:10px !important;margin-bottom:5px !important;}
+#bgt-p2 .nb-name{font-size:11px !important;}
+#bgt-p2 .nb-type-lbl{margin-bottom:5px !important;}
+#bgt-p2 .nb-amt{font-size:16px !important;margin-bottom:4px !important;}
+#bgt-p2 .nb-pct-pill{margin-bottom:5px !important;}
+#bgt-p2 .nb-grid{gap:6px !important;}
+#bgt-p2 .bgt-inc-row{padding:6px 10px !important;}
+#bgt-p2 .bgt-inc-name{font-size:11.5px !important;}
+#bgt-p2 .bgt-sub-total-row{padding:4px 0 !important;}
+#bgt-p2 .bgt-grand-total-row{margin-top:4px !important;padding-top:6px !important;}
+
 /* ── 6. BOTTOM NAV — matches pulse rail style ── */
 /* When on overlay pages (docs/expiry/cal), '...' shows active styling */
 #bnav-more.active .bnav-icon { filter: drop-shadow(0 0 6px rgba(180,210,255,0.7)) !important; }
