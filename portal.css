@@ -5001,8 +5001,8 @@ body.dash-active #content{
 .bgt-m-3stat-top{background:linear-gradient(135deg,rgba(240,180,41,.08) 0%,rgba(0,229,160,.05) 50%,rgba(251,146,60,.06) 100%);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 10px;margin-bottom:10px;}
 .bgt-m-stat{text-align:center;flex:1;}
 .bgt-m-stat-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:3px;}
-.bgt-m-stat-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;}
-.bgt-m-3stat-top .bgt-m-stat-val{font-size:17px;}
+.bgt-m-stat-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:-0.2px;}
+.bgt-m-3stat-top .bgt-m-stat-val{font-size:13px;}
 .bgt-m-3stat-top .bgt-m-stat-sep{height:32px;}
 .bgt-m-stat-val.gold{color:var(--gold);}
 .bgt-m-stat-val.green{color:var(--green);}
