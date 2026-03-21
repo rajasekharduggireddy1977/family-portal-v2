@@ -4950,43 +4950,53 @@ body.dash-active #content{
 
 /* ── Monthly Summary Card ── */
 #bgt-hero-m{display:block;background:none;border:none;border-radius:0;padding:0;margin-bottom:0;}
-.bgt-m-sum{background:var(--card,#111827);border:1px solid rgba(255,255,255,0.12);border-radius:20px;overflow:hidden;margin-bottom:12px;}
-.bgt-m-sum-top{display:flex;padding:16px 18px 14px;gap:12px;}
+.bgt-m-sum{background:var(--card,#111827);border:1px solid rgba(255,255,255,0.12);border-radius:18px;overflow:hidden;margin-bottom:8px;}
+.bgt-m-sum-top{display:flex;padding:10px 16px 8px;gap:12px;}
 .bgt-m-sum-half{flex:1;}
 .bgt-m-sum-half.right{text-align:right;}
-.bgt-m-sum-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:4px;}
-.bgt-m-sum-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;letter-spacing:-0.02em;}
+.bgt-m-sum-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:3px;}
+.bgt-m-sum-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;line-height:1;letter-spacing:-0.02em;}
 .bgt-m-sum-val.gold{color:var(--gold);}
 .bgt-m-sum-val.green{color:var(--green);}
 .bgt-m-sum-val.red{color:var(--red);}
-.bgt-m-sum-div{height:1px;background:rgba(255,255,255,0.07);margin:0 18px;}
-.bgt-m-sum-spent-row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px 4px;}
+.bgt-m-sum-div{height:1px;background:rgba(255,255,255,0.07);margin:0 16px;}
+.bgt-m-sum-spent-row{display:flex;align-items:center;justify-content:space-between;padding:7px 16px 2px;}
 .bgt-m-sum-spent-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.38);}
-.bgt-m-sum-spent-val{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--red);}
-.bgt-m-sum-prog-wrap{padding:7px 18px 15px;}
+.bgt-m-sum-spent-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--red);}
+.bgt-m-sum-prog-wrap{padding:5px 16px 10px;}
 .bgt-m-sum-prog-track{height:3px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
 .bgt-m-sum-prog-fill{height:100%;background:linear-gradient(90deg,var(--red),#ff8fa3);border-radius:100px;width:0%;transition:width 1.2s cubic-bezier(0.23,1,0.32,1);}
-.bgt-m-sum-prog-lbl{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.32);margin-top:5px;text-align:right;}
+.bgt-m-sum-prog-lbl{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.32);margin-top:4px;text-align:right;}
 
 /* ── Monthly Expense Cards (2-col) ── */
-.bgt-mc{background:var(--surface,#0d1422);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:14px 13px 12px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.18s ease;animation:bgtMcIn 0.4s ease both;}
+#bgt-p0 .bgt-grid{gap:4px;}
+.bgt-mc{background:var(--surface,#0d1422);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:10px 11px 9px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.18s ease;animation:bgtMcIn 0.4s ease both;}
 .bgt-mc:active{transform:scale(0.97);}
-.bgt-mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc-accent,var(--blue));border-radius:18px 18px 0 0;}
+.bgt-mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc-accent,var(--blue));border-radius:14px 14px 0 0;}
 .bgt-mc::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.025),transparent);animation:bgtMcShimmer 4s ease infinite;animation-delay:var(--mc-shimmer-delay,0s);pointer-events:none;}
 @keyframes bgtMcShimmer{0%{left:-100%}50%,100%{left:150%}}
 @keyframes bgtMcIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-.bgt-mc-name{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:5px;padding-right:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bgt-mc-amt{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text,#fff);line-height:1;margin-bottom:8px;letter-spacing:-0.02em;}
-.bgt-mc-bar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:7px;}
+.bgt-mc-name{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;padding-right:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bgt-mc-amt{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text,#fff);line-height:1;margin-bottom:5px;letter-spacing:-0.02em;}
+.bgt-mc-bar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:5px;}
 .bgt-mc-bar-fill{height:100%;background:var(--mc-accent,var(--blue));border-radius:100px;width:0%;transition:width 1.3s cubic-bezier(0.23,1,0.32,1);opacity:0.8;}
 .bgt-mc-bal-row{display:flex;align-items:center;justify-content:space-between;}
 .bgt-mc-bal-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,.3);}
-.bgt-mc-bal-val{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--green);}
+.bgt-mc-bal-val{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--green);}
 .bgt-mc-bal-val.neg{color:var(--gold);}
-.bgt-mc-acts{position:absolute;top:9px;right:9px;display:flex;gap:3px;opacity:0;transition:opacity 0.2s;z-index:2;}
+.bgt-mc-acts{position:absolute;top:8px;right:8px;display:flex;gap:3px;opacity:0;transition:opacity 0.2s;z-index:2;}
 .bgt-mc:hover .bgt-mc-acts,.bgt-mc.show-acts .bgt-mc-acts{opacity:1;}
-.bgt-mc-btn{width:22px;height:22px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.6);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:12px;-webkit-tap-highlight-color:transparent;}
+.bgt-mc-btn{width:20px;height:20px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.6);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:11px;-webkit-tap-highlight-color:transparent;}
 .bgt-mc-btn.del:active{color:var(--red);border-color:rgba(255,77,109,0.4);}
+/* ── 3-stat footer (Budgeted | Paid | Due) ── */
+.bgt-m-3stat{display:flex;align-items:center;justify-content:space-around;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;}
+.bgt-m-stat{text-align:center;flex:1;}
+.bgt-m-stat-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:3px;}
+.bgt-m-stat-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;}
+.bgt-m-stat-val.gold{color:var(--gold);}
+.bgt-m-stat-val.green{color:var(--green);}
+.bgt-m-stat-val.warn{color:var(--orange,#fb923c);}
+.bgt-m-stat-sep{width:1px;height:26px;background:rgba(255,255,255,.08);flex-shrink:0;}
 
 /* ── Color picker in monthly sheet ── */
 .bgt-color-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}

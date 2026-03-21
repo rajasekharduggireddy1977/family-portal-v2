@@ -11505,9 +11505,20 @@ function renderBgtMonthly(d, c) {
     }).join('') :
     '<div style="grid-column:1/-1;text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses yet.\u2003Tap \ufe0f\u002b Add.</div>';
   }
-  // Monthly total
+  // 3-stat footer: Budgeted | Paid | Due
+  var totalPaid = d.monthly.reduce(function(s,r){ return s + (r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance)); }, 0);
+  var totalDue  = d.monthly.reduce(function(s,r){ return s + (r.balance !== undefined ? r.balance : 0); }, 0);
   var mt = document.getElementById('bgt-m-total');
-  if (mt) mt.textContent = bgtFmt(c.mTotal);
+  if (mt) {
+    var row = mt.parentElement;
+    row.className = 'bgt-m-3stat';
+    row.innerHTML =
+      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.mTotal) + '</div></div>' +
+      '<div class="bgt-m-stat-sep"></div>' +
+      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
+      '<div class="bgt-m-stat-sep"></div>' +
+      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>';
+  }
 }
 
 function renderBgtAssets(d, c) {
