@@ -5143,7 +5143,7 @@ body.dash-active #content{
 #bgt-p1 .bgt-mc { padding: 7px 9px 6px !important; }
 #bgt-p1 .bgt-mc-amt { font-size: 15px !important; margin-bottom: 3px !important; }
 #bgt-p1 .bgt-mc-name { margin-bottom: 1px !important; }
-#bgt-p1 .bgt-mc-bar-track { margin-bottom: 3px !important; }
+#bgt-p1 .bgt-mc-bar-track { height: 2px !important; background: rgba(255,255,255,0.04) !important; margin-bottom: 3px !important; }
 #bgt-p1 .bgt-grid { gap: 3px !important; }
 #bgt-p1 .bgt-m-3stat-top { padding: 9px 8px !important; margin-bottom: 6px !important; }
 
