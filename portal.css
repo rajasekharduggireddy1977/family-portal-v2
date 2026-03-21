@@ -4988,15 +4988,21 @@ body.dash-active #content{
 .bgt-mc:hover .bgt-mc-acts,.bgt-mc.show-acts .bgt-mc-acts{opacity:1;}
 .bgt-mc-btn{width:20px;height:20px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.6);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:11px;-webkit-tap-highlight-color:transparent;}
 .bgt-mc-btn.del:active{color:var(--red);border-color:rgba(255,77,109,0.4);}
-/* ── 3-stat footer (Budgeted | Paid | Due) ── */
+/* ── 3-stat strip (Budgeted | Paid | Due) ── */
 .bgt-m-3stat{display:flex;align-items:center;justify-content:space-around;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:10px 8px;margin-bottom:8px;}
+.bgt-m-3stat-top{background:linear-gradient(135deg,rgba(240,180,41,.08) 0%,rgba(0,229,160,.05) 50%,rgba(251,146,60,.06) 100%);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 10px;margin-bottom:10px;}
 .bgt-m-stat{text-align:center;flex:1;}
-.bgt-m-stat-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:3px;}
+.bgt-m-stat-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:3px;}
 .bgt-m-stat-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;}
+.bgt-m-3stat-top .bgt-m-stat-val{font-size:17px;}
+.bgt-m-3stat-top .bgt-m-stat-sep{height:32px;}
 .bgt-m-stat-val.gold{color:var(--gold);}
 .bgt-m-stat-val.green{color:var(--green);}
 .bgt-m-stat-val.warn{color:var(--orange,#fb923c);}
 .bgt-m-stat-sep{width:1px;height:26px;background:rgba(255,255,255,.08);flex-shrink:0;}
+/* Paid card — green accent, slightly muted */
+.bgt-mc-paid{opacity:0.72;}
+.bgt-mc-paid .bgt-mc-amt{color:rgba(255,255,255,.7);}
 
 /* ── Color picker in monthly sheet ── */
 .bgt-color-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}

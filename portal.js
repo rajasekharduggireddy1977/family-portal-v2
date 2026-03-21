@@ -11453,43 +11453,45 @@ function _bgtPickColor(dot, color) {
 }
 
 function renderBgtMonthly(d, c) {
-  var mPct = c.iTotal > 0 ? Math.min(100, Math.round(c.mTotal / c.iTotal * 100)) : 0;
+  // Pre-compute totals
+  var totalPaid = d.monthly.reduce(function(s,r){ return s + (r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance)); }, 0);
+  var totalDue  = d.monthly.reduce(function(s,r){ return s + (r.balance !== undefined ? r.balance : 0); }, 0);
+
+  // TOP: 3-stat strip (replaces old summary card)
   var heroM = document.getElementById('bgt-hero-m');
   if (heroM) {
     heroM.innerHTML =
-      '<div class="bgt-m-sum">' +
-        '<div class="bgt-m-sum-top">' +
-          '<div class="bgt-m-sum-half">' +
-            '<div class="bgt-m-sum-lbl">Income</div>' +
-            '<div class="bgt-m-sum-val gold">' + bgtFmt(c.iTotal) + '</div>' +
-          '</div>' +
-          '<div class="bgt-m-sum-half right">' +
-            '<div class="bgt-m-sum-lbl">Savings</div>' +
-            '<div class="bgt-m-sum-val ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="bgt-m-sum-div"></div>' +
-        '<div class="bgt-m-sum-spent-row">' +
-          '<div class="bgt-m-sum-spent-lbl">Monthly Spent</div>' +
-          '<div class="bgt-m-sum-spent-val">' + bgtFmt(c.mTotal) + '</div>' +
-        '</div>' +
-        '<div class="bgt-m-sum-prog-wrap">' +
-          '<div class="bgt-m-sum-prog-track">' +
-            '<div class="bgt-m-sum-prog-fill" data-bw="' + mPct + '"></div>' +
-          '</div>' +
-          '<div class="bgt-m-sum-prog-lbl">' + mPct + '% of income spent</div>' +
-        '</div>' +
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.mTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>' +
       '</div>';
   }
+
+  // Sort: fully paid (balance=0) first by amount DESC, then unpaid by balance DESC
+  var sorted = d.monthly.map(function(r, i) { return {r: r, i: i}; });
+  sorted.sort(function(a, b) {
+    var aPaid = (a.r.balance === 0);
+    var bPaid = (b.r.balance === 0);
+    if (aPaid && !bPaid) return -1;
+    if (!aPaid && bPaid) return 1;
+    if (aPaid && bPaid) return b.r.amount - a.r.amount;   // paid: biggest amount first
+    return b.r.balance - a.r.balance;                      // unpaid: highest due first
+  });
+
   // Monthly 2-col cards
   var mgrid = document.getElementById('bgt-m-grid');
   if (mgrid) {
-    mgrid.innerHTML = d.monthly.length ? d.monthly.map(function(r, i) {
+    mgrid.innerHTML = sorted.length ? sorted.map(function(entry, si) {
+      var r = entry.r; var i = entry.i; // keep original index for edit/delete
       var color = r.color || _bgtMcColors[i % 8];
       var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance);
       var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
       var remaining = r.balance !== undefined ? r.balance : 0;
-      return '<div class="bgt-mc" style="--mc-accent:' + color + ';--mc-shimmer-delay:' + (i * 0.3) + 's;animation-delay:' + (i * 0.05) + 's" onclick="_bgtMcTap(this,event)">' +
+      var isPaid = remaining === 0;
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
         '<div class="bgt-mc-acts">' +
           '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'monthly\',' + i + ')">\u270e</div>' +
           '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'monthly\',' + i + ')">\u2715</div>' +
@@ -11499,26 +11501,16 @@ function renderBgtMonthly(d, c) {
         '<div class="bgt-mc-bar-track"><div class="bgt-mc-bar-fill" data-bw="' + barPct + '"></div></div>' +
         '<div class="bgt-mc-bal-row">' +
           '<div class="bgt-mc-bal-lbl">Balance</div>' +
-          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (remaining === 0 ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
+          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (isPaid ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
         '</div>' +
       '</div>';
     }).join('') :
-    '<div style="grid-column:1/-1;text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses yet.\u2003Tap \ufe0f\u002b Add.</div>';
+    '<div style="grid-column:1/-1;text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses yet. Tap \uff0b Add.</div>';
   }
-  // 3-stat footer: Budgeted | Paid | Due
-  var totalPaid = d.monthly.reduce(function(s,r){ return s + (r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance)); }, 0);
-  var totalDue  = d.monthly.reduce(function(s,r){ return s + (r.balance !== undefined ? r.balance : 0); }, 0);
+
+  // Hide bottom total row — info already shown at top
   var mt = document.getElementById('bgt-m-total');
-  if (mt) {
-    var row = mt.parentElement;
-    row.className = 'bgt-m-3stat';
-    row.innerHTML =
-      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.mTotal) + '</div></div>' +
-      '<div class="bgt-m-stat-sep"></div>' +
-      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
-      '<div class="bgt-m-stat-sep"></div>' +
-      '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>';
-  }
+  if (mt) mt.parentElement.style.display = 'none';
 }
 
 function renderBgtAssets(d, c) {
