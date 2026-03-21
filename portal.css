@@ -4987,7 +4987,8 @@ body.dash-active #content{
 .bgt-mc-bal-val{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--green);}
 .bgt-mc-bal-val.neg{color:var(--gold);}
 .bgt-mc-acts{position:absolute;top:8px;right:8px;display:flex;gap:3px;opacity:0;transition:opacity 0.2s;z-index:2;}
-.bgt-mc:hover .bgt-mc-acts,.bgt-mc.show-acts .bgt-mc-acts{opacity:1;}
+@media(hover:hover){.bgt-mc:hover .bgt-mc-acts{opacity:1;}}
+.bgt-mc.show-acts .bgt-mc-acts{opacity:1;}
 .bgt-mc-btn{width:20px;height:20px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.6);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);font-size:11px;-webkit-tap-highlight-color:transparent;}
 .bgt-mc-btn.del:active{color:var(--red);border-color:rgba(255,77,109,0.4);}
 /* ── 3-stat strip (Budgeted | Paid | Due) ── */
