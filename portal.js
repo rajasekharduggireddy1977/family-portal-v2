@@ -8203,22 +8203,14 @@ function init() {
 }
 
 // ═══════════════════════════════════════
-// AUTO-RESTORE FROM backup.json (first load only)
-// Runs ONCE when localStorage is empty (fresh deployment).
-// After restore, localStorage takes over — backup.json never loaded again.
-// To update baseline: Download Backup → rename to family-portal-backup.json → commit to GitHub.
+// AUTO-RESTORE FROM backup.json (timestamp-based, every load)
+// On every load: fetch backup.json, compare _ts to fp_last_restore_ts in localStorage.
+// If backup is newer → restore all keys → reload. Else → boot normally.
+// Workflow: edit in portal → take backup → rename to family-portal-backup.json → commit to GitHub.
+// Next load will detect newer _ts and auto-restore on all devices.
 // ═══════════════════════════════════════
-(function autoRestoreOnFirstLoad() {
-  // Trigger if either cal_events OR attendance is missing (covers partial restores)
-  var hasEvents     = localStorage.getItem('fp_cal_events') !== null;
-  var hasAttendance = localStorage.getItem('fp_attendance_synced') !== null;
-  if (hasEvents && hasAttendance) {
-    init();
-    return;
-  }
-  // Show "restoring" status in loader if still visible
+(function autoRestoreFromBackup() {
   var statusEl = document.getElementById('loader-status');
-  if (statusEl) statusEl.textContent = 'Restoring from backup\u2026';
   fetch('./family-portal-backup.json?_=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } })
     .then(function(res) {
       if (!res.ok) throw new Error('No backup file');
@@ -8226,15 +8218,26 @@ function init() {
     })
     .then(function(data) {
       if (!data.keys || typeof data.keys !== 'object') throw new Error('Invalid backup');
+      var backupTs  = data._ts || '';
+      var localTs   = localStorage.getItem('fp_last_restore_ts') || '';
+      if (backupTs && backupTs <= localTs) {
+        // Backup same or older — boot from localStorage as-is
+        if (statusEl) statusEl.textContent = 'Initialising\u2026';
+        init();
+        return;
+      }
+      // Backup is newer — restore all keys
+      if (statusEl) statusEl.textContent = 'Syncing latest data\u2026';
       Object.entries(data.keys).forEach(function(entry) {
         localStorage.setItem(entry[0], entry[1]);
       });
+      localStorage.setItem('fp_last_restore_ts', backupTs);
       localStorage.setItem('fp_auto_restored_ts', new Date().toISOString());
-      if (statusEl) statusEl.textContent = 'Data restored \u2713 Loading\u2026';
+      if (statusEl) statusEl.textContent = 'Data synced \u2713 Loading\u2026';
       setTimeout(function() { location.reload(); }, 600);
     })
     .catch(function() {
-      // No backup.json or invalid — boot normally with seed data
+      // No backup.json or network error — boot from localStorage
       if (statusEl) statusEl.textContent = 'Initialising\u2026';
       init();
     });
@@ -8515,7 +8518,8 @@ const BACKUP_KEYS = [
   'fp_theme','fp_active_member','fp_pin','emg_collapsed',
   'fp_groq_key',  // ← AI key — included in backup so it survives redeployment
   'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap',
-  'fp_budget_v1'  // ← Budget data (Monthly, Yearly, Assets, Income)
+  'fp_budget_v1',  // ← Budget data (Monthly, Yearly, Assets, Income)
+  'fp_bank_vault_v1'  // ← Bank vault cards (savings/FD/etc amounts per bank)
 ];
 
 
