@@ -5139,6 +5139,14 @@ body.dash-active #content{
 .bgt-sec-row { padding: 4px 2px !important; margin-bottom: 3px !important; }
 #bgt-p1 .bgt-total-row { margin-bottom: 4px !important; }
 
+/* ── Yearly panel compact ── */
+#bgt-p1 .bgt-mc { padding: 7px 9px 6px !important; }
+#bgt-p1 .bgt-mc-amt { font-size: 15px !important; margin-bottom: 3px !important; }
+#bgt-p1 .bgt-mc-name { margin-bottom: 1px !important; }
+#bgt-p1 .bgt-mc-bar-track { margin-bottom: 3px !important; }
+#bgt-p1 .bgt-grid { gap: 3px !important; }
+#bgt-p1 .bgt-m-3stat-top { padding: 9px 8px !important; margin-bottom: 6px !important; }
+
 /* ── 6. BOTTOM NAV — matches pulse rail style ── */
 /* When on overlay pages (docs/expiry/cal), '...' shows active styling */
 #bnav-more.active .bnav-icon { filter: drop-shadow(0 0 6px rgba(180,210,255,0.7)) !important; }
