@@ -5153,7 +5153,15 @@ body.dash-active #content{
 #bgt-p2 .bv-eyebrow{margin-bottom:2px !important;}
 #bgt-p2 .bv-amt{font-size:22px !important;}
 #bgt-p2 .bv-sub{margin-top:1px !important;}
-#bgt-p2 .bv-pills{margin-top:4px !important;}
+#bgt-p2 .bv-pills{display:none !important;}
+#bgt-p2 .bv-top-card{padding:10px 14px 8px !important;margin-bottom:6px !important;}
+#bgt-p2 .bv-tc-top-row{margin-bottom:6px !important;}
+#bgt-p2 .bv-tc-bal-row{margin-bottom:6px !important;}
+#bgt-p2 .bv-tc-bal-amt{font-size:20px !important;}
+#bgt-p2 .bv-gl-row{padding:8px 12px !important;}
+#bgt-p2 .bv-gl-ico{width:28px !important;height:28px !important;font-size:13px !important;border-radius:9px !important;}
+#bgt-p2 .bv-gl-name{font-size:11px !important;}
+#bgt-p2 .bv-gl-amt{font-size:12px !important;}
 #bgt-p2 .bv-stage-hdr{padding:0 14px 4px !important;}
 #bgt-p2 .bv-wrap{margin-bottom:8px !important;}
 #bgt-p2 .nb-card{padding:10px 11px 9px !important;}
