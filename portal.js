@@ -11505,7 +11505,9 @@ function renderBgtMonthly(d, c) {
       var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
       var remaining = r.balance !== undefined ? r.balance : 0;
       var isPaid = remaining === 0;
-      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
+      var balRatio = r.amount > 0 ? remaining / r.amount : 0;
+      var borderColor = isPaid ? 'rgba(0,229,160,0.55)' : 'rgba(240,180,41,' + (0.12 + balRatio * 0.35).toFixed(2) + ')';
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-border-color:' + borderColor + ';animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
         '<div class="bgt-mc-acts">' +
           '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'monthly\',' + i + ')">\u270e</div>' +
           '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'monthly\',' + i + ')">\u2715</div>' +
@@ -11617,7 +11619,9 @@ function renderBgtYearly(d, c) {
       var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - remaining);
       var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
       var isPaid = remaining === 0;
-      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
+      var balRatio = r.amount > 0 ? remaining / r.amount : 0;
+      var borderColor = isPaid ? 'rgba(0,229,160,0.55)' : 'rgba(240,180,41,' + (0.12 + balRatio * 0.35).toFixed(2) + ')';
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-border-color:' + borderColor + ';animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
         '<div class="bgt-mc-acts">' +
           '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'yearly\',' + i + ')">\u270e</div>' +
           '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'yearly\',' + i + ')">\u2715</div>' +

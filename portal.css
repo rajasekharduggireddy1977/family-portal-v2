@@ -4972,7 +4972,7 @@ body.dash-active #content{
 #bgt-p0 .bgt-grid{gap:4px;}
 .bgt-mc{background:var(--surface,#0d1422);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:10px 11px 9px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.18s ease;animation:bgtMcIn 0.4s ease both;}
 .bgt-mc:active{transform:scale(0.97);}
-.bgt-mc::before{content:'';position:absolute;top:6px;left:0;bottom:6px;width:3px;background:var(--mc-accent,var(--blue));border-radius:0 3px 3px 0;opacity:0.35;}
+.bgt-mc::before{content:'';position:absolute;top:6px;left:0;bottom:6px;width:3px;background:var(--mc-border-color,rgba(240,180,41,0.35));border-radius:0 3px 3px 0;}
 .bgt-mc::after{display:none;}
 @keyframes bgtMcShimmer{0%{left:-100%}50%,100%{left:150%}}
 @keyframes bgtMcIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
