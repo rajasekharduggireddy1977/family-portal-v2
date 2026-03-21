@@ -4972,14 +4972,14 @@ body.dash-active #content{
 #bgt-p0 .bgt-grid{gap:4px;}
 .bgt-mc{background:var(--surface,#0d1422);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:10px 11px 9px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.18s ease;animation:bgtMcIn 0.4s ease both;}
 .bgt-mc:active{transform:scale(0.97);}
-.bgt-mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc-accent,var(--blue));border-radius:14px 14px 0 0;}
-.bgt-mc::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.025),transparent);animation:bgtMcShimmer 4s ease infinite;animation-delay:var(--mc-shimmer-delay,0s);pointer-events:none;}
+.bgt-mc::before{content:'';position:absolute;top:6px;left:0;bottom:6px;width:3px;background:var(--mc-accent,var(--blue));border-radius:0 3px 3px 0;opacity:0.35;}
+.bgt-mc::after{display:none;}
 @keyframes bgtMcShimmer{0%{left:-100%}50%,100%{left:150%}}
 @keyframes bgtMcIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .bgt-mc-name{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;padding-right:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bgt-mc-amt{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text,#fff);line-height:1;margin-bottom:5px;letter-spacing:-0.02em;}
+.bgt-mc-amt{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;line-height:1;margin-bottom:5px;letter-spacing:-0.03em;}
 .bgt-mc-bar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:5px;}
-.bgt-mc-bar-fill{height:100%;background:var(--mc-accent,var(--blue));border-radius:100px;width:0%;transition:width 1.3s cubic-bezier(0.23,1,0.32,1);opacity:0.8;}
+.bgt-mc-bar-fill{height:100%;background:rgba(255,255,255,0.22);border-radius:100px;width:0%;transition:width 1.3s cubic-bezier(0.23,1,0.32,1);}
 .bgt-mc-bal-row{display:flex;align-items:center;justify-content:space-between;}
 .bgt-mc-bal-lbl{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,.3);}
 .bgt-mc-bal-val{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--green);}
