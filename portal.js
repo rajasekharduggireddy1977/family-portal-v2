@@ -11455,8 +11455,17 @@ function initBudget() {
 var _bgtMcColors = ['#3d9eff','#f5c842','#00e5a0','#ff4d6d','#a855f7','#fb923c','#22d3ee','#f472b6'];
 
 function _bgtMcTap(card, e) {
-  document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { if (c !== card) c.classList.remove('show-acts'); });
-  card.classList.toggle('show-acts');
+  var now = Date.now();
+  var last = card._bgtLastTap || 0;
+  card._bgtLastTap = now;
+  if (now - last < 300) {
+    // Double tap — toggle actions
+    document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { if (c !== card) c.classList.remove('show-acts'); });
+    card.classList.toggle('show-acts');
+  } else {
+    // Single tap — collapse any open card
+    document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { c.classList.remove('show-acts'); });
+  }
 }
 
 function _bgtPickColor(dot, color) {
