@@ -11557,63 +11557,66 @@ function renderBgtAssets(d, c) {
 }
 
 function renderBgtYearly(d, c) {
-  // Hero strip (annual perspective)
-  const annualIncome = c.iTotal * 12;
-  const ySpentPct = annualIncome > 0 ? Math.min(100, Math.round(c.yTotal / annualIncome * 100)) : 0;
-  const ySavPct   = annualIncome > 0 ? Math.max(0, Math.min(100, Math.round(c.yearlySaving / annualIncome * 100))) : 0;
-  const heroY = document.getElementById('bgt-hero-y');
+  // Pre-compute totals
+  var totalPaid = d.yearly.reduce(function(s,r){ return s + Math.max(0, r.amount - r.balance); }, 0);
+  var totalDue  = d.yearly.reduce(function(s,r){ return s + (r.balance || 0); }, 0);
+
+  // TOP: 3-stat strip — identical to monthly
+  var heroY = document.getElementById('bgt-hero-y');
   if (heroY) {
     heroY.innerHTML =
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Annual</div>' +
-        '<div class="bgh-val gold">' + bgtFmt(annualIncome) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Yearly Exp</div>' +
-        '<div class="bgh-val red">' + bgtFmt(c.yTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + ySpentPct + '"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Net Save</div>' +
-        '<div class="bgh-val ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.yearlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + ySavPct + '"></div></div>' +
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.yTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>' +
       '</div>';
   }
-  // Yearly 2-col grid
-  const ylist = document.getElementById('bgt-y-list');
+
+  // Sort: fully paid (balance=0) first by amount DESC, then unpaid by balance DESC
+  var sorted = d.yearly.map(function(r, i) { return {r: r, i: i}; });
+  sorted.sort(function(a, b) {
+    var aPaid = (a.r.balance === 0);
+    var bPaid = (b.r.balance === 0);
+    if (aPaid && !bPaid) return -1;
+    if (!aPaid && bPaid) return 1;
+    if (aPaid && bPaid) return b.r.amount - a.r.amount;
+    return b.r.balance - a.r.balance;
+  });
+
+  // 2-col cards — identical layout to monthly
+  var ylist = document.getElementById('bgt-y-list');
   if (ylist) {
-    const cells = d.yearly.map(function(r, i) {
-      const barW = c.yTotal > 0 ? Math.min(100, Math.round(r.amount / c.yTotal * 100)) : 0;
-      const mavg = Math.round(r.amount / 12);
-      const dot = r.balance > 0 ? '<div class="bgt-ycell-dot"></div>' : '';
-      const due = r.next ? '<div class="bgt-ycell-due">' + r.next + '</div>' : '';
-      return '<div class="bgt-cell bgt-yr">' +
-        dot +
-        '<div class="bgt-cell-name">' + r.item + '</div>' +
-        due +
-        '<div class="bgt-cell-bottom">' +
-          '<div>' +
-            '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
-            '<div class="bgt-ycell-mavg">~' + bgtFmt(mavg) + '/mo</div>' +
-          '</div>' +
-          '<div class="bgt-cell-acts">' +
-            '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
-            '<button class="bgt-act" onclick="bgtDelete(\'yearly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-          '</div>' +
+    ylist.innerHTML = sorted.length ? '<div class="bgt-grid">' + sorted.map(function(entry, si) {
+      var r = entry.r; var i = entry.i;
+      var color = r.color || _bgtMcColors[i % 8];
+      var paid = Math.max(0, r.amount - r.balance);
+      var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
+      var remaining = r.balance || 0;
+      var isPaid = remaining === 0;
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
+        '<div class="bgt-mc-acts">' +
+          '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'yearly\',' + i + ')">\u270e</div>' +
+          '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'yearly\',' + i + ')">\u2715</div>' +
         '</div>' +
-        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
+        '<div class="bgt-mc-name">' + r.item + '</div>' +
+        '<div class="bgt-mc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-mc-bar-track"><div class="bgt-mc-bar-fill" data-bw="' + barPct + '"></div></div>' +
+        '<div class="bgt-mc-bal-row">' +
+          '<div class="bgt-mc-bal-lbl">Balance</div>' +
+          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (isPaid ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
+        '</div>' +
       '</div>';
-    }).join('');
-    ylist.innerHTML = '<div class="bgt-grid">' + cells + '</div>';
+    }).join('') + '</div>' :
+    '<div style="text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No yearly expenses yet. Tap \uff0b Add.</div>';
   }
-  // Totals
-  const yt = document.getElementById('bgt-y-total');
-  if (yt) yt.textContent = bgtFmt(c.yTotal);
-  const ya = document.getElementById('bgt-y-avg');
-  if (ya) ya.textContent = bgtFmt(c.yAvg) + '/mo';
+
+  // Hide both bottom total rows — info already shown at top
+  var yt = document.getElementById('bgt-y-total');
+  if (yt) yt.parentElement.style.display = 'none';
+  var ya = document.getElementById('bgt-y-avg');
+  if (ya) ya.parentElement.style.display = 'none';
 }
 
 function renderBgtSummary(d, c) {
