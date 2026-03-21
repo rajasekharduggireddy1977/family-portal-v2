@@ -4839,7 +4839,9 @@ body.dash-active #content{
 /* ── Section header row ── */
 .bgt-sec-row{display:flex;align-items:center;justify-content:space-between;padding:6px 2px;margin-bottom:4px;}
 .bgt-sec-lbl{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.4);}
-.bgt-add-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}
+.bgt-add-btn{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 100%);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.82);border-radius:20px;padding:3px 11px 3px 8px;font-size:10px;font-weight:700;letter-spacing:0.04em;cursor:pointer;font-family:'DM Mono',monospace;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(12px) saturate(180%);-webkit-backdrop-filter:blur(12px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 8px rgba(0,0,0,.25);transition:box-shadow .18s,transform .15s;text-shadow:0 1px 4px rgba(0,0,0,.4);}
+.bgt-add-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1) 0%,transparent 60%);border-radius:inherit;pointer-events:none;}
+.bgt-add-btn:active{transform:scale(0.93);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 3px rgba(0,0,0,.2);}
 
 /* ── Income rows ── */
 .bgt-inc-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;}
