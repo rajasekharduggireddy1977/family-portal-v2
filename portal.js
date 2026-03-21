@@ -11568,11 +11568,22 @@ function renderBgtAssets(d, c) {
   if (bvNbPillEl) bvNbPillEl.textContent = bgtFmt(c.nbTotal);
   // Non-Banking — liquid glass card grid
   renderBgtNonBanking(d, c);
-  // Grand Total
+  // Grand Total (live bank data if available)
   var vd2 = (typeof bvGetData==='function') ? bvGetData() : null;
   var vbTot = vd2 ? vd2.banks.reduce(function(s,b){return s+bvBankTotal(b);},0) : c.bTotal;
-  const at = document.getElementById('bgt-a-total');
-  if (at) at.textContent = bgtFmt(vbTot + c.nbTotal);
+  var netWorth = vbTot + c.nbTotal;
+  // 3-stat strip at top
+  var heroA = document.getElementById('bgt-hero-a');
+  if (heroA) {
+    heroA.innerHTML =
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Banks</div><div class="bgt-m-stat-val gold">' + bgtFmt(vbTot) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Investments</div><div class="bgt-m-stat-val green">' + bgtFmt(c.nbTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Net Worth</div><div class="bgt-m-stat-val" style="color:#a78bfa;">' + bgtFmt(netWorth) + '</div></div>' +
+      '</div>';
+  }
   // Income list
   const incList = document.getElementById('bgt-inc-list');
   if (incList) {

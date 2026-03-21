@@ -4951,7 +4951,8 @@ body.dash-active #content{
 .bgt-sheet-btn.save{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;}
 
 /* ── Monthly Summary Card ── */
-#bgt-hero-m,#bgt-hero-y{display:block;background:none;border:none;border-radius:0;padding:0;margin-bottom:0;}
+#bgt-hero-m,#bgt-hero-y,#bgt-hero-a{display:block;background:none;border:none;border-radius:0;padding:0;margin-bottom:0;}
+.bgt-section-sep{height:1px;margin:12px 4px 8px;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.28) 30%,rgba(255,255,255,0.45) 50%,rgba(255,255,255,0.28) 70%,transparent 100%);box-shadow:0 0 6px rgba(255,255,255,0.12);border-radius:1px;}
 .bgt-m-sum{background:var(--card,#111827);border:1px solid rgba(255,255,255,0.12);border-radius:18px;overflow:hidden;margin-bottom:8px;}
 .bgt-m-sum-top{display:flex;padding:10px 16px 8px;gap:12px;}
 .bgt-m-sum-half{flex:1;}
