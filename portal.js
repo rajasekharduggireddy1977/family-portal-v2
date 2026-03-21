@@ -11557,9 +11557,9 @@ function renderBgtAssets(d, c) {
 }
 
 function renderBgtYearly(d, c) {
-  // Pre-compute totals
-  var totalPaid = d.yearly.reduce(function(s,r){ return s + Math.max(0, r.amount - r.balance); }, 0);
-  var totalDue  = d.yearly.reduce(function(s,r){ return s + (r.balance || 0); }, 0);
+  // Pre-compute totals (if balance missing, treat as fully unpaid = amount)
+  var totalPaid = d.yearly.reduce(function(s,r){ var b=r.balance!==undefined?r.balance:r.amount; return s+Math.max(0,r.amount-b); }, 0);
+  var totalDue  = d.yearly.reduce(function(s,r){ return s+(r.balance!==undefined?r.balance:r.amount); }, 0);
 
   // TOP: 3-stat strip — identical to monthly
   var heroY = document.getElementById('bgt-hero-y');
@@ -11577,12 +11577,14 @@ function renderBgtYearly(d, c) {
   // Sort: fully paid (balance=0) first by amount DESC, then unpaid by balance DESC
   var sorted = d.yearly.map(function(r, i) { return {r: r, i: i}; });
   sorted.sort(function(a, b) {
-    var aPaid = (a.r.balance === 0);
-    var bPaid = (b.r.balance === 0);
+    var ab = a.r.balance !== undefined ? a.r.balance : a.r.amount;
+    var bb = b.r.balance !== undefined ? b.r.balance : b.r.amount;
+    var aPaid = (ab === 0);
+    var bPaid = (bb === 0);
     if (aPaid && !bPaid) return -1;
     if (!aPaid && bPaid) return 1;
     if (aPaid && bPaid) return b.r.amount - a.r.amount;
-    return b.r.balance - a.r.balance;
+    return bb - ab;
   });
 
   // 2-col cards — identical layout to monthly
@@ -11591,9 +11593,9 @@ function renderBgtYearly(d, c) {
     ylist.innerHTML = sorted.length ? '<div class="bgt-grid">' + sorted.map(function(entry, si) {
       var r = entry.r; var i = entry.i;
       var color = r.color || _bgtMcColors[i % 8];
-      var paid = Math.max(0, r.amount - r.balance);
+      var remaining = r.balance !== undefined ? r.balance : r.amount; // missing balance = fully unpaid
+      var paid = Math.max(0, r.amount - remaining);
       var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
-      var remaining = r.balance || 0;
       var isPaid = remaining === 0;
       return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
         '<div class="bgt-mc-acts">' +
