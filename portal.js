@@ -11194,7 +11194,7 @@ function bvLayout() {
   // Measure after browser paints so scrollHeight reflects actual rendered height
   requestAnimationFrame(function() {
     var front=document.getElementById('bvc'+_bvActive);
-    if (carousel && front) carousel.style.height=(front.scrollHeight+40)+'px';
+    if (carousel && front) carousel.style.height=(front.scrollHeight+8)+'px';
   });
 }
 
