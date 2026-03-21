@@ -11685,31 +11685,20 @@ function renderBgtYearly(d, c) {
 }
 
 function renderBgtSummary(d, c) {
-  // Summary banner — 2 big saving numbers
+  // Summary banner — removed (Monthly Save / Yearly Save)
   const banner = document.getElementById('bgt-sum-banner');
-  if (banner) {
-    banner.innerHTML =
-      '<div class="bgt-sum-pair">' +
-        '<div class="bgt-sum-item">' +
-          '<div class="bgt-sum-lbl">Monthly Save</div>' +
-          '<div class="bgt-sum-big ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
-          '<div class="bgt-sum-sub">Income \u2212 Monthly Exp</div>' +
-        '</div>' +
-        '<div class="bgt-sum-sep"></div>' +
-        '<div class="bgt-sum-item">' +
-          '<div class="bgt-sum-lbl">Yearly Save</div>' +
-          '<div class="bgt-sum-big ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
-          '<div class="bgt-sum-sub">Save\u00d712 \u2212 Yearly Exp</div>' +
-        '</div>' +
-      '</div>';
-  }
-  // Current Balance card
+  if (banner) banner.innerHTML = '';
+  // Current Balance — wow hero card
   const cb = document.getElementById('bgt-cur-balance');
   if (cb) {
-    const balColor = c.currentBalance >= 0 ? 'green' : 'red';
+    var isPos = c.currentBalance >= 0;
+    var balColor = isPos ? 'green' : 'red';
+    var balRgb   = isPos ? '0,229,160' : '255,80,80';
     cb.innerHTML =
-      '<div class="bgt-curbal-card">' +
-        '<div class="bgt-curbal-title">\ud83d\udcb0 Current Balance</div>' +
+      '<div class="bgt-curbal-card" style="--cb-rgb:' + balRgb + '">' +
+        '<div class="bgt-curbal-sweep"></div>' +
+        '<div class="bgt-curbal-glow"></div>' +
+        '<div class="bgt-curbal-eyebrow">\u25ce CURRENT BALANCE</div>' +
         '<div class="bgt-curbal-big ' + balColor + '">' + bgtFmt(c.currentBalance) + '</div>' +
         '<div class="bgt-curbal-formula">' +
           '<div class="bgt-curbal-row">' +
@@ -11717,12 +11706,12 @@ function renderBgtSummary(d, c) {
             '<span class="bgt-curbal-val green">+ ' + bgtFmt(c.aTotal) + '</span>' +
           '</div>' +
           '<div class="bgt-curbal-row">' +
-            '<span class="bgt-curbal-lbl">Monthly Balance Due</span>' +
-            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.mBal) + '</span>' +
+            '<span class="bgt-curbal-lbl">Monthly Due</span>' +
+            '<span class="bgt-curbal-val neg">\u2212 ' + bgtFmt(c.mBal) + '</span>' +
           '</div>' +
           '<div class="bgt-curbal-row">' +
-            '<span class="bgt-curbal-lbl">Yearly Balance Due</span>' +
-            '<span class="bgt-curbal-val red">\u2212 ' + bgtFmt(c.yBal) + '</span>' +
+            '<span class="bgt-curbal-lbl">Yearly Due</span>' +
+            '<span class="bgt-curbal-val neg">\u2212 ' + bgtFmt(c.yBal) + '</span>' +
           '</div>' +
         '</div>' +
       '</div>';
