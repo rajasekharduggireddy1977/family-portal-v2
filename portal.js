@@ -11390,20 +11390,18 @@ function renderBgtNonBanking(d, c) {
   } else {
     nbList.innerHTML = '<div class="nb-grid">'+items.map(function(r,i) {
       var t = NB_TYPES.find(function(x){return x.value===r.type;})||NB_TYPES[NB_TYPES.length-1];
-      var pct = total>0 ? (r.amount/total*100).toFixed(1) : '0';
       var rgb = t.r;
-      return '<div class="nb-card" style="--nb-r:'+rgb+'">'+
+      return '<div class="nb-card" style="--nb-r:'+rgb+'" onclick="_nbMcTap(this,event)">'+
         '<div class="nb-card-glow"></div>'+
         '<div class="nb-card-shimmer"></div>'+
+        '<div class="nb-acts">'+
+          '<div class="nb-act-ico" onclick="event.stopPropagation();nbEditItem('+i+')">\u270e</div>'+
+          '<div class="nb-act-ico del" onclick="event.stopPropagation();nbDeleteItem('+i+')">\u2715</div>'+
+        '</div>'+
         '<div class="nb-ico-wrap">'+t.icon+'</div>'+
         '<div class="nb-name">'+r.item+'</div>'+
         '<div class="nb-type-lbl">'+t.label+'</div>'+
         '<div class="nb-amt">'+bgtFmt(r.amount)+'</div>'+
-        '<div class="nb-pct-pill">'+pct+'% of total</div>'+
-        '<div class="nb-actions">'+
-          '<div class="nb-act-btn nb-edit-btn" onclick="nbEditItem('+i+')">✏ Edit</div>'+
-          '<div class="nb-act-btn nb-del-btn" onclick="nbDeleteItem('+i+')">🗑</div>'+
-        '</div>'+
       '</div>';
     }).join('')+'</div>';
   }
@@ -11465,6 +11463,18 @@ function _bgtMcTap(card, e) {
   } else {
     // Single tap — collapse any open card
     document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { c.classList.remove('show-acts'); });
+  }
+}
+
+function _nbMcTap(card, e) {
+  var now = Date.now();
+  var last = card._nbLastTap || 0;
+  card._nbLastTap = now;
+  if (now - last < 300) {
+    document.querySelectorAll('.nb-card.nb-show-acts').forEach(function(c) { if (c !== card) c.classList.remove('nb-show-acts'); });
+    card.classList.toggle('nb-show-acts');
+  } else {
+    document.querySelectorAll('.nb-card.nb-show-acts').forEach(function(c) { c.classList.remove('nb-show-acts'); });
   }
 }
 
