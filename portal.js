@@ -11438,51 +11438,75 @@ function initBudget() {
   }, 80);
 }
 
+var _bgtMcColors = ['#3d9eff','#f5c842','#00e5a0','#ff4d6d','#a855f7','#fb923c','#22d3ee','#f472b6'];
+
+function _bgtMcTap(card, e) {
+  document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { if (c !== card) c.classList.remove('show-acts'); });
+  card.classList.toggle('show-acts');
+}
+
+function _bgtPickColor(dot, color) {
+  document.querySelectorAll('#bgt-color-row .bgt-color-dot').forEach(function(d) { d.classList.remove('active'); });
+  dot.classList.add('active');
+  var inp = document.getElementById('bgt-color-val');
+  if (inp) inp.value = color;
+}
+
 function renderBgtMonthly(d, c) {
-  // Hero strip
-  const mPct = c.iTotal > 0 ? Math.min(100, Math.round(c.mTotal / c.iTotal * 100)) : 0;
-  const sPct = c.iTotal > 0 ? Math.max(0, Math.min(100, Math.round(c.monthlySaving / c.iTotal * 100))) : 0;
-  const heroM = document.getElementById('bgt-hero-m');
+  var mPct = c.iTotal > 0 ? Math.min(100, Math.round(c.mTotal / c.iTotal * 100)) : 0;
+  var heroM = document.getElementById('bgt-hero-m');
   if (heroM) {
     heroM.innerHTML =
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Income</div>' +
-        '<div class="bgh-val gold">' + bgtFmt(c.iTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Spent</div>' +
-        '<div class="bgh-val red">' + bgtFmt(c.mTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + mPct + '"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Saving</div>' +
-        '<div class="bgh-val ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.monthlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + sPct + '"></div></div>' +
-      '</div>';
-  }
-  // Monthly 2-col grid
-  const mgrid = document.getElementById('bgt-m-grid');
-  if (mgrid) {
-    mgrid.innerHTML = d.monthly.map(function(r, i) {
-      const barW = c.mTotal > 0 ? Math.min(100, Math.round(r.amount / c.mTotal * 100)) : 0;
-      return '<div class="bgt-cell">' +
-        '<div class="bgt-cell-name">' + r.item + '</div>' +
-        '<div class="bgt-cell-bottom">' +
-          '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
-          '<div class="bgt-cell-acts">' +
-            '<button class="bgt-act" onclick="bgtEdit(\'monthly\',' + i + ')">\u270f\ufe0f</button>' +
-            '<button class="bgt-act" onclick="bgtDelete(\'monthly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
+      '<div class="bgt-m-sum">' +
+        '<div class="bgt-m-sum-top">' +
+          '<div class="bgt-m-sum-half">' +
+            '<div class="bgt-m-sum-lbl">Income</div>' +
+            '<div class="bgt-m-sum-val gold">' + bgtFmt(c.iTotal) + '</div>' +
+          '</div>' +
+          '<div class="bgt-m-sum-half right">' +
+            '<div class="bgt-m-sum-lbl">Savings</div>' +
+            '<div class="bgt-m-sum-val ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
+        '<div class="bgt-m-sum-div"></div>' +
+        '<div class="bgt-m-sum-spent-row">' +
+          '<div class="bgt-m-sum-spent-lbl">Monthly Spent</div>' +
+          '<div class="bgt-m-sum-spent-val">' + bgtFmt(c.mTotal) + '</div>' +
+        '</div>' +
+        '<div class="bgt-m-sum-prog-wrap">' +
+          '<div class="bgt-m-sum-prog-track">' +
+            '<div class="bgt-m-sum-prog-fill" data-bw="' + mPct + '"></div>' +
+          '</div>' +
+          '<div class="bgt-m-sum-prog-lbl">' + mPct + '% of income spent</div>' +
+        '</div>' +
       '</div>';
-    }).join('');
+  }
+  // Monthly 2-col cards
+  var mgrid = document.getElementById('bgt-m-grid');
+  if (mgrid) {
+    mgrid.innerHTML = d.monthly.length ? d.monthly.map(function(r, i) {
+      var color = r.color || _bgtMcColors[i % 8];
+      var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance);
+      var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
+      var remaining = r.balance !== undefined ? r.balance : 0;
+      return '<div class="bgt-mc" style="--mc-accent:' + color + ';--mc-shimmer-delay:' + (i * 0.3) + 's;animation-delay:' + (i * 0.05) + 's" onclick="_bgtMcTap(this,event)">' +
+        '<div class="bgt-mc-acts">' +
+          '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'monthly\',' + i + ')">\u270e</div>' +
+          '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'monthly\',' + i + ')">\u2715</div>' +
+        '</div>' +
+        '<div class="bgt-mc-name">' + r.item + '</div>' +
+        '<div class="bgt-mc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-mc-bar-track"><div class="bgt-mc-bar-fill" data-bw="' + barPct + '"></div></div>' +
+        '<div class="bgt-mc-bal-row">' +
+          '<div class="bgt-mc-bal-lbl">Balance</div>' +
+          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (remaining === 0 ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') :
+    '<div style="grid-column:1/-1;text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses yet.\u2003Tap \ufe0f\u002b Add.</div>';
   }
   // Monthly total
-  const mt = document.getElementById('bgt-m-total');
+  var mt = document.getElementById('bgt-m-total');
   if (mt) mt.textContent = bgtFmt(c.mTotal);
 }
 
@@ -11740,7 +11764,10 @@ function bgtSheetSave() {
   if (type === 'monthly') {
     const paid = f3;
     const balance = Math.max(0, f2 - paid);
+    const colorEl = document.getElementById('bgt-color-val');
+    const color = colorEl ? colorEl.value : '';
     const obj = {item:f1, amount:f2, paid:paid, balance:balance};
+    if (color) obj.color = color;
     if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
   } else if (type === 'yearly') {
     const obj = {item:f1, amount:f2, balance:f3, next:f4};
@@ -11804,10 +11831,16 @@ function _bgtFields(type, row) {
   if (type === 'monthly') {
     // For backward compat: if row has no paid field, derive it from amount - balance
     var paidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - row.balance)) : '';
+    var selColor = (row && row.color) ? row.color : _bgtMcColors[0];
+    var colorDots = _bgtMcColors.map(function(col) {
+      return '<div class="bgt-color-dot' + (col === selColor ? ' active' : '') + '" style="background:' + col + '" onclick="_bgtPickColor(this,\'' + col + '\')"></div>';
+    }).join('');
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
            '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + paidVal + '" oninput="bgtCalcBal()"></div>' +
            '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
+           '<div class="bgt-field"><label>Card Color</label><div class="bgt-color-row" id="bgt-color-row">' + colorDots + '</div></div>' +
+           '<input id="bgt-color-val" type="hidden" value="' + selColor + '">' +
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
