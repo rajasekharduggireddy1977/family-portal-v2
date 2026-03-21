@@ -4984,7 +4984,7 @@ body.dash-active #content{
 @keyframes bgtMcShimmer{0%{left:-100%}50%,100%{left:150%}}
 @keyframes bgtMcIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .bgt-mc-name{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;padding-right:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bgt-mc-amt{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;line-height:1;margin-bottom:5px;letter-spacing:-0.03em;}
+.bgt-mc-amt{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:#fff;line-height:1;margin-bottom:5px;letter-spacing:-0.03em;}
 .bgt-mc-bar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:5px;}
 .bgt-mc-bar-fill{height:100%;background:rgba(255,255,255,0.22);border-radius:100px;width:0%;transition:width 1.3s cubic-bezier(0.23,1,0.32,1);}
 .bgt-mc-bal-row{display:flex;align-items:center;justify-content:space-between;}
@@ -5147,7 +5147,7 @@ body.dash-active #content{
 
 /* ── Yearly panel compact ── */
 #bgt-p1 .bgt-mc { padding: 7px 9px 6px !important; }
-#bgt-p1 .bgt-mc-amt { font-size: 15px !important; margin-bottom: 3px !important; }
+#bgt-p1 .bgt-mc-amt { font-size: 13px !important; margin-bottom: 3px !important; }
 #bgt-p1 .bgt-mc-name { margin-bottom: 1px !important; }
 #bgt-p1 .bgt-mc-bar-track { height: 1.5px !important; background: rgba(255,255,255,0.09) !important; margin-bottom: 3px !important; }
 #bgt-p1 .bgt-grid { gap: 3px !important; }
