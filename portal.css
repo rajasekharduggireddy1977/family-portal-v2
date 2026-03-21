@@ -5123,6 +5123,9 @@ body.dash-active #content{
 .pulse-rail-inner { border-bottom: none !important; }
 /* Also remove bottom border of budget rail inner for consistency */
 .bgt-rail-inner { border-bottom: none !important; }
+/* ── Hide tab bar — swipe still works ── */
+#budget-rail { display: none !important; }
+.budget-panel { padding-bottom: calc(var(--nav-h) + 16px) !important; }
 
 /* ── 5. BUDGET YEARLY — compact blocks to reduce scrolling ── */
 .bgt-cell.bgt-yr { min-height: 56px !important; }
