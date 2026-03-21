@@ -11557,9 +11557,15 @@ function renderBgtAssets(d, c) {
 }
 
 function renderBgtYearly(d, c) {
-  // Pre-compute totals (if balance missing, treat as fully unpaid = amount)
-  var totalPaid = d.yearly.reduce(function(s,r){ var b=r.balance!==undefined?r.balance:r.amount; return s+Math.max(0,r.amount-b); }, 0);
-  var totalDue  = d.yearly.reduce(function(s,r){ return s+(r.balance!==undefined?r.balance:r.amount); }, 0);
+  // Pre-compute totals — use explicit r.paid if present (new model), else derive from balance
+  var totalPaid = d.yearly.reduce(function(s,r){
+    if (r.paid !== undefined) return s + r.paid;
+    var b = r.balance !== undefined ? r.balance : r.amount;
+    return s + Math.max(0, r.amount - b);
+  }, 0);
+  var totalDue = d.yearly.reduce(function(s,r){
+    return s + (r.balance !== undefined ? r.balance : r.amount);
+  }, 0);
 
   // TOP: 3-stat strip — identical to monthly
   var heroY = document.getElementById('bgt-hero-y');
@@ -11593,8 +11599,8 @@ function renderBgtYearly(d, c) {
     ylist.innerHTML = sorted.length ? '<div class="bgt-grid">' + sorted.map(function(entry, si) {
       var r = entry.r; var i = entry.i;
       var color = r.color || _bgtMcColors[i % 8];
-      var remaining = r.balance !== undefined ? r.balance : r.amount; // missing balance = fully unpaid
-      var paid = Math.max(0, r.amount - remaining);
+      var remaining = r.balance !== undefined ? r.balance : r.amount;
+      var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - remaining);
       var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
       var isPaid = remaining === 0;
       return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-accent:' + (isPaid ? 'var(--green)' : color) + ';--mc-shimmer-delay:' + (si * 0.3) + 's;animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
@@ -11778,7 +11784,9 @@ function bgtSheetSave() {
     if (color) obj.color = color;
     if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
   } else if (type === 'yearly') {
-    const obj = {item:f1, amount:f2, balance:f3, next:f4};
+    const paid = f3;
+    const balance = Math.max(0, f2 - paid);
+    const obj = {item:f1, amount:f2, paid:paid, balance:balance};
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
   } else if (type === 'assets' || type === 'assets_b' || type === 'assets_nb') {
     if (!d.assets) d.assets = {banking:[], nonBanking:[]};
@@ -11852,10 +11860,12 @@ function _bgtFields(type, row) {
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
+    var yPaidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - (row.balance !== undefined ? row.balance : row.amount))) : '';
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Term Insurance" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
-           '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + yPaidVal + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
+           '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'assets') {
     // New add — show Banking / Non-Banking toggle
