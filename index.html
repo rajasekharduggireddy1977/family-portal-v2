@@ -1453,21 +1453,25 @@
           </div><!-- /bv-wrap -->
           <div class="bgt-section-sep"></div>
           <!-- Non-Banking sub-section -->
-          <div class="bgt-sec-row" style="margin-top:10px;">
-            <div class="bgt-sec-lbl">📊 Non-Banking</div>
-            <button class="bgt-add-btn" onclick="nbAddItem()">＋ Add</button>
+          <div class="bgt-sec-row bgt-collapsible-hdr" style="margin-top:10px;" onclick="_bgtToggle('bgt-nb-body','bgt-nb-chev')">
+            <div class="bgt-sec-lbl">📊 Non-Banking <span class="bgt-sec-chev" id="bgt-nb-chev">›</span></div>
+            <button class="bgt-add-btn" onclick="event.stopPropagation();nbAddItem()">＋ Add</button>
           </div>
-          <div id="bgt-asset-nb-list"></div>
+          <div class="bgt-collapsible collapsed" id="bgt-nb-body">
+            <div id="bgt-asset-nb-list"></div>
+          </div>
           <div class="bgt-section-sep"></div>
           <!-- Income sub-section -->
-          <div class="bgt-sec-row" style="margin-top:10px;">
-            <div class="bgt-sec-lbl">💼 Income</div>
-            <button class="bgt-add-btn" onclick="bgtAdd('income')">＋ Add</button>
+          <div class="bgt-sec-row bgt-collapsible-hdr" style="margin-top:10px;" onclick="_bgtToggle('bgt-inc-body','bgt-inc-chev')">
+            <div class="bgt-sec-lbl">💼 Income <span class="bgt-sec-chev" id="bgt-inc-chev">›</span></div>
+            <button class="bgt-add-btn" onclick="event.stopPropagation();bgtAdd('income')">＋ Add</button>
           </div>
-          <div class="bgt-inc-list" id="bgt-inc-list"></div>
-          <div class="bgt-total-row">
-            <span class="bgt-total-lbl">Total Income</span>
-            <span class="bgt-total-val gold" id="bgt-i-total"></span>
+          <div class="bgt-collapsible collapsed" id="bgt-inc-body">
+            <div class="bgt-inc-list" id="bgt-inc-list"></div>
+            <div class="bgt-total-row">
+              <span class="bgt-total-lbl">Total Income</span>
+              <span class="bgt-total-val gold" id="bgt-i-total"></span>
+            </div>
           </div>
         </div>
         <!-- Panel 3: Summary -->

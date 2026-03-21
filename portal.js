@@ -11380,6 +11380,15 @@ function _nbFields(row) {
          '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
 }
 
+function _bgtToggle(bodyId, chevId) {
+  var body = document.getElementById(bodyId);
+  var chev = document.getElementById(chevId);
+  if (!body) return;
+  var opening = body.classList.contains('collapsed');
+  body.classList.toggle('collapsed');
+  if (chev) chev.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+
 function renderBgtNonBanking(d, c) {
   var nbList = document.getElementById('bgt-asset-nb-list');
   if (!nbList) return;
