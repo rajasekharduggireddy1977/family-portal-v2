@@ -10930,6 +10930,8 @@ let _bgtPanel = 0;
 
 function bgtGoPanel(idx, vel) {
   _bgtPanel = idx;
+  // Always re-render Summary with fresh data when navigating to it
+  if (idx === 3) { var _sd=bgtGetData(); renderBgtSummary(_sd, bgtCalc(_sd)); }
   var track = document.getElementById('budget-track');
   if (!track) return;
   var w = window.innerWidth;
@@ -11143,6 +11145,8 @@ function bvSyncToBgt(d) {
   var bgt=bgtGetData();
   bgt.assets.banking=d.banks.map(function(b){return{item:b.name,amount:bvBankTotal(b)};});
   bgtSaveData(bgt);
+  // Re-render Summary immediately so Total Assets / Current Balance reflect the new bank values
+  var _fresh=bgtGetData(); renderBgtSummary(_fresh, bgtCalc(_fresh));
 }
 
 // ── Copy ──
