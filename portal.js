@@ -10929,22 +10929,36 @@ function bgtInr(n) {
 let _bgtPanel = 0;
 
 function bgtGoPanel(idx, vel) {
+  var prev = _bgtPanel;
   _bgtPanel = idx;
   // Always re-render Summary with fresh data when navigating to it
   if (idx === 3) { var _sd=bgtGetData(); renderBgtSummary(_sd, bgtCalc(_sd)); }
   var track = document.getElementById('budget-track');
   if (!track) return;
   var w = window.innerWidth;
-  // Velocity-matched duration: fast flick snaps quicker (iOS feel)
-  var spd = Math.abs(vel || 0); // px/ms
-  var dur = spd > 0.5 ? Math.max(200, 340 - Math.round(spd * 60)) : 340;
-  track.style.transition = 'transform ' + dur + 'ms cubic-bezier(0.32,0.72,0,1)';
+  var spd = Math.abs(vel || 0);
+  var dur, ease;
+  if (idx === prev) {
+    // Snap-back to same panel — soft spring return
+    dur = 360;
+    ease = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  } else if (spd > 0.5) {
+    // Fast flick — match velocity, smooth deceleration
+    dur = Math.max(260, 400 - Math.round(spd * 70));
+    ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  } else {
+    // Slow drag or tap — full smooth landing curve
+    dur = 430;
+    ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  }
+  track.style.transition = 'transform ' + dur + 'ms ' + ease;
   track.style.transform = 'translateX(' + (-idx * w) + 'px)';
   document.querySelectorAll('.bgt-cat').forEach(function(c, i) {
     c.classList.toggle('bgt-active', i === idx);
   });
   bgtMoveSel();
-  setTimeout(bgtAnimateBars, 50);
+  // Animate bars after slide fully settles — not during (avoids visual noise)
+  setTimeout(bgtAnimateBars, dur - 40);
 }
 
 function bgtMoveSel() {
@@ -11005,7 +11019,7 @@ function bgtInitSwipe() {
     e.preventDefault();
     dragging = true;
     ddx = dx;
-    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0) ? 0.12 : 1;
+    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0) ? 0.08 : 1;
     track.style.transform = 'translateX(' + (baseX() + dx * resist) + 'px)';
   }, {passive:false});
 
