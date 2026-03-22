@@ -9226,48 +9226,107 @@ function _aiDocRow(label, val, mono, copyText, viewSrc) {
 
 function _aiBuildFamilyMembersCard() {
   var members = [
-    { name:'Rajasekhar Reddy Duggireddy', role:'Father',   dob:'21 Jan 1977',
+    { name:'Rajasekhar Reddy Duggireddy', initials:'RR', role:'Father',   dob:'21 Jan 1977',
       aadhaar:'610617784861', aadhaarSrc:'ID_Rajasekhar_Aadhaar_6106-1778-4861.pdf',
-      pan:'AICPD3992N',         panSrc:'ID_Rajasekhar_PANCard_AICPD3992N.pdf',
+      pan:'AICPD3992N',  panSrc:'ID_Rajasekhar_PANCard_AICPD3992N.pdf',
       mobile:'9640656595',
       insurance:'4128i/HSNR/92094505/10/000', insSrc:'INS_Rajasekhar_HealthInsurance_ICICI_Individual_2025-26.pdf',
-      color:'#3b6fd4' },
-    { name:'Vasundhara Duggireddy',       role:'Mother',   dob:'26 Aug 1982',
+      color:'#3b6fd4', grad:'linear-gradient(135deg,#1a3a6b 0%,#3b6fd4 100%)' },
+    { name:'Vasundhara Duggireddy', initials:'VD', role:'Mother', dob:'26 Aug 1982',
       aadhaar:'337231069560', aadhaarSrc:'ID_Vasundhara_Aadhaar_3372-3106-9560.pdf',
-      pan:'BDXPD9514R',         panSrc:'ID_Vasundhara_PANCard_BDXPD9514R.pdf',
+      pan:'BDXPD9514R',  panSrc:'ID_Vasundhara_PANCard_BDXPD9514R.pdf',
       mobile:'9652948966',
       insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
-      color:'#9333ea' },
-    { name:'Josritha Duggireddy',         role:'Daughter', dob:'26 Feb 2006',
+      color:'#9333ea', grad:'linear-gradient(135deg,#5b21b6 0%,#9333ea 100%)' },
+    { name:'Josritha Duggireddy', initials:'JD', role:'Daughter', dob:'26 Feb 2006',
       aadhaar:'831664586848', aadhaarSrc:'ID_Josritha_Aadhaar_8316-6458-6848.pdf',
-      pan:'—',                  panSrc:null,
+      pan:'—', panSrc:null,
       mobile:'9392932602',
       insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
-      color:'#ec4899' },
-    { name:'Jeevan Vidyadhar Duggireddy', role:'Son',      dob:'22 Aug 2010',
+      color:'#ec4899', grad:'linear-gradient(135deg,#9d174d 0%,#ec4899 100%)' },
+    { name:'Jeevan Vidyadhar Duggireddy', initials:'JV', role:'Son', dob:'22 Aug 2010',
       aadhaar:'691829467739', aadhaarSrc:'ID_Jeevan_Aadhaar_6918-2946-7739.pdf',
-      pan:'—',                  panSrc:null,
+      pan:'—', panSrc:null,
       mobile:'9063359446',
       insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
-      color:'#0d9488' }
+      color:'#0d9488', grad:'linear-gradient(135deg,#065f46 0%,#0d9488 100%)' }
   ];
-  var s = '<div style="font-family:Inter,sans-serif;">'
-    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">👨‍👩‍👧‍👦 Family Members</div>';
-  members.forEach(function(m) {
-    s += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;margin-bottom:7px;">';
-    s += '<div style="font-weight:700;font-size:12px;color:' + m.color + ';margin-bottom:5px;">' + m.name
-       + '<span style="font-weight:400;font-size:10px;color:var(--text3);margin-left:6px;">· ' + m.role + '</span></div>';
-    s += _aiInfoRow('DOB', m.dob, false);
-    s += _aiDocRow('Aadhaar', m.aadhaar, true, m.aadhaar, m.aadhaarSrc);
-    s += _aiDocRow('PAN', m.pan, true, m.pan !== '—' ? m.pan : null, m.panSrc);
-    s += '<div style="display:flex;align-items:center;gap:5px;line-height:2;">'
-       + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">Mobile</span>'
-       + '<a href="tel:' + m.mobile + '" style="font-size:11px;color:var(--blue2);font-family:\'DM Mono\',monospace;text-decoration:none;flex:1;">' + m.mobile + '</a>'
+
+  function calcAge(dobStr) {
+    var d = new Date(dobStr); var now = new Date();
+    var a = now.getFullYear() - d.getFullYear();
+    if (now < new Date(now.getFullYear(), d.getMonth(), d.getDate())) a--;
+    return a;
+  }
+  function infoRow(label, valHtml) {
+    return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);">'
+      + '<span style="color:rgba(255,255,255,.42);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.65px;min-width:62px;flex-shrink:0;">' + label + '</span>'
+      + '<span style="flex:1;min-width:0;">' + valHtml + '</span>'
+      + '</div>';
+  }
+  function valText(txt, mono) {
+    return '<span style="font-size:11.5px;color:rgba(255,255,255,.88);' + (mono ? 'font-family:\'DM Mono\',monospace;letter-spacing:.15px;' : 'font-family:Inter,sans-serif;') + '">' + txt + '</span>';
+  }
+  function cpBtn(text) {
+    return text
+      ? ' <button onclick="navigator.clipboard.writeText(\'' + text + '\').then(function(){showToast(\'Copied!\');})" title="Copy"'
+        + ' style="background:rgba(255,255,255,.14);border:none;border-radius:4px;color:rgba(255,255,255,.75);font-size:9px;padding:2px 5px;cursor:pointer;line-height:1;flex-shrink:0;margin-left:4px;">📋</button>'
+      : '';
+  }
+  function vwBtn(src) {
+    return (src && typeof DOC_LINKS !== 'undefined' && DOC_LINKS && DOC_LINKS[src])
+      ? ' <a href="' + DOC_LINKS[src] + '" target="_blank" style="font-size:11px;text-decoration:none;color:rgba(255,255,255,.45);flex-shrink:0;margin-left:2px;">👁️</a>'
+      : '';
+  }
+
+  // Inject keyframe once
+  var s = '<style>@keyframes aiFmIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}</style>';
+  s += '<div style="font-family:Inter,sans-serif;">';
+  s += '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.45);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09);">👨‍👩‍👧‍👦 Family Members &nbsp;·&nbsp; ' + members.length + ' people</div>';
+
+  members.forEach(function(m, i) {
+    var delay = (i * 0.1).toFixed(1) + 's';
+    var age = calcAge(m.dob);
+    // Card wrapper with stagger animation
+    s += '<div style="border-radius:16px;overflow:hidden;margin-bottom:11px;'
+       + 'box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 0 1px ' + m.color + '55;'
+       + 'animation:aiFmIn .48s cubic-bezier(.34,1.35,.64,1) both;animation-delay:' + delay + ';">';
+
+    // ── Gradient header ──
+    s += '<div style="background:' + m.grad + ';padding:12px 14px;display:flex;align-items:center;gap:11px;position:relative;overflow:hidden;">';
+    // Shine overlay
+    s += '<div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none;"></div>';
+    // Avatar
+    s += '<div style="width:42px;height:42px;border-radius:13px;flex-shrink:0;'
+       + 'background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.40);'
+       + 'display:flex;align-items:center;justify-content:center;'
+       + 'font-size:14px;font-weight:900;color:#fff;letter-spacing:-.3px;'
+       + 'box-shadow:0 2px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.35);">'
+       + m.initials + '</div>';
+    // Name + role + age
+    s += '<div style="flex:1;min-width:0;">'
+       + '<div style="font-size:13.5px;font-weight:800;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,.25);">' + m.name + '</div>'
+       + '<div style="font-size:10px;color:rgba(255,255,255,.78);font-weight:600;margin-top:3px;letter-spacing:.02em;">'
+       + m.role + ' &nbsp;·&nbsp; Age ' + age
+       + '</div>'
        + '</div>';
-    s += _aiDocRow('Insurance', m.insurance, true, null, m.insSrc);
-    s += '</div>';
+    s += '</div>'; // end header
+
+    // ── Info body ──
+    s += '<div style="background:rgba(12,8,28,.72);padding:10px 14px 6px;">';
+    s += infoRow('DOB',     valText(m.dob, false));
+    s += infoRow('Aadhaar', valText(m.aadhaar, true) + cpBtn(m.aadhaar) + vwBtn(m.aadhaarSrc));
+    s += infoRow('PAN',     valText(m.pan, true) + (m.pan !== '—' ? cpBtn(m.pan) + vwBtn(m.panSrc) : ''));
+    s += infoRow('Mobile',
+      '<a href="tel:' + m.mobile + '" style="font-size:11.5px;color:' + m.color + ';font-family:\'DM Mono\',monospace;text-decoration:none;font-weight:700;letter-spacing:.15px;">' + m.mobile + '</a>');
+    s += infoRow('Ins', valText(m.insurance, true) + vwBtn(m.insSrc));
+    s += '</div>'; // end body
+
+    s += '</div>'; // end card
   });
-  return s + '</div>';
+
+  s += '</div>';
+  return s;
 }
 
 function _aiEduSection(title, rows, warn) {
