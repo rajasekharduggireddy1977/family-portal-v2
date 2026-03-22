@@ -9265,17 +9265,17 @@ function _aiBuildFamilyMembersCard() {
       + '</div>';
   }
   function valText(txt, mono) {
-    return '<span style="font-size:11.5px;color:rgba(255,255,255,.88);' + (mono ? 'font-family:\'DM Mono\',monospace;letter-spacing:.15px;' : 'font-family:Inter,sans-serif;') + '">' + txt + '</span>';
+    return '<span style="font-size:9.5px;color:rgba(255,255,255,.88);' + (mono ? 'font-family:\'DM Mono\',monospace;letter-spacing:.15px;' : 'font-family:Inter,sans-serif;') + '">' + txt + '</span>';
   }
   function cpBtn(text) {
     return text
       ? ' <button onclick="navigator.clipboard.writeText(\'' + text + '\').then(function(){showToast(\'Copied!\');})" title="Copy"'
-        + ' style="background:rgba(255,255,255,.14);border:none;border-radius:4px;color:rgba(255,255,255,.75);font-size:9px;padding:2px 5px;cursor:pointer;line-height:1;flex-shrink:0;margin-left:4px;">📋</button>'
+        + ' style="background:rgba(255,255,255,.14);border:none;border-radius:3px;color:rgba(255,255,255,.75);font-size:7px;padding:1px 3px;cursor:pointer;line-height:1;flex-shrink:0;margin-left:3px;">📋</button>'
       : '';
   }
   function vwBtn(src) {
     return (src && typeof DOC_LINKS !== 'undefined' && DOC_LINKS && DOC_LINKS[src])
-      ? ' <a href="' + DOC_LINKS[src] + '" target="_blank" style="font-size:11px;text-decoration:none;color:rgba(255,255,255,.45);flex-shrink:0;margin-left:2px;">👁️</a>'
+      ? ' <a href="' + DOC_LINKS[src] + '" target="_blank" style="font-size:7px;text-decoration:none;color:rgba(255,255,255,.45);flex-shrink:0;margin-left:2px;">👁️</a>'
       : '';
   }
 
@@ -9318,7 +9318,7 @@ function _aiBuildFamilyMembersCard() {
     s += infoRow('Aadhaar', valText(m.aadhaar, true) + cpBtn(m.aadhaar) + vwBtn(m.aadhaarSrc));
     s += infoRow('PAN',     valText(m.pan, true) + (m.pan !== '—' ? cpBtn(m.pan) + vwBtn(m.panSrc) : ''));
     s += infoRow('Mobile',
-      '<a href="tel:' + m.mobile + '" style="font-size:11.5px;color:' + m.color + ';font-family:\'DM Mono\',monospace;text-decoration:none;font-weight:700;letter-spacing:.15px;">' + m.mobile + '</a>');
+      '<a href="tel:' + m.mobile + '" style="font-size:9.5px;color:' + m.color + ';font-family:\'DM Mono\',monospace;text-decoration:none;font-weight:700;letter-spacing:.15px;">' + m.mobile + '</a>');
     s += infoRow('Ins', valText(m.insurance, true) + vwBtn(m.insSrc));
     s += '</div>'; // end body
 
