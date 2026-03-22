@@ -329,7 +329,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-mg-content{position:relative;z-index:1;}
 
 /* Header */
-.tb-mg-hdr{display:flex;align-items:center;gap:10px;padding:13px 14px 10px;}
+.tb-mg-hdr{display:flex;align-items:center;gap:12px;padding:18px 16px 14px;}
 .tb-mg-hdr-icon{
   width:36px;height:36px;border-radius:11px;
   display:flex;align-items:center;justify-content:center;
@@ -359,16 +359,16 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   font-size:9px;font-weight:900;
   letter-spacing:.13em;text-transform:uppercase;
   color:rgba(28,16,53,.46);
-  padding:5px 14px 2px;
+  padding:10px 16px 4px;
 }
 
 /* 2-column grid */
-.tb-mg-grid{display:grid;grid-template-columns:1fr 1fr;padding:4px 6px;gap:4px;}
+.tb-mg-grid{display:grid;grid-template-columns:1fr 1fr;padding:6px 8px;gap:8px;}
 
 /* Card — liquid glass */
 .tb-mg-card{
   display:flex;flex-direction:column;
-  padding:8px 9px 7px;border-radius:11px;
+  padding:12px 11px 10px;border-radius:11px;
   background:rgba(255,255,255,.10);
   border:.5px solid rgba(255,255,255,.38);
   box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.45);
@@ -382,7 +382,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 /* Wide card (AI Assistant) */
 .tb-mg-wide{
   flex-direction:row;align-items:center;gap:12px;
-  margin:2px 6px 3px;padding:9px 12px;border-radius:13px;
+  margin:4px 8px 6px;padding:12px 14px;border-radius:13px;
   background:rgba(255,255,255,.10);
   border:.5px solid rgba(255,255,255,.38);
 }
@@ -414,7 +414,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 .tb-mg-t2{font-size:10px;font-weight:600;color:rgba(28,16,53,.53);margin-top:2px;line-height:1.3;}
 
 /* Footer close button */
-.tb-mg-ftr{padding:4px 6px 12px;}
+.tb-mg-ftr{padding:8px 8px 16px;}
 .tb-mg-close-btn{
   width:100%;padding:10px;
   border-radius:13px;border:none;cursor:pointer;
