@@ -86,13 +86,13 @@ const MEMBERS = {
 const FAMILY_FLOATER = {insurer:'ICICI Lombard General Insurance',policy:'4193i/APRN/400529214/00/000',type:'Health AdvantEdge – Family Floater',plan:'Apex Plus R New',holder:'D Rajasekhar',members:['Vasundhara Duggireddy (Spouse)','Josritha Duggireddy (Daughter)','Jeevan Vidyadhar Duggireddy (Son)'],sumInsured:'₹15,00,000 per member',period:'05-Aug-2025 to 04-Aug-2026',premium:'₹25,812',issued:'17-Jul-2025',src:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf'};
 
 const EXPIRY = [
-  {id:'prop_tax_flat403',label:'Property Tax – Flat 403',sub:'Mangamuru Donka, Ongole · Vasundhara',icon:'🏘️',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035037996'},
-  {id:'prop_tax_shopg5',label:'Property Tax – Shop G5',sub:'Silver Spring Apts, Ongole · Vasundhara',icon:'🏬',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035038052'},
-  {id:'car_ins',label:'Car Insurance',sub:'Hyundai i10 · AP27AK7873',icon:'🚗',date:'2026-06-28',person:'Vasundhara',policy:'3001/103498197/10/000'},
-  {id:'health_fam',label:'Health Insurance – Family',sub:'ICICI Lombard Family Floater',icon:'👨‍👩‍👧‍👦',date:'2026-08-04',person:'Family',policy:'4193i/APRN/400529214/00/000'},
-  {id:'health_ind',label:'Health Insurance – Individual',sub:'ICICI Lombard · Rajasekhar',icon:'🏥',date:'2026-08-06',person:'Rajasekhar',policy:'4128i/HSNR/92094505/10/000'},
-  {id:'dl',label:'Driving Licence',sub:'Rajasekhar · DLFAP62729122008',icon:'🪪',date:'2027-01-20',person:'Rajasekhar',policy:'DLFAP62729122008'},
-  {id:'bike_ins',label:'Bike Insurance',sub:'Honda Activa 125 · TS08HJ8438',icon:'🛵',date:'2028-02-24',person:'Vasundhara',policy:'3005/430080806/00/000'}
+  {id:'prop_tax_flat403',taskId:'st_prop_flat403',label:'Property Tax – Flat 403',sub:'Mangamuru Donka, Ongole · Vasundhara',icon:'🏘️',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035037996'},
+  {id:'prop_tax_shopg5',taskId:'st_prop_shopg5',label:'Property Tax – Shop G5',sub:'Silver Spring Apts, Ongole · Vasundhara',icon:'🏬',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035038052'},
+  {id:'car_ins',taskId:'st_car_ins',label:'Car Insurance',sub:'Hyundai i10 · AP27AK7873',icon:'🚗',date:'2026-06-28',person:'Vasundhara',policy:'3001/103498197/10/000'},
+  {id:'health_fam',taskId:'st_health_fam',label:'Health Insurance – Family',sub:'ICICI Lombard Family Floater',icon:'👨‍👩‍👧‍👦',date:'2026-08-04',person:'Family',policy:'4193i/APRN/400529214/00/000'},
+  {id:'health_ind',taskId:'st_health_ind',label:'Health Insurance – Individual',sub:'ICICI Lombard · Rajasekhar',icon:'🏥',date:'2026-08-06',person:'Rajasekhar',policy:'4128i/HSNR/92094505/10/000'},
+  {id:'dl',taskId:'st_dl',label:'Driving Licence',sub:'Rajasekhar · DLFAP62729122008',icon:'🪪',date:'2027-01-20',person:'Rajasekhar',policy:'DLFAP62729122008'},
+  {id:'bike_ins',taskId:'st_bike_ins',label:'Bike Insurance',sub:'Honda Activa 125 · TS08HJ8438',icon:'🛵',date:'2028-02-24',person:'Vasundhara',policy:'3005/430080806/00/000'}
 ];
 
 const ATTENDANCE = [
@@ -282,6 +282,20 @@ function setBudgetRailVisible(show){
     setTimeout(function(){r.style.transition='';},50);
   }
 }
+// Remove legacy localStorage keys that are no longer used
+(function cleanLegacyKeys(){
+  ['fp_health_appts_v3'].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  // Purge appt_cal_* mirror events — appointments no longer sync into fp_cal_events
+  try {
+    var _raw = localStorage.getItem('fp_cal_events');
+    if (_raw) {
+      var _evts = JSON.parse(_raw);
+      var _cleaned = _evts.filter(function(e){ return !(e.id||'').startsWith('appt_cal_'); });
+      if (_cleaned.length !== _evts.length) localStorage.setItem('fp_cal_events', JSON.stringify(_cleaned));
+    }
+  } catch(e) {}
+})();
+
 document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){
     // Init bottom nav selector
@@ -308,7 +322,7 @@ function goPage(page) {
   // Always close more menu and sync nav selector, even if already on this page
   closeMoreMenuIfOpen();
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const _morePages = ['documents','expiry','calendar'];
+  const _morePages = ['documents','expiry'];
   const _navId = _morePages.includes(page) ? 'bnav-more' : 'bnav-'+page;
   const _navEl = document.getElementById(_navId);
   if(_navEl){ _navEl.classList.add('active'); moveBnavSelector(_navEl); }
@@ -350,6 +364,8 @@ function goPage(page) {
   // Hide FAB on budget page (budget has its own + Add buttons)
   const _fabW = document.getElementById('fab-btn-wrap');
   if (_fabW) _fabW.style.display = (page === 'budget') ? 'none' : '';
+  // Show/hide agenda ADD TASK button (inside bottom nav)
+  _updateBnavAction();
   syncSidebarNav(page);
 
   var canvas = document.getElementById('aura-canvas');
@@ -357,19 +373,21 @@ function goPage(page) {
   document.body.classList.remove('dash-active');
   window.scrollTo(0,0);
 
-  if(page==='view')      { applyGmView(); }
-  if(page==='members')   { applyGmMembers(); }
-  if(page==='expiry')    { initExpiry(); animateExpBars(); }
-  if(page==='calendar')  { initCalendar(); applyGmCalendar(); }
-  if(page==='health')    { initHealthPage(); applyGmHealth(); }
-  if(page==='documents') { applyGmDocuments(); collapseAllDocSections(); }
-  if(page==='budget')    { initBudget(); }
+  if(page==='view')         { applyGmView(); }
+  if(page==='members')      { applyGmMembers(); }
+  if(page==='expiry')       { initExpiry(); animateExpBars(); }
+  if(page==='calendar')     { if(typeof setSchedTab==='function') setSchedTab('events',true); goPage('scheduler'); return; }
+  if(page==='health')       { initHealthPage(); applyGmHealth(); }
+  if(page==='documents')    { applyGmDocuments(); collapseAllDocSections(); }
+  if(page==='budget')       { initBudget(); }
+  if(page==='appointments') { goPage('scheduler'); return; }
+  if(page==='scheduler')    { initSchedulerPage(); }
 }
 
 // ═══════════════════════════════════════════════════
 // IDEA A — SWIPE GESTURE NAVIGATION
 // ═══════════════════════════════════════════════════
-const PAGE_ORDER = ['view','members','documents','expiry','calendar','health','budget','search'];
+const PAGE_ORDER = ['view','members','documents','expiry','scheduler','health','budget','search'];
 let swipeTouchX=0, swipeTouchY=0, swipeTarget=null;
 let swipeHintTimer=null;
 
@@ -554,16 +572,12 @@ const MEMBER_COLORS = {
 let calCurrentDate = new Date();
 let calSelectedDate = null;
 let calFilter = 'all'; // member filter
+let calTypeFilter = 'all'; // type filter: all|tasks|events|appointments|education
 let calSelectedColor = '#4f7fff';
 let calEditId = null;
 
 
-// ████████████████████████████████████████████████████████
-// § CALENDAR      Calendar page -- grid, events, add/edit sheet
-// getCalEvents, saveCalEvents, initCalendar, calNav, renderCalGrid,
-// selectCalDate, renderCalChips, renderCalEvents, openCalSheet,
-// closeCalSheet, saveCalEvent, selectCalColor, buildCalMiniWidget
-// ████████████████████████████████████████████████████████
+// § CALENDAR — Data layer (getCalEvents/saveCalEvents) — UI removed; Agenda Events tab handles display
 function getCalEvents() {
   try {
     const stored = localStorage.getItem('fp_cal_events');
@@ -573,284 +587,6 @@ function getCalEvents() {
 
 function saveCalEvents(events) {
   localStorage.setItem('fp_cal_events', JSON.stringify(events));
-}
-
-function saveCalEvents(events) {
-  localStorage.setItem('fp_cal_events', JSON.stringify(events));
-}
-
-function initCalendar() {
-  renderCalGrid();
-  renderCalChips();
-  renderCalEvents(null);
-}
-
-function calNav(dir) {
-  calCurrentDate = new Date(calCurrentDate.getFullYear(), calCurrentDate.getMonth() + dir, 1);
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-function renderCalGrid() {
-  const year = calCurrentDate.getFullYear();
-  const month = calCurrentDate.getMonth();
-  const label = calCurrentDate.toLocaleDateString('en-IN', { month:'long', year:'numeric' });
-  document.getElementById('cal-month-label').textContent = label;
-
-  const today = new Date();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const daysInPrev = new Date(year, month, 0).getDate();
-
-  const events = getCalEvents();
-  // Build dot map: date-string → [colors]
-  const dotMap = {};
-  events.forEach(ev => {
-    if (!dotMap[ev.date]) dotMap[ev.date] = [];
-    dotMap[ev.date].push(ev.color);
-  });
-
-  let html = '';
-  // Prev month cells
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const d = daysInPrev - i;
-    const ds = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
-  }
-  // Current month
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
-    const isSel = calSelectedDate === ds;
-    const dots = (dotMap[ds]||[]).slice(0,3).map(c=>`<div class="cal-dot" style="background:${c}"></div>`).join('');
-    html += `<div class="cal-cell${isToday?' today':''}${isSel?' selected':''}" onclick="selectCalDate('${ds}')">
-      <div class="cal-day-num">${d}</div>
-      ${dots?`<div class="cal-dot-row">${dots}</div>`:''}
-    </div>`;
-  }
-  // Next month fill
-  const total = firstDay + daysInMonth;
-  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (let d = 1; d <= remaining; d++) {
-    html += `<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`;
-  }
-  document.getElementById('cal-cells').innerHTML = html;
-}
-
-function selectCalDate(ds) {
-  calSelectedDate = calSelectedDate === ds ? null : ds;
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-}
-
-function renderCalChips() {
-  const members = ['all','Rajasekhar','Vasundhara','Josritha','Jeevan'];
-  const labels = { all:'🌐 All' };
-  let html = members.map(m => {
-    const col = MEMBER_COLORS[m] || '#8b93a8';
-    const lbl = labels[m] || m;
-    return `<div class="cal-chip${calFilter===m?' active':''}" onclick="setCalFilter('${m}')">
-      <div class="cal-chip-dot" style="background:${col}"></div>${lbl}
-    </div>`;
-  }).join('');
-  document.getElementById('cal-chips').innerHTML = html;
-}
-
-function setCalFilter(m) {
-  calFilter = m;
-  renderCalChips();
-  renderCalEvents(calSelectedDate);
-}
-
-function renderCalEvents(selectedDate) {
-  const events = getCalEvents();
-  let filtered = events.filter(ev => {
-    if (calFilter !== 'all') {
-      if (!ev.members.includes(calFilter) && !ev.members.includes('all')) return false;
-    }
-    if (selectedDate) return ev.date === selectedDate;
-    return true;
-  });
-  // Sort by date
-  filtered.sort((a,b) => a.date.localeCompare(b.date));
-
-  const titleEl = document.getElementById('cal-events-title');
-  if (selectedDate) {
-    const d = new Date(selectedDate + 'T12:00:00');
-    titleEl.textContent = d.toLocaleDateString('en-IN',{weekday:'long',month:'long',day:'numeric'});
-  } else {
-    titleEl.textContent = 'Upcoming Events';
-  }
-
-  if (!filtered.length) {
-    document.getElementById('cal-events-list').innerHTML = `<div class="cal-no-events"><span>📭</span>${selectedDate?'No events on this day':'No events found'}</div>`;
-    return;
-  }
-
-  const today = new Date().toISOString().slice(0,10);
-  let html = filtered.map(ev => {
-    const d = new Date(ev.date + 'T12:00:00');
-    const dStr = d.toLocaleDateString('en-IN',{month:'short',day:'numeric',weekday:'short'});
-    const isPast = ev.date < today;
-    const avatars = ev.members.slice(0,3).map(m => {
-      const icons = {Rajasekhar:'👨',Vasundhara:'👩',Josritha:'👧',Jeevan:'👦',all:'👨‍👩‍👧‍👦'};
-      return icons[m]||'👤';
-    }).join('');
-    const catIcon = CAL_CAT_ICONS[ev.cat]||'📌';
-    const time = ev.start ? `${ev.start}${ev.end?'–'+ev.end:''}` : 'All day';
-    return `<div class="cal-event-item pressable" onclick="editCalEvent('${ev.id}')" style="opacity:${isPast?.6:1}">
-      <div class="cal-event-bar" style="background:${ev.color}"></div>
-      <div class="cal-event-body">
-        <div class="cal-event-title">${catIcon} ${ev.title}</div>
-        <div class="cal-event-meta">${dStr} · ${time}</div>
-        ${ev.notes?`<div class="cal-event-tags"><span class="cal-event-tag">📝 ${ev.notes.slice(0,40)}${ev.notes.length>40?'…':''}</span></div>`:''}
-      </div>
-      <div class="cal-event-right">
-        <div class="cal-event-time">${isPast?'<span style="color:var(--text3)">Past</span>':''}</div>
-        <div class="cal-event-avatar">${avatars}</div>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('cal-events-list').innerHTML = html;
-}
-
-function openCalSheet(prefillDate) {
-  calEditId = null;
-  document.getElementById('cal-sheet-title').textContent = 'Add Event';
-  document.getElementById('calf-title').value = '';
-  document.getElementById('calf-date').value = prefillDate || calSelectedDate || new Date().toISOString().slice(0,10);
-  document.getElementById('calf-start').value = '';
-  document.getElementById('calf-end').value = '';
-  document.getElementById('calf-cat').value = 'other';
-  document.getElementById('calf-notes').value = '';
-  calSelectedColor = '#4f7fff';
-  document.querySelectorAll('.cal-color-swatch').forEach(s => {
-    s.classList.toggle('active', s.dataset.color === calSelectedColor);
-  });
-  document.querySelectorAll('.cal-member-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.member === 'all');
-  });
-  // Hide delete button when adding new
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.style.display='none'; delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('cal-sheet').classList.remove('hidden');
-}
-
-function closeCalSheet() {
-  document.getElementById('cal-sheet').classList.add('hidden');
-  var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
-  // Reset delete button state
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-}
-
-let _deleteConfirmTimer = null;
-function confirmDeleteCalEvent() {
-  const delBtn = document.getElementById('cal-delete-btn');
-  if (!delBtn) return;
-  if (delBtn.classList.contains('confirm')) {
-    // Second tap — execute delete
-    clearTimeout(_deleteConfirmTimer);
-    deleteCalEvent(calEditId);
-  } else {
-    // First tap — arm the button
-    delBtn.classList.add('confirm');
-    delBtn.textContent = '⚠️ Confirm';
-    _deleteConfirmTimer = setTimeout(() => {
-      delBtn.classList.remove('confirm');
-      delBtn.textContent = '🗑 Delete';
-    }, 3000);
-  }
-}
-
-function deleteCalEvent(id) {
-  if (!id) return;
-  const events = getCalEvents().filter(e => e.id !== id);
-  saveCalEvents(events);
-  closeCalSheet();
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-  const calMiniBody = document.getElementById('cal-mini-body');
-  if (calMiniBody) calMiniBody.innerHTML = buildCalMiniWidget();
-  showToast('🗑 Event deleted');
-  if (typeof auraRenderHome === 'function') auraRenderHome();
-  if (typeof auraRenderOverview === 'function') auraRenderOverview();
-  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
-}
-
-function editCalEvent(id) {
-  const events = getCalEvents();
-  const ev = events.find(e => e.id === id);
-  if (!ev) return;
-  calEditId = id;
-  document.getElementById('cal-sheet-title').textContent = 'Edit Event';
-  document.getElementById('calf-title').value = ev.title;
-  document.getElementById('calf-date').value = ev.date;
-  document.getElementById('calf-start').value = ev.start||'';
-  document.getElementById('calf-end').value = ev.end||'';
-  document.getElementById('calf-cat').value = ev.cat||'other';
-  document.getElementById('calf-notes').value = ev.notes||'';
-  calSelectedColor = ev.color;
-  document.querySelectorAll('.cal-color-swatch').forEach(s => {
-    s.classList.toggle('active', s.dataset.color === ev.color);
-  });
-  document.querySelectorAll('.cal-member-chip').forEach(c => {
-    c.classList.toggle('active', ev.members.includes(c.dataset.member) || (c.dataset.member==='all' && ev.members.includes('all')));
-  });
-  // Show delete button when editing
-  const delBtn = document.getElementById('cal-delete-btn');
-  if(delBtn){ delBtn.style.display=''; delBtn.classList.remove('confirm'); delBtn.textContent='🗑 Delete'; }
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('cal-sheet').classList.remove('hidden');
-}
-
-function saveCalEvent() {
-  const title = document.getElementById('calf-title').value.trim();
-  const date = document.getElementById('calf-date').value;
-  if (!title || !date) { showToast('⚠️ Title and date are required'); return; }
-  const start = document.getElementById('calf-start').value;
-  const end = document.getElementById('calf-end').value;
-  const cat = document.getElementById('calf-cat').value;
-  const notes = document.getElementById('calf-notes').value.trim();
-  const members = [...document.querySelectorAll('.cal-member-chip.active')].map(c => c.dataset.member);
-
-  const events = getCalEvents();
-  if (calEditId) {
-    const idx = events.findIndex(e => e.id === calEditId);
-    if (idx > -1) events[idx] = {...events[idx], title, date, start, end, cat, color:calSelectedColor, members, notes};
-  } else {
-    events.push({ id:'e'+Date.now(), title, date, start, end, cat, color:calSelectedColor, members, notes });
-  }
-  saveCalEvents(events);
-  closeCalSheet();
-  renderCalGrid();
-  renderCalEvents(calSelectedDate);
-  showToast(calEditId ? '✏️ Event updated' : '📅 Event added');
-  // Refresh dashboard cal widget and home panel immediately
-  buildCalMiniWidget && buildCalMiniWidget();
-  if (typeof auraRenderHome === 'function') auraRenderHome();
-  if (typeof auraRenderOverview === 'function') auraRenderOverview();
-  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
-}
-
-function selectCalColor(color, el) {
-  calSelectedColor = color;
-  document.querySelectorAll('.cal-color-swatch').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function toggleCalMember(el) {
-  if (el.dataset.member === 'all') {
-    document.querySelectorAll('.cal-member-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-  } else {
-    document.querySelector('.cal-member-chip[data-member="all"]').classList.remove('active');
-    el.classList.toggle('active');
-    if (![...document.querySelectorAll('.cal-member-chip')].some(c => c.classList.contains('active'))) {
-      document.querySelector('.cal-member-chip[data-member="all"]').classList.add('active');
-    }
-  }
 }
 
 // Build mini cal widget for dashboard
@@ -869,7 +605,7 @@ function buildCalMiniWidget() {
     const d = new Date(ev.date + 'T12:00:00');
     const dStr = d.toLocaleDateString('en-IN',{month:'short',day:'numeric'});
     const av = icons[ev.members[0]]||'📅';
-    return `<div class="cal-mini-event pressable" onclick="goPage('calendar')">
+    return `<div class="cal-mini-event pressable" onclick="goPage('scheduler')">
       <div class="cal-mini-bar" style="background:${ev.color}"></div>
       <div class="cal-mini-body">
         <div class="cal-mini-title">${ev.title}</div>
@@ -906,7 +642,7 @@ const DEFAULT_WIDGETS=['hero','att_severity','ai_briefing2','priority','family',
 let widgetOrder=[...DEFAULT_WIDGETS];
 let editMode=false;
 
-const WIDGET_VERSION = 'v9';
+const WIDGET_VERSION = 'v10';
 
 // ████████████████████████████████████████████████████████
 // § WIDGETS       Dashboard widget system -- drag/drop, widget HTML builders
@@ -1129,7 +865,7 @@ function buildWidgetHTML(wid) {
     case 'priority': return `<div class="w-card" style="padding:14px 16px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">🔔 &nbsp;Priority</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">Calendar →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">Calendar →</span>
       </div>
       <div class="priority-strip-wrap" id="priority-strip"></div>
     </div>`;
@@ -1154,7 +890,7 @@ function buildWidgetHTML(wid) {
     case 'urgent': return `<div class="w-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">⏳ &nbsp;Urgent Items</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">View Calendar →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">View Calendar →</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;" id="urgent-items"></div></div>`;
     case 'actions': return `<div class="w-card w-card-collapsible collapsed" data-wid="actions">
@@ -1203,7 +939,7 @@ function buildWidgetHTML(wid) {
           </div>
           <div class="qa-row-arrow">›</div>
         </div>
-        <div class="qa-row pressable" onclick="goPage('calendar')">
+        <div class="qa-row pressable" onclick="goPage('scheduler')">
           <div class="qa-row-icon" style="background:rgba(244,114,182,.13);color:#f472b6;">📅</div>
           <div class="qa-row-body">
             <div class="qa-row-title">Family Calendar</div>
@@ -1217,7 +953,7 @@ function buildWidgetHTML(wid) {
     case 'cal_mini': return `<div class="w-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div class="w-hdr" style="margin:0">📅 &nbsp;Family Calendar</div>
-        <span class="card-action" onclick="goPage('calendar')" style="font-size:11px">View All →</span>
+        <span class="card-action" onclick="goPage('scheduler')" style="font-size:11px">View All →</span>
       </div>
       <div class="cal-mini-wrap" id="cal-mini-body"></div>
     </div>`;
@@ -2210,8 +1946,8 @@ function buildVehicleWidget() {
       if (days < 0) { badgeClass = 'overdue'; badgeTxt = Math.abs(days) + 'd overdue'; }
       else if (days <= 30) { badgeClass = 'soon'; badgeTxt = 'Due in ' + days + 'd'; }
       else { badgeClass = 'ok'; badgeTxt = 'Due ' + (typeof fmtDate==='function'?fmtDate(nextDate):nextDate); }
-    } else if (!lastDate) { badgeClass = 'soon'; badgeTxt = 'Not tracked'; }
-    return '<div class="veh-row" onclick="vehOpenSheet(\'' + v.id + '\')">'
+    } else if (!lastDate) { badgeClass = 'soon'; badgeTxt = 'Schedule →'; }
+    return '<div class="veh-row" onclick="' + (!lastDate ? 'openApptSheetV4({type:\'vehicle\',vehicle:\'' + v.id + '\'})' : 'vehOpenSheet(\'' + v.id + '\')') + '">'
       + '<div class="veh-icon" style="background:' + v.color + '">' + v.icon + '</div>'
       + '<div class="veh-info">'
       + '<div class="veh-name">' + v.name + '</div>'
@@ -2272,6 +2008,7 @@ function vehOpenSheet(id) {
     + '<input id="veh-date" type="date" value="' + new Date().toISOString().slice(0,10) + '" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);">'
     + '<input id="veh-km" type="number" placeholder="KM" style="width:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);">'
     + '</div>'
+    + '<input id="veh-amount" type="number" placeholder="Amount paid (₹)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<input id="veh-note" placeholder="Notes (optional)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<input id="veh-next" type="date" placeholder="Next service due" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text1);width:100%;box-sizing:border-box;">'
     + '<div onclick="vehSaveService()" style="padding:11px;border-radius:10px;background:var(--blue-dim);border:1px solid rgba(79,127,255,.25);color:var(--blue2);font-size:13px;font-weight:700;text-align:center;cursor:pointer;font-family:\'Inter\',sans-serif;">Save Service Log</div>'
@@ -2287,16 +2024,17 @@ function vehCloseSheet() {
 }
 
 function vehSaveService() {
-  var type = document.getElementById('veh-type');
-  var date = document.getElementById('veh-date');
-  var km   = document.getElementById('veh-km');
-  var note = document.getElementById('veh-note');
-  var next = document.getElementById('veh-next');
+  var type   = document.getElementById('veh-type');
+  var date   = document.getElementById('veh-date');
+  var km     = document.getElementById('veh-km');
+  var amount = document.getElementById('veh-amount');
+  var note   = document.getElementById('veh-note');
+  var next   = document.getElementById('veh-next');
   if (!type||!date||!date.value) return;
   var data = getVehData();
   if (!data[_vehActiveId]) data[_vehActiveId] = { history: [] };
   if (!data[_vehActiveId].history) data[_vehActiveId].history = [];
-  data[_vehActiveId].history.push({ type: type.value, date: date.value, km: km?km.value:'', note: note?note.value:'' });
+  data[_vehActiveId].history.push({ type: type.value, date: date.value, km: km?km.value:'', amount: amount?amount.value:'', note: note?note.value:'' });
   data[_vehActiveId].lastService = date.value;
   if (next && next.value) data[_vehActiveId].nextService = next.value;
   saveVehData(data);
@@ -3564,7 +3302,7 @@ function initWidgetDynamic() {
         const shortTitle = ev.title.replace(/^(Rajasekhar|Vasundhara|Josritha|Jeevan)\s+/i,'').split(' ').slice(0,4).join(' ');
         const memberLabel = ev.members && ev.members[0] !== 'all' ? ev.members[0] : '';
         const icon = ev.icon || (cls==='overdue'?'🔴':cls==='due-soon'?'🟡':'🔵');
-        return `<div class="priority-chip ${cls} pressable" onclick="goPage('calendar')">
+        return `<div class="priority-chip ${cls} pressable" onclick="goPage('scheduler')">
           <div class="pc-icon">${icon}</div>
           <div class="pc-body">
             <div class="pc-title">${shortTitle}</div>
@@ -3752,7 +3490,7 @@ function initWidgetDynamic() {
         const days = daysUntil(ev.date);
         const col = expiryColor(days);
         const pct = days<0?100:Math.max(1,Math.min(100,((10-days)/10)*100));
-        return `<div class="urgent-item pressable" onclick="goPage('calendar')" style="border-left:3px solid ${col}${days<0?';background:rgba(255,79,79,.04)':''}">
+        return `<div class="urgent-item pressable" onclick="goPage('scheduler')" style="border-left:3px solid ${col}${days<0?';background:rgba(255,79,79,.04)':''}">
           <span class="ui-icon">⏳</span>
           <div class="ui-body">
             <div class="ui-title">${ev.title}</div>
@@ -4023,8 +3761,20 @@ function auraRenderGreeting() {
     '🌤️ Good Afternoon','🌤️ Good Afternoon','🌆 Good Evening','🌆 Good Evening','🌆 Good Evening',
     '🌆 Good Evening','🌙 Good Night','🌙 Good Night','🌙 Good Night'];
   var greet = greets[hour] || '☀️ Good Morning';
+  // Strip leading emoji from greet for the new greeting-block icon layout
+  var greetText = greet.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F ]+/u, '').trim();
   var el = document.getElementById('aura-greeting');
-  if (el) el.textContent = greet + ', Rajasekhar.';
+  if (el) {
+    // greeting-block layout: .gb-greeting-icon (has class greeting-emoji) is first child; inject text after it
+    var emojiSpan = el.querySelector('.greeting-emoji');
+    if (emojiSpan) {
+      // Keep first child (icon image), rebuild text node after it
+      while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+      el.appendChild(document.createTextNode(' ' + greetText + ', Rajasekhar.'));
+    } else {
+      el.textContent = greetText + ', Rajasekhar.';
+    }
+  }
   var DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var MONS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var now = new Date();
@@ -4100,58 +3850,105 @@ function auraRenderHome() {
     + String(now.getMonth()+1).padStart(2,'0') + '-'
     + String(now.getDate()).padStart(2,'0');
 
-  // TODAY block: exact today calendar events only (no timetable subjects)
+  // TODAY block: events + tasks due today + appointments today
   var evtRaw = localStorage.getItem('fp_cal_events');
   var todayRows = [];
+  // Calendar events
   if (evtRaw) {
     try {
       var evts = JSON.parse(evtRaw);
-      var todayEvts = evts.filter(function(e){ return e.date === todayStr && e.cat !== 'education'; })
-        .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
-      for (var i=0; i<todayEvts.length; i++) {
-        var ev = todayEvts[i];
-        var catColors = { health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6', government:'var(--orange,#fb923c)', education:'#a78bfa', other:'var(--blue2)' };
-        var col = catColors[ev.cat] || 'var(--blue2)';
-        todayRows.push({ ts: ev.start || '\u2014', name: ev.title, meta: ev.notes||'', color: col });
-      }
+      evts.filter(function(e){ return e.date === todayStr && e.cat !== 'education'; })
+        .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); })
+        .forEach(function(ev){
+          todayRows.push({ ts: ev.start||'', name: ev.title, cat: ev.cat||'other', members: ev.members||[], type:'event' });
+        });
     } catch(e){}
   }
+  // Tasks due today
+  try {
+    var tasks = typeof getSchedTasks==='function' ? getSchedTasks() : [];
+    tasks.filter(function(t){ return t.status!=='done' && t.dueDate===todayStr; })
+      .forEach(function(t){
+        todayRows.push({ ts:'', name:(t.icon||'📋')+' '+t.title, cat: t.cat||'other', members: t.member?[t.member]:[], type:'task' });
+      });
+  } catch(e){}
+  // Appointments today
+  try {
+    var appts = typeof getApptsV4==='function' ? getApptsV4() : [];
+    appts.filter(function(a){ return a.date===todayStr; })
+      .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); })
+      .forEach(function(a){
+        todayRows.push({ ts: a.time||'', name: a.title, cat: a.type||'other', members: a.member?[a.member]:[], type:'appt' });
+      });
+  } catch(e){}
+  todayRows.sort(function(a,b){ return (a.ts||'ZZ').localeCompare(b.ts||'ZZ'); });
 
   var todayEl = document.getElementById('aura-today-timeline');
   if (todayEl) {
+    var CW_AVATARS = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
     if (todayRows.length === 0) {
-      todayEl.innerHTML = '<div style="padding:10px 20px 14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">Nothing scheduled today</div>';
+      todayEl.innerHTML = '<div class="cw-today-empty"><div class="cw-empty-moon">🌙</div><div class="cw-empty-text">Clear schedule today</div></div>';
     } else {
       var html = '';
       for (var r=0; r<todayRows.length; r++) {
         var row = todayRows[r];
-        var isLast = r === todayRows.length-1;
-        html += '<div class="tc-tl-row">'
-          + '<div class="tc-tl-ts">' + row.ts + '</div>'
-          + '<div class="tc-tl-col">'
-          + '<div class="tc-tl-dot" style="background:' + row.color + ';box-shadow:0 0 6px ' + row.color + ';"></div>'
-          + (!isLast ? '<div class="tc-tl-wire"></div>' : '')
+        var tp = (row.ts||'').split(':');
+        var timeH = tp[0] || '—';
+        var timeM = tp[1] || '';
+        var memberKey = (row.members[0]||'').toLowerCase();
+        var av = CW_AVATARS[memberKey] || null;
+        var memberHtml = av ? '<div class="cw-person-avatar" style="background:' + av.b + '">' + av.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+        var typeLabel = row.type==='task' ? 'task' : row.type==='appt' ? 'appt' : (row.cat||'other');
+        var tagHtml = '<span class="cw-event-tag">' + typeLabel + '</span>';
+        var rowNav = row.type==='task'||row.type==='appt' ? 'scheduler' : 'calendar';
+        html += '<div class="cw-event-item cw-today-event cat-' + (row.cat||'other') + '" onclick="goPage(\'' + rowNav + '\')">'
+          + '<div class="cw-event-stripe"></div>'
+          + '<div class="cw-event-date-col">'
+          + '<div class="cw-event-day-num">' + timeH + '</div>'
+          + '<div class="cw-event-day-name">' + (timeM ? ':'+timeM : 'all day') + '</div>'
           + '</div>'
-          + '<div class="tc-tl-body">'
-          + '<div class="tc-tl-name">' + row.name + '</div>'
-          + (row.meta ? '<div class="tc-tl-meta">' + row.meta.slice(0,50) + '</div>' : '')
-          + '</div></div>';
+          + '<div class="cw-event-body">'
+          + '<div class="cw-event-name">' + row.name + '</div>'
+          + '<div class="cw-event-meta">' + memberHtml + tagHtml + '</div>'
+          + '</div>'
+          + '<div class="cw-event-arrow">&#8250;</div>'
+          + '</div>';
       }
       todayEl.innerHTML = html;
     }
   }
 
-  // GRAVITY RAIL: overdue + today + all upcoming events (no cap)
+  // Init calendar widget date display + mini cal
+  if (typeof cwInitWidget === 'function') cwInitWidget();
+
+  // GRAVITY RAIL: overdue + today + all upcoming — events + tasks + appointments merged
   var upcoming = [];
+  // Calendar events (all non-education categories)
   if (evtRaw) {
     try {
       var evts2 = JSON.parse(evtRaw);
-      var GR_ALLOWED = { health:1, travel:1, government:1, family:1, birthday:1, finance:1, other:1 };
-      upcoming = evts2
-        .filter(function(e){ return GR_ALLOWED[e.cat]; })
-        .sort(function(a,b){ return a.date.localeCompare(b.date); });
+      evts2.filter(function(e){ return e.cat !== 'education'; })
+        .forEach(function(e){
+          upcoming.push({ title:e.title, date:e.date, cat:e.cat||'other', members:e.members||[], type:'event' });
+        });
     } catch(e){}
   }
+  // Upcoming tasks (not done, has due date)
+  try {
+    var tasks2 = typeof getSchedTasks==='function' ? getSchedTasks() : [];
+    tasks2.filter(function(t){ return t.status!=='done' && t.dueDate; })
+      .forEach(function(t){
+        upcoming.push({ title:(t.icon||'📋')+' '+t.title, date:t.dueDate, cat:t.cat||'other', members:t.member?[t.member]:[], type:'task' });
+      });
+  } catch(e){}
+  // Upcoming appointments
+  try {
+    var appts2 = typeof getApptsV4==='function' ? getApptsV4() : [];
+    appts2.forEach(function(a){
+      upcoming.push({ title:a.title, date:a.date, cat:a.type||'other', members:a.member?[a.member]:[], type:'appt' });
+    });
+  } catch(e){}
+  upcoming.sort(function(a,b){ return a.date.localeCompare(b.date); });
 
   var grCards = document.getElementById('gr-cards');
   var grEmpty = document.getElementById('gr-empty');
@@ -4199,7 +3996,10 @@ function auraRenderHome() {
 
     var overdueBorder = isOverdue ? 'border-left:2px solid rgba(255,79,79,.6);' : '';
     var dayColor = isOverdue ? 'color:#ff4f4f;font-weight:700;' : isToday ? 'color:#3ecf8e;font-weight:700;' : '';
-    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;' + overdueBorder + '" onclick="goPage(\'calendar\')">'
+    var navTarget = ev2.type==='task'||ev2.type==='appt' ? 'scheduler' : 'calendar';
+    var TYPE_BADGE = { task:'📋 Task', appt:'🗓 Appt', event:'' };
+    var typeBadge = TYPE_BADGE[ev2.type]||'';
+    html2 += '<div class="gr-card ' + heatCls + '" style="transform:scale(' + scale + ');opacity:' + opacity + ';transform-origin:left center;' + overdueBorder + '" onclick="goPage(\'' + navTarget + '\')">'
       + '<div class="gr-card-node">'
       + '<div class="gr-card-dot gr-dot-' + cls + '" style="background:rgba(' + rgb + ',0.9);box-shadow:0 0 8px rgba(' + rgb + ',.4);"></div>'
       + '</div>'
@@ -4212,6 +4012,7 @@ function auraRenderHome() {
       + (memberLabel ? '<span class="gr-card-member">' + memberLabel + '</span>' : '')
       + (memberLabel && ev2.cat ? '<span class="gr-card-cat">\u00b7</span>' : '')
       + (ev2.cat ? '<span class="gr-card-cat">' + ev2.cat + '</span>' : '')
+      + (typeBadge ? '<span class="gr-card-cat" style="opacity:.6;">\u00b7 '+typeBadge+'</span>' : '')
       + '</div>'
       + '</div>'
       + '</div>';
@@ -4254,53 +4055,199 @@ function ovRenderMonthEvents() {
   var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   labelEl.textContent = MONTH_NAMES[mo] + ' ' + yr;
 
+  var pad = function(n) { return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad(mo + 1);
+
+  // ── 1. Calendar events ──
   var calEvts = [];
   try {
     calEvts = typeof getCalEvents === 'function' ? getCalEvents() : JSON.parse(localStorage.getItem('fp_cal_events') || '[]');
   } catch(e) {}
-
-  // Filter events belonging to this month
-  var pad = function(n) { return String(n).padStart(2,'0'); };
-  var moStr = yr + '-' + pad(mo + 1);
   var monthEvts = calEvts
     .filter(function(e) { return (e.date || '').slice(0, 7) === moStr && e.cat !== 'education'; })
-    .sort(function(a, b) { return a.date.localeCompare(b.date); });
+    .map(function(e) { return { date:e.date, title:e.title||'', cat:e.cat||'other', members:e.members||[], type:'event', _nav:'calendar' }; });
+
+  // ── 2. Scheduler tasks (not done, has dueDate) ──
+  try {
+    var tasks = typeof getSchedTasks === 'function' ? getSchedTasks() : JSON.parse(localStorage.getItem('fp_sched_tasks') || '[]');
+    tasks.filter(function(t) { return t.status !== 'done' && (t.dueDate || '').slice(0, 7) === moStr; })
+      .forEach(function(t) {
+        monthEvts.push({ date:t.dueDate, title:(t.icon||'📋')+' '+t.title, cat:t.cat||'other', members:t.member?[t.member]:[], type:'task', _nav:'scheduler' });
+      });
+  } catch(e) {}
+
+  // ── 3. Appointments ──
+  try {
+    var appts = typeof getApptsV4 === 'function' ? getApptsV4() : JSON.parse(localStorage.getItem('fp_appts_v4') || '[]');
+    appts.filter(function(a) { return (a.date || '').slice(0, 7) === moStr; })
+      .forEach(function(a) {
+        monthEvts.push({ date:a.date, title:a.title||'', cat:a.type||'other', members:a.member?[a.member]:[], type:'appt', _nav:'scheduler' });
+      });
+  } catch(e) {}
+
+  // ── Sort all by date ──
+  monthEvts.sort(function(a, b) { return a.date.localeCompare(b.date); });
+
+  var cntEl = document.getElementById('cw-evt-count');
+  if (cntEl) cntEl.textContent = monthEvts.length;
 
   if (monthEvts.length === 0) {
-    eventsEl.innerHTML = '<div class="ov-month-empty">&#9728;&#65039; No events this month</div>';
+    eventsEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px 0;text-align:center;"><div style="font-size:28px;opacity:.3;">📭</div><div style="font-size:11px;color:rgba(122,130,153,.65);font-style:italic;">No events this month</div></div>';
     return;
   }
 
-  var CAT_COLORS = {
-    health:'var(--red)', finance:'var(--gold)', birthday:'#f472b6',
-    government:'#fb923c', education:'#a78bfa', travel:'var(--teal,#06b6d4)',
-    family:'var(--green)', other:'var(--blue2)'
-  };
-  var MEMBER_LABELS = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+  var CW_AVATARS2 = { rajasekhar:{i:'RD',b:'#1a3a6b'}, vasundhara:{i:'VD',b:'#6b1a3a'}, josritha:{i:'JD',b:'#1a6b3a'}, jeevan:{i:'JV',b:'#6b5c1a'}, all:{i:'FA',b:'#385d6b'} };
+  var TYPE_LABEL = { task:'📋 task', appt:'🗓 appt', event:'' };
 
-  var html = '<div class="ov-month-list">';
+  var html = '';
   monthEvts.forEach(function(e) {
     var d   = new Date(e.date + 'T12:00:00');
-    var day = d.getDate();
+    var day = String(d.getDate()).padStart(2,'0');
     var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
-    var col = CAT_COLORS[e.cat] || 'var(--blue2)';
-    var isToday = e.date === (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
-    var isPast  = d < now && !isToday;
-    var members = (e.members || []).map(function(m) { return MEMBER_LABELS[m] || m; }).join(', ') || '';
-    html += '<div class="ov-mon-evt' + (isPast ? ' ov-mon-evt-past' : '') + '" onclick="goPage(\'calendar\')">'
-      + '<div class="ov-mon-evt-date' + (isToday ? ' ov-mon-evt-today' : '') + '">'
-      + '<div class="ov-mon-day">' + day + '</div>'
-      + '<div class="ov-mon-dow">' + dow + '</div>'
+    var isPast = d < now && e.date !== (now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()));
+    var memberKey = ((e.members||[])[0]||'').toLowerCase();
+    var av2 = CW_AVATARS2[memberKey] || null;
+    var memberHtml = av2 ? '<div class="cw-person-avatar" style="background:' + av2.b + '">' + av2.i + '</div><span class="cw-person-label">' + (memberKey.charAt(0).toUpperCase()+memberKey.slice(1)) + '</span>' : '';
+    var typeTag = TYPE_LABEL[e.type] ? '<span class="cw-event-tag" style="opacity:.75;">' + TYPE_LABEL[e.type] + '</span>' : '';
+    var catTag  = e.cat ? '<span class="cw-event-tag">' + e.cat + '</span>' : '';
+    html += '<div class="cw-event-item cat-' + (e.cat||'other') + '" style="' + (isPast ? 'opacity:.45;' : '') + '" onclick="goPage(\'' + e._nav + '\')">'
+      + '<div class="cw-event-stripe"></div>'
+      + '<div class="cw-event-date-col">'
+      + '<div class="cw-event-day-num">' + day + '</div>'
+      + '<div class="cw-event-day-name">' + dow + '</div>'
       + '</div>'
-      + '<div class="ov-mon-evt-bar" style="background:' + col + ';"></div>'
-      + '<div class="ov-mon-evt-body">'
-      + '<div class="ov-mon-evt-title">' + (e.title || '') + '</div>'
-      + (members ? '<div class="ov-mon-evt-meta">' + members + (e.cat ? ' · ' + e.cat : '') + '</div>' : '')
+      + '<div class="cw-event-body">'
+      + '<div class="cw-event-name">' + (e.title||'') + '</div>'
+      + '<div class="cw-event-meta">' + memberHtml + catTag + typeTag + '</div>'
       + '</div>'
+      + '<div class="cw-event-arrow">&#8250;</div>'
       + '</div>';
   });
-  html += '</div>';
   eventsEl.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════
+// Calendar Widget — Today/Upcoming two-panel (cwInitWidget)
+// ════════════════════════════════════════════════════════
+var cwCalOffset = 0;
+
+function cwInitWidget() {
+  var now = new Date();
+  var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNumEl   = document.getElementById('cwDayNum');
+  var dayNameEl  = document.getElementById('cwDayName');
+  var monthYrEl  = document.getElementById('cwMonthYear');
+  if (dayNumEl)  dayNumEl.textContent  = now.getDate();
+  if (dayNameEl) dayNameEl.textContent = DAYS_FULL[now.getDay()];
+  if (monthYrEl) monthYrEl.textContent = MONTHS[now.getMonth()] + ' · ' + now.getFullYear();
+  cwRenderMiniCal();
+  cwInitMobileTabs();
+}
+
+function cwRenderMiniCal() {
+  var gridEl     = document.getElementById('cwMiniCalGrid');
+  var monthLabel = document.getElementById('cwMiniCalMonth');
+  if (!gridEl) return;
+  var MONTHS_S = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_S    = ['S','M','T','W','T','F','S'];
+  var now      = new Date();
+  var calDate  = new Date(now.getFullYear(), now.getMonth() + cwCalOffset, 1);
+  var yr = calDate.getFullYear(), mo = calDate.getMonth();
+  if (monthLabel) monthLabel.textContent = MONTHS_S[mo] + ' ' + yr;
+  var pad2 = function(n){ return String(n).padStart(2,'0'); };
+  var moStr = yr + '-' + pad2(mo+1);
+  var eventDays = new Set();
+  try {
+    var raw = localStorage.getItem('fp_cal_events');
+    if (raw) JSON.parse(raw).filter(function(e){ return (e.date||'').slice(0,7)===moStr && e.cat!=='education'; })
+      .forEach(function(e){ eventDays.add(parseInt(e.date.slice(8),10)); });
+  } catch(ex){}
+  try {
+    var tRaw = localStorage.getItem('fp_sched_tasks');
+    if (tRaw) JSON.parse(tRaw).filter(function(t){ return t.status!=='done' && (t.dueDate||'').slice(0,7)===moStr; })
+      .forEach(function(t){ eventDays.add(parseInt(t.dueDate.slice(8),10)); });
+  } catch(ex){}
+  try {
+    var aRaw = localStorage.getItem('fp_appts_v4');
+    if (aRaw) JSON.parse(aRaw).filter(function(a){ return (a.date||'').slice(0,7)===moStr; })
+      .forEach(function(a){ eventDays.add(parseInt(a.date.slice(8),10)); });
+  } catch(ex){}
+  var firstDay    = new Date(yr, mo, 1).getDay();
+  var daysInMonth = new Date(yr, mo+1, 0).getDate();
+  var daysInPrev  = new Date(yr, mo, 0).getDate();
+  var isCurMonth  = yr===now.getFullYear() && mo===now.getMonth();
+  var html = DOW_S.map(function(d){ return '<div class="cw-cal-dow">'+d+'</div>'; }).join('');
+  for (var i=firstDay-1; i>=0; i--) html += '<div class="cw-cal-day cw-cal-other">'+(daysInPrev-i)+'</div>';
+  for (var d=1; d<=daysInMonth; d++) {
+    var isToday  = isCurMonth && d===now.getDate();
+    var hasEvt   = eventDays.has(d);
+    var cls = 'cw-cal-day' + (isToday ? ' cw-cal-today' : '') + (hasEvt && !isToday ? ' cw-cal-has-evt' : '');
+    html += '<div class="'+cls+'">'+d+'</div>';
+  }
+  var remaining = (firstDay+daysInMonth)%7===0 ? 0 : 7-(firstDay+daysInMonth)%7;
+  for (var nd=1; nd<=remaining; nd++) html += '<div class="cw-cal-day cw-cal-other">'+nd+'</div>';
+  gridEl.innerHTML = html;
+}
+
+function cwMonthNav(delta) {
+  cwCalOffset += delta;
+  ovMonthOffset += delta;
+  cwRenderMiniCal();
+  ovRenderMonthEvents();
+}
+
+function cwSwitchTab(tab) {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  var tabT      = document.getElementById('cw-tab-today');
+  var tabU      = document.getElementById('cw-tab-upcoming');
+  if (!todayP || !upcomingP) return;
+  if (tab === 'today') {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+    if (tabT) { tabT.classList.add('cw-tab-active'); }
+    if (tabU) { tabU.classList.remove('cw-tab-active'); }
+  } else {
+    upcomingP.classList.remove('cw-hidden');
+    todayP.classList.add('cw-hidden');
+    if (tabU) { tabU.classList.add('cw-tab-active'); }
+    if (tabT) { tabT.classList.remove('cw-tab-active'); }
+  }
+}
+
+function cwInitMobileTabs() {
+  var todayP    = document.getElementById('cwPanelToday');
+  var upcomingP = document.getElementById('cwPanelUpcoming');
+  if (!todayP || !upcomingP) return;
+  if (window.innerWidth <= 640) {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.add('cw-hidden');
+  } else {
+    todayP.classList.remove('cw-hidden');
+    upcomingP.classList.remove('cw-hidden');
+  }
+}
+
+if (!window._cwResizeBound) {
+  window._cwResizeBound = true;
+  window.addEventListener('resize', function(){ if (document.getElementById('cwPanelToday')) cwInitMobileTabs(); });
+  (function(){
+    var sx=0, sy=0;
+    document.addEventListener('touchstart', function(e){
+      if (!e.target.closest('.cw-widget')) return;
+      sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if (!e.target.closest('.cw-widget') || window.innerWidth>640) return;
+      var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) {
+        var hidden=document.getElementById('cwPanelToday').classList.contains('cw-hidden');
+        if (dx<0 && !hidden) cwSwitchTab('upcoming');
+        if (dx>0 &&  hidden) cwSwitchTab('today');
+      }
+    }, {passive:true});
+  })();
 }
 
 // ════════════════════════════════════════════════════════
@@ -4374,33 +4321,40 @@ function auraRenderOverview() {
     });
   } catch(e4){}
 
-  // ════ ① 3-GAUGE STRIP ════
+  // ════ ① 3-GAUGE STRIP (legacy hidden div — kept for compat) ════
   var gaugesEl = document.getElementById('ov-gauges');
-  if (gaugesEl) {
-    var overdueStatus = overdueCnt > 0 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Action Now</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; All Clear</span>';
-    var bgtStatus = bgtPct === null ? '' : bgtPct >= 90 ? '<span class="ov-gauge-status ov-gs-red">&#9679; Near Limit</span>' : bgtPct >= 70 ? '<span class="ov-gauge-status ov-gs-amber">&#9679; Watch</span>' : '<span class="ov-gauge-status ov-gs-green">&#9679; Healthy</span>';
-    gaugesEl.innerHTML =
-      '<div class="ov-gauge ov-red pressable" onclick="goPage(\'expiry\')">'
-      + '<span class="ov-gauge-icon">&#x23F0;</span>'
-      + '<span class="ov-gauge-val ov-gv-red">' + (overdueCnt > 0 ? overdueCnt : urgentCnt) + '</span>'
-      + '<span class="ov-gauge-lbl">' + (overdueCnt > 0 ? 'Overdue' : 'Upcoming') + '</span>'
-      + overdueStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-amber pressable" onclick="goPage(\'budget\')">'
-      + '<span class="ov-gauge-icon">&#x1F4CA;</span>'
-      + '<span class="ov-gauge-val ov-gv-amber">' + bgtLabel + '</span>'
-      + '<span class="ov-gauge-lbl">Budget</span>'
-      + bgtStatus
-      + '</div>'
-      + '<div class="ov-gauge ov-green pressable" onclick="goPage(\'documents\')">'
-      + '<span class="ov-gauge-icon">&#x1F6E1;&#xFE0F;</span>'
-      + '<span class="ov-gauge-val ov-gv-green">' + docCount + '</span>'
-      + '<span class="ov-gauge-lbl">Docs Safe</span>'
-      + '<span class="ov-gauge-status ov-gs-green">&#9679; All Secure</span>'
-      + '</div>';
-  }
+  if (gaugesEl) { gaugesEl.innerHTML = ''; } // hidden, no rendering needed
 
-  // ════ ② CRITICAL ALERTS scroll ════
+  // ════ ① NEW STAT CARDS (home-status-row) ════
+  var hsrOverdueNum = document.getElementById('hsr-overdue-num');
+  var hsrOverdueCta = document.getElementById('hsr-overdue-cta');
+  var hsrBudgetNum  = document.getElementById('hsr-budget-num');
+  var hsrDocsNum    = document.getElementById('hsr-docs-num');
+  if (hsrOverdueNum) hsrOverdueNum.textContent = overdueCnt > 0 ? overdueCnt : urgentCnt;
+  if (hsrOverdueCta) hsrOverdueCta.textContent = overdueCnt > 0 ? 'Action Now' : (urgentCnt > 0 ? 'Upcoming' : 'All Clear');
+  if (hsrBudgetNum)  hsrBudgetNum.textContent  = bgtLabel || '—';
+  if (hsrDocsNum)    hsrDocsNum.textContent     = docCount;
+  // Overdue stat card: toggle danger class
+  var hsrOverdueCard = hsrOverdueNum ? hsrOverdueNum.closest('.hsr-card') : null;
+  if (hsrOverdueCard) {
+    hsrOverdueCard.classList.toggle('danger', overdueCnt > 0);
+  }
+  // Greeting attention text (gb-attention-text)
+  var greetSub = document.getElementById('greeting-sub');
+  if (greetSub) {
+    if (overdueCnt > 0) {
+      greetSub.innerHTML = '<span>' + overdueCnt + ' item' + (overdueCnt > 1 ? 's' : '') + '</span> need your attention';
+    } else {
+      greetSub.innerHTML = '<span>All clear</span> \u2014 your family is covered today';
+    }
+  }
+  // Quick access expiry badge
+  var qaExpiryNum = document.getElementById('qa-expiry-num');
+  if (qaExpiryNum) qaExpiryNum.textContent = (overdueCnt + urgentCnt) || expiry.length;
+  var qaDocsNum = document.getElementById('qa-docs-num');
+  if (qaDocsNum) qaDocsNum.textContent = docCount;
+
+  // ════ ② CRITICAL ALERTS scroll (new home-alert-card design) ════
   var alertBadge = document.getElementById('ov-alerts-badge');
   var alertScroll = document.getElementById('ov-alerts-scroll');
   if (alertBadge) {
@@ -4420,29 +4374,23 @@ function auraRenderOverview() {
     sorted.slice(0, 2).forEach(function(e) {
       var d = du(e.date);
       var isOverdue = d < 0;
-      var isUrgent  = !isOverdue && d <= 90;
-      var cls = isOverdue ? 'ov-ac-red' : isUrgent ? 'ov-ac-amber' : 'ov-ac-green';
-      var stripCls = isOverdue ? 'ov-ac-strip-red' : isUrgent ? 'ov-ac-strip-amber' : 'ov-ac-strip-green';
-      var catCls = isOverdue ? 'ov-ac-cat-red' : isUrgent ? 'ov-ac-cat-amber' : 'ov-ac-cat-green';
-      var chipCls = isOverdue ? 'ov-chip-red' : isUrgent ? 'ov-chip-amber' : 'ov-chip-green';
       var chipLabel = isOverdue ? 'Overdue' : ('~'+d+' days');
       var catLabel = e.policy ? e.policy.split('/')[0] : (e.sub||'').split('·')[0].trim();
       var grad = PERSON_GRADS[e.person] || 'linear-gradient(135deg,#334,#556)';
-      html += '<div class="ov-alert-card ' + cls + '" onclick="goPage(\'expiry\')">'
-        + '<div class="ov-ac-strip ' + stripCls + '"></div>'
-        + '<div class="ov-ac-top">'
-        + '<span class="ov-ac-cat ' + catCls + '">' + e.icon + ' ' + catLabel + '</span>'
-        + '<span class="ov-ac-chip ' + chipCls + '">' + chipLabel + '</span>'
+      html += '<div class="home-alert-card" onclick="goPage(\'expiry\')">'
+        + '<div class="home-alert-meta">'
+        + '<span class="home-alert-id">' + catLabel + '</span>'
+        + '<span class="home-alert-badge">' + chipLabel + '</span>'
         + '</div>'
-        + '<div class="ov-ac-name">' + e.label + '</div>'
-        + '<div class="ov-ac-meta">Due: ' + e.date + '</div>'
-        + '<div class="ov-ac-member">'
-        + '<div class="ov-ac-av" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
-        + e.person
+        + '<div class="home-alert-title">' + e.label + '</div>'
+        + '<div class="home-alert-due">📅 Due: ' + e.date + '</div>'
+        + '<div class="home-alert-person">'
+        + '<div class="home-person-dot" style="background:' + grad + ';">' + personInit(e.person) + '</div>'
+        + '<span class="home-person-name">' + (e.person||'Family') + '</span>'
         + '</div>'
         + '</div>';
     });
-    alertScroll.innerHTML = html || '<div style="padding:10px 0;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);">All items are safe &#x2705;</div>';
+    alertScroll.innerHTML = html || '<div style="padding:14px;font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(140,158,220,.35);text-align:center;">All items are safe &#x2705;</div>';
   }
 
   // ════ ③ COMMAND STATIONS ════
@@ -5104,7 +5052,7 @@ function showMemberDetail(memberId, tab) {
         <div class="mdet-completion">✓ ${(SECTION_TABS[m.id]||['identity']).length}/${(SECTION_TABS[m.id]||['identity']).length} sections · All docs linked</div>
         <div class="mdet-meta" style="margin-top:8px;">
           <div class="mdet-meta-item"><span class="mdet-meta-icon">🎂</span><span class="mdet-meta-val">${m.dob} · Age ${age(m.dob)}</span></div>
-          ${m.mobile?`<div class="mdet-meta-item"><span class="mdet-meta-icon">📱</span><span class="mdet-meta-val">${m.mobile}</span></div>`:''}
+          ${m.mobile?`<div class="mdet-meta-item"><span class="mdet-meta-icon">📱</span><a href="tel:${m.mobile}" class="mdet-meta-val mdet-meta-tel" title="Tap to call">${m.mobile}</a></div>`:''}
           ${m.gender?`<div class="mdet-meta-item"><span class="mdet-meta-icon">👤</span><span class="mdet-meta-val">${m.gender}</span></div>`:''}
           ${m.address?`<div class="mdet-meta-item" style="align-items:flex-start"><span class="mdet-meta-icon">📍</span><span class="mdet-meta-val" style="font-size:11px;line-height:1.4">${m.address}</span></div>`:''}
         </div>
@@ -5150,11 +5098,12 @@ function renderMemberTab(m, tab) {
 }
 
 // Field builder
-function fld(key, val, highlight=false, copyable=false) {
+function fld(key, val, highlight=false, copyable=false, viewSrc=null) {
   if(!val) return '';
   const vH = highlight ? `<span class="field-highlight">${val}</span>` : `<span>${val}</span>`;
-  const cH = copyable ? `<button class="copy-btn" onclick="copyVal('${String(val).replace(/'/g,"\\'")}',this)" title="Copy">⎘</button>` : '';
-  return `<div class="field-row"><span class="field-key">${key}</span><span class="field-val">${vH}${cH}</span></div>`;
+  const cH = copyable ? `<button class="copy-btn" onclick="copyVal('${String(val).replace(/'/g,"\\'")}',this)" title="Copy">📋</button>` : '';
+  const vB = viewSrc && DOC_LINKS[viewSrc] ? `<a href="${DOC_LINKS[viewSrc]}" target="_blank" class="view-doc-btn" title="View document">👁️</a>` : '';
+  return `<div class="field-row"><span class="field-key">${key}</span><span class="field-val">${vH}${cH}${vB}</span></div>`;
 }
 
 function docCard(title, badge, badgeStyle, content, src) {
@@ -5172,14 +5121,17 @@ const VehB='background:rgba(79,127,255,.15);color:var(--blue2)';
 
 function renderIdentityTab(m) {
   const id=m.sections.identity; let html='';
-  if(id.aadhaar) html+=docCard('Aadhaar Card','Identity',IB,fld('Aadhaar No.',id.aadhaar.number,true,true)+fld('VID',id.aadhaar.vid,true,true)+fld('Enrolment',id.aadhaar.enrolment)+fld('Issued',id.aadhaar.issued),id.aadhaar.src);
-  if(id.pan) html+=docCard('PAN Card','Identity',IB,fld('PAN Number',id.pan.number,true,true)+fld('Issued',id.pan.issuedOn)+(id.pan.fathersName?fld("Father's Name",id.pan.fathersName):'')+(id.pan.dob?fld('DOB',id.pan.dob):''),id.pan.src);
+  if(id.aadhaar) html+=docCard('Aadhaar Card','Identity',IB,fld('Aadhaar No.',id.aadhaar.number,true,true,id.aadhaar.src)+fld('VID',id.aadhaar.vid,true,true)+fld('Enrolment',id.aadhaar.enrolment)+fld('Issued',id.aadhaar.issued),id.aadhaar.src);
+  if(id.pan) html+=docCard('PAN Card','Identity',IB,fld('PAN Number',id.pan.number,true,true,id.pan.src)+fld('Issued',id.pan.issuedOn)+(id.pan.fathersName?fld("Father's Name",id.pan.fathersName):'')+(id.pan.dob?fld('DOB',id.pan.dob):''),id.pan.src);
   if(id.dl) html+=docCard('Driving Licence','Identity',IB,fld('DL Number',id.dl.number,true,true)+fld('Valid Until',id.dl.validUntil)+fld('Classes',id.dl.classes)+fld('Issuing RTA',id.dl.rta)+fld('First Issued',id.dl.firstIssued),id.dl.src);
   if(id.voter) html+=docCard('Voter ID','Identity',IB,fld('EPIC No.',id.voter.epic,true,true)+fld('Assembly',id.voter.assembly)+fld('Address',id.voter.address),id.voter.src);
   if(id.passport) html+=docCard('Passport','Identity',IB,fld('Passport No.',id.passport.number,true,true)+fld('Nationality',id.passport.nationality)+fld('DOB / Sex',id.passport.dob+' / '+id.passport.sex)+fld('US H1B Visa','Issued: '+id.passport.visaIssued+' | Expired: '+id.passport.visaExpiry)+fld('Issuing Post',id.passport.issuingPost)+fld('US Control No.',id.passport.controlNo),id.passport.src);
   if(id.marriageCert) html+=docCard('Marriage Certificate','Document',DB,fld('Act',id.marriageCert.act)+fld('Husband',id.marriageCert.husband)+fld('Wife',id.marriageCert.wife)+fld('Date',id.marriageCert.date)+fld('Registrar',id.marriageCert.registrar),id.marriageCert.src);
   if(id.birthCert) html+=docCard('Birth Certificate','Document',DB,fld('Name',id.birthCert.name)+fld('DOB',id.birthCert.dob)+fld('Place of Birth',id.birthCert.placeOfBirth||id.birthCert.place)+fld('Father',id.birthCert.father)+fld('Mother',id.birthCert.mother)+fld('Reg No.',id.birthCert.regNo),id.birthCert.src);
-  html+=docCard('Personal Info','Record',IB,fld('Full Name',m.name)+fld('Date of Birth',m.dob)+fld('Gender',m.gender)+fld('Mobile',m.mobile,false,true)+(m.altMobile?fld('Alt. Mobile',m.altMobile,false,true):'')+(m.address?fld('Address',m.address):''));
+  const _ins0 = m.sections.insurance&&m.sections.insurance[0];
+  const _insPolicy = _ins0?(_ins0.policy||null):null;
+  const _insSrc = _ins0&&!_ins0.note?(_ins0.src||null):null;
+  html+=docCard('Personal Info','Record',IB,fld('Full Name',m.name)+fld('Date of Birth',m.dob)+fld('Gender',m.gender)+fld('Mobile',m.mobile,false,true)+(m.altMobile?fld('Alt. Mobile',m.altMobile,false,true):'')+(_insPolicy?fld('Insurance Policy',_insPolicy,false,true,_insSrc):'')+(m.address?fld('Address',m.address):''));
   return html;
 }
 
@@ -5505,122 +5457,24 @@ function renderAcademicsTab(m) {
 // AUTO ATTENDANCE EVENTS — creates/updates/deletes calendar
 // events for Josritha subjects below 75%
 // ═══════════════════════════════════════════════════════
+// ── autoManageAttendanceEvents: REPLACED by Option A (dynamic timetable overlay) ──
+// Attendance risk is now shown in Education panel only.
+// Calendar gets clean per-subject timetable dots rendered dynamically from
+// fp_timetable_synced — no calendar events are written for education/attendance.
+// This function is retained as a no-op so existing call-sites don't break.
 function autoManageAttendanceEvents(attData) {
-  // Guard — never run during backup operation
-  if (!attData || !Array.isArray(attData) || !attData.length) return;
-
-  var PREFIX = 'att_risk_';
-  var DAY_MAP = {0:'SUNDAY',1:'MONDAY',2:'TUESDAY',3:'WEDNESDAY',4:'THURSDAY',5:'FRIDAY',6:'SATURDAY'};
-
-  // Load timetable from localStorage
-  var ttData = [];
+  // No-op: timetable dots are overlaid dynamically in renderCalGrid()
+  // Purge any legacy att_risk_* events that may exist from previous version
   try {
-    var ttRaw = localStorage.getItem('fp_timetable_synced');
-    if (ttRaw) ttData = JSON.parse(ttRaw);
-  } catch(e) { ttData = []; }
-
-  // Load current calendar events (safe wrapper)
-  var events = [];
-  try { events = getCalEvents(); } catch(e) { return; }
-
-  // Step 1: Remove ALL existing auto att_risk events (full refresh)
-  events = events.filter(function(e) {
-    return !(e.id && e.id.indexOf(PREFIX) === 0 && e.auto === true);
-  });
-
-  // Step 2: Build set of risky subjects
-  var riskySubjects = {};
-  attData.forEach(function(a) {
-    if (!a.code || !a.type || !a.subject) return;
-    var pct = Math.round(a.present / a.total * 100);
-    if (pct < 75) {
-      var attKey = a.code + '|' + a.type;
-      var need = Math.max(0, Math.ceil(0.75 * (a.total + 1)) - a.present);
-      var canSkip = Math.max(0, Math.floor(a.total * 0.25) - (a.total - a.present));
-      riskySubjects[attKey] = {
-        code: a.code,
-        type: a.type,
-        subject: a.subject,
-        pct: pct,
-        need: need,
-        canSkip: canSkip,
-        critical: pct < 70
-      };
-    }
-  });
-
-  var riskCount = Object.keys(riskySubjects).length;
-  if (riskCount === 0) {
-    // All subjects safe — save cleaned events and return
-    try { saveCalEvents(events); } catch(e) {}
-    return;
-  }
-
-  // Step 3: Generate day-wise events for next 2 months
-  var today = new Date();
-  today.setHours(0,0,0,0);
-  var cutoff = new Date(today);
-  cutoff.setDate(cutoff.getDate() + 62); // ~2 months
-
-  // Build lookup: attKey -> list of timetable day names
-  var ttByKey = {};
-  ttData.forEach(function(slot) {
-    var key = slot.att_key || (slot.code + '|' + slot.type);
-    if (!ttByKey[key]) ttByKey[key] = {};
-    ttByKey[key][slot.day] = true; // slot.day = 'MONDAY' etc
-  });
-
-  // Walk each day for next 2 months
-  var d = new Date(today);
-  var newEvents = [];
-  while (d <= cutoff) {
-    var dayName = DAY_MAP[d.getDay()];
-    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-
-    Object.keys(riskySubjects).forEach(function(attKey) {
-      var subj = riskySubjects[attKey];
-      // Only create event if this subject has a class on this day of week
-      var hasClassToday = ttByKey[attKey] && ttByKey[attKey][dayName];
-      if (!hasClassToday) return;
-
-      var shortName = subj.subject.length > 24 ? subj.subject.substring(0,22) + '\u2026' : subj.subject;
-      var icon = subj.critical ? '\uD83D\uDEA8' : '\uD83D\uDCDA';
-      var label = subj.critical ? '\uD83D\uDEA8 CRITICAL' : '\u26A0\uFE0F AT RISK';
-      var note = subj.type + ' \u00B7 ' + subj.pct + '% \u00B7 '
-        + (subj.canSkip > 0
-            ? 'Can skip ' + subj.canSkip + ' more · need ' + subj.need + ' to reach 75%'
-            : 'DO NOT skip · need ' + subj.need + ' more classes');
-
-      // Unique id per subject + date
-      var safeKey = attKey.replace(/[^a-zA-Z0-9]/g, '_');
-      newEvents.push({
-        id: PREFIX + safeKey + '_' + dateStr,
-        title: label + ' ' + shortName,
-        date: dateStr,
-        cat: 'education',
-        color: '#a78bfa',
-        type: 'Academic',
-        icon: icon,
-        members: ['Josritha'],
-        auto: true,
-        att_key: attKey,
-        note: note
-      });
+    var events = getCalEvents();
+    var cleaned = events.filter(function(e) {
+      return !(e.id && e.id.indexOf('att_risk_') === 0);
     });
-
-    d.setDate(d.getDate() + 1);
-  }
-
-  // Step 4: Merge and save
-  var finalEvents = events.concat(newEvents);
-  try {
-    saveCalEvents(finalEvents);
-    if (newEvents.length > 0) {
-      setTimeout(function() {
-        showToast('\uD83D\uDCDA ' + newEvents.length + ' class alerts created for ' + riskCount + ' at-risk subject' + (riskCount!==1?'s':''));
-      }, 400);
+    if (cleaned.length !== events.length) {
+      saveCalEvents(cleaned);
+      if (typeof auraRenderHome === 'function') auraRenderHome();
     }
-  } catch(e) {}
+  } catch(err) {}
 }
 
 
@@ -5635,8 +5489,9 @@ function syncAttendanceFile(input) {
       const ts = new Date().toLocaleString("en-IN", {day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
       localStorage.setItem("fp_attendance_synced_ts", ts);
       showToast("✅ " + data.length + " subjects synced");
+      // Purge legacy att_risk_ calendar events, then refresh UI (timetable dots are dynamic)
       setTimeout(function() { autoManageAttendanceEvents(data); }, 200);
-      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderAlerts(); }, 50);
+      setTimeout(() => { showMemberDetail("josritha","academics"); initWidgetDynamic(); auraRenderEducation(); auraRenderAlerts(); if(typeof renderCalGrid==='function') renderCalGrid(); }, 50);
       input.value = "";
     } catch(err) { showToast("❌ Could not parse file"); }
   };
@@ -5924,6 +5779,7 @@ function setExpiryView(view) {
 }
 
 function buildTimeline() {
+  syncExpiryFromTasks();
   var vtlList = document.getElementById('vtl-list');
   var legend  = document.getElementById('vtl-legend');
   if (!vtlList) return;
@@ -5996,29 +5852,63 @@ function buildTimeline() {
   ].map(function(l){ return '<div class="vtl-leg"><div class="vtl-leg-dot" style="background:' + l.col + '"></div>' + l.lbl + '</div>'; }).join('');
 }
 
+// Tracks which EXPIRY item is open in the detail sheet
+var _tlSheetItem = null;
+
 function openTlSheet(idx) {
   var axis=document.getElementById('vtl-list');
   var sorted=axis?._expiry;
   if(!sorted) return;
   const e=sorted[idx];
   if(!e) return;
+  _tlSheetItem = e;
   const days=daysUntil(e.date);
   const col=days<0?'var(--red)':days<=30?'var(--orange)':days<=90?'var(--gold)':'var(--green)';
   const badge=days<0?`${Math.abs(days)} days OVERDUE`:days===0?'Expires TODAY':`${days} days remaining`;
+  // Determine renew URL
+  const renewUrl = e.id.includes('car_ins')||e.id.includes('bike_ins')||e.id.includes('health')
+    ? 'https://www.icicilombard.com'
+    : e.id.includes('dl') ? 'https://sarathi.parivahan.gov.in'
+    : e.id.includes('prop_tax') ? 'https://cdma.ap.gov.in' : '#';
+  const renewLabel = e.id.includes('prop_tax') ? '🏦 Pay Tax' : '🔄 Renew Now';
   const body=document.getElementById('tl-sheet-body');
   if(body) body.innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <div style="font-size:32px;">${e.icon}</div>
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text)">${e.label}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:3px;">${e.sub}</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+      <div style="font-size:36px;filter:drop-shadow(0 0 8px ${col}60)">${e.icon}</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);line-height:1.2">${e.label}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace">${e.sub}</div>
       </div>
     </div>
-    <div style="display:inline-block;padding:7px 14px;border-radius:10px;background:${col}18;color:${col};font-family:'DM Mono',monospace;font-size:12px;font-weight:700;border:1px solid ${col}33;margin-bottom:14px;">${badge}</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Expiry date: <strong style="color:var(--text)">${fmtDate(e.date)}</strong></div>
-    <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">Policy / Ref: ${e.policy||'—'}</div>
-    ${days<=90?`<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <div onclick="window.open('https://www.icicilombard.com','_blank')" style="flex:1;min-width:120px;padding:10px;border-radius:10px;background:var(--blue-dim);border:1px solid rgba(79,127,255,.3);color:var(--blue2);font-size:12px;font-weight:700;text-align:center;cursor:pointer;">🔄 Renew Now</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:10px;background:${col}18;color:${col};font-family:'DM Mono',monospace;font-size:12px;font-weight:700;border:1px solid ${col}33;margin-bottom:16px;">
+      <span style="font-size:9px;opacity:.7">●</span>${badge}
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Due Date</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${fmtDate(e.date)}</div>
+      </div>
+      <div style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Ref / Policy</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);word-break:break-all">${e.policy||'—'}</div>
+      </div>
+    </div>
+    <!-- Action row -->
+    <div class="tls-actions">
+      <button class="tls-btn tls-btn-done" onclick="markExpiryDone('${e.id}')">✅ Mark Done</button>
+      <button class="tls-btn tls-btn-reschedule" onclick="openReschedulePanel('${e.id}')">📅 Reschedule</button>
+    </div>
+    <!-- Reschedule panel (hidden by default) -->
+    <div id="tls-reschedule-panel" style="display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;font-family:'Syne',sans-serif;">📅 Set New Date</div>
+      <input type="date" id="tls-new-date" style="width:100%;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-size:14px;box-sizing:border-box;margin-bottom:10px;" value="${e.date}">
+      <div style="display:flex;gap:8px;">
+        <button onclick="confirmReschedule('${e.id}')" style="flex:1;padding:10px;border-radius:10px;background:var(--blue2);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">✓ Confirm</button>
+        <button onclick="document.getElementById('tls-reschedule-panel').style.display='none'" style="padding:10px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+    ${days<=120?`<div style="margin-top:14px;">
+      <button onclick="window.open('${renewUrl}','_blank')" style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--blue2),var(--purple));border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.02em">${renewLabel}</button>
     </div>`:''}
   `;
   var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
@@ -6028,12 +5918,89 @@ function openTlSheet(idx) {
 function closeTlSheet() {
   document.getElementById('tl-sheet').classList.add('hidden');
   var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
+  _tlSheetItem = null;
+}
+
+// ── Mark Done: for recurring items prompt next renewal, else just close ──
+function markExpiryDone(id) {
+  const e = EXPIRY.find(function(x){ return x.id === id; });
+  if (!e) return;
+  const isRecurring = id.includes('ins') || id.includes('tax') || id.includes('dl');
+  if (isRecurring) {
+    const panel = document.getElementById('tls-reschedule-panel');
+    if (panel) {
+      // Pre-fill with +1 year
+      const next = new Date(e.date + 'T12:00:00');
+      next.setFullYear(next.getFullYear() + 1);
+      const nv = next.toISOString().slice(0, 10);
+      const inp = document.getElementById('tls-new-date');
+      if (inp) inp.value = nv;
+      panel.style.display = 'block';
+      panel.scrollIntoView({ behavior: 'smooth' });
+      panel.querySelector('div').textContent = '✅ Done! Set next renewal date:';
+    }
+  } else {
+    closeTlSheet();
+    showToast('✅ ' + e.label + ' marked done');
+  }
+}
+
+// ── Open reschedule panel ──
+function openReschedulePanel(id) {
+  const panel = document.getElementById('tls-reschedule-panel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Confirm reschedule: update EXPIRY date + linked fp_cal_events entry ──
+function confirmReschedule(id) {
+  const newDate = document.getElementById('tls-new-date')?.value;
+  if (!newDate) { showToast('⚠️ Pick a date first'); return; }
+  // Update in EXPIRY array
+  const e = EXPIRY.find(function(x){ return x.id === id; });
+  if (!e) return;
+  const oldDate = e.date;
+  e.date = newDate;
+  // Sync matching fp_cal_events entry (id prefix: 'tr_' + id)
+  try {
+    const calId = 'tr_' + id;
+    const evts = getCalEvents();
+    const ev = evts.find(function(x){ return x.id === calId; });
+    if (ev) { ev.date = newDate; saveCalEvents(evts); }
+  } catch(err) {}
+  // Sync to linked Agenda task (taskId field)
+  try {
+    if (e.taskId) {
+      const ts = getSchedTasks();
+      const t = ts.find(function(x){ return x.id === e.taskId; });
+      if (t) { t.dueDate = newDate; saveSchedTasks(ts); }
+    }
+  } catch(err2) {}
+  closeTlSheet();
+  initExpiry(); animateExpBars(); buildTimeline();
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+  showToast('📅 ' + e.label + ' rescheduled to ' + fmtDate(newDate));
+}
+
+// ── Sync EXPIRY dates from linked Agenda tasks (taskId field) ──
+function syncExpiryFromTasks() {
+  try {
+    var tasks = getSchedTasks();
+    EXPIRY.forEach(function(e) {
+      if (!e.taskId) return;
+      var task = tasks.find(function(t) { return t.id === e.taskId; });
+      if (task && task.dueDate) e.date = task.dueDate;
+    });
+  } catch(err) {}
 }
 
 // ═══════════════════════════════════════
 // EXPIRY (original list)
 // ═══════════════════════════════════════
 function initExpiry() {
+  syncExpiryFromTasks();
   const sorted=[...EXPIRY].sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
   const overdue=sorted.filter(e=>daysUntil(e.date)<0).length;
   const urgent=sorted.filter(e=>{const d=daysUntil(e.date);return d>=0&&d<=90;}).length;
@@ -6303,7 +6270,7 @@ function bmBarPct(def, val) {
 let hrActiveMember  = 'rajasekhar'; // selected member in add-report sheet
 let haActiveMember  = 'rajasekhar'; // selected member in add-appt sheet
 
-// ── Appointments storage ──
+// ── Appointments v3 storage (legacy — health page read-only view) ──
 function getAppts() {
   try { const s=localStorage.getItem('fp_health_appts_v3'); if(s) return JSON.parse(s); } catch(e){}
   return SEED_APPTS();
@@ -6318,6 +6285,720 @@ function SEED_APPTS() {
   ];
   localStorage.setItem('fp_health_appts_v3', JSON.stringify(appts));
   return appts;
+}
+
+// ══════════════════════════════════════════════════════════
+// APPOINTMENTS v4 — unified store (Doctor/Vehicle/Lab/Other)
+// ══════════════════════════════════════════════════════════
+const APPT_TYPES = {
+  doctor:  { label:'Doctor',  icon:'🏥', color:'#f472b6', bg:'rgba(244,114,182,.12)', border:'rgba(244,114,182,.3)' },
+  vehicle: { label:'Vehicle', icon:'🚗', color:'#38bdf8', bg:'rgba(56,189,248,.12)',  border:'rgba(56,189,248,.3)'  },
+  lab:     { label:'Lab',     icon:'🧪', color:'#a78bfa', bg:'rgba(167,139,250,.12)', border:'rgba(167,139,250,.3)' },
+  other:   { label:'Other',   icon:'📋', color:'#f0b429', bg:'rgba(240,180,41,.12)',  border:'rgba(240,180,41,.3)'  }
+};
+
+function getApptsV4() {
+  try { const s = localStorage.getItem('fp_appts_v4'); if (s) return JSON.parse(s); } catch(e) {}
+  return migrateApptsToV4();
+}
+function saveApptsV4(arr) { localStorage.setItem('fp_appts_v4', JSON.stringify(arr)); }
+
+function migrateApptsToV4() {
+  // Migrate legacy fp_health_appts_v3 → fp_appts_v4 with type:'doctor'
+  let v3 = [];
+  try { const s = localStorage.getItem('fp_health_appts_v3'); if (s) v3 = JSON.parse(s); } catch(e) {}
+  const v4 = v3.map(a => ({ ...a, type: a.type || 'doctor', vehicle: a.vehicle || '' }));
+  // Add seed v4 appointments if nothing came from v3
+  if (!v4.length) {
+    v4.push(
+      { id:'av4_a1', type:'doctor',  member:'rajasekhar', title:'Cardiology Consultation',   date:'2026-03-20', time:'10:00', loc:'Dr. Reddy, Yashoda Hospitals',  notes:'Bring ECG + last lipid report', vehicle:'' },
+      { id:'av4_a2', type:'doctor',  member:'vasundhara', title:'Thyroid Follow-up',         date:'2026-04-05', time:'09:30', loc:'Dr. Priya, KIMS Hospital',       notes:'Fasting required · 6 hrs',      vehicle:'' },
+      { id:'av4_a3', type:'doctor',  member:'josritha',   title:'Annual Health Check-up',    date:'2026-05-12', time:'08:00', loc:'Apollo Diagnostics, Hyderabad',  notes:'Full body check package',       vehicle:'' },
+      { id:'av4_a4', type:'vehicle', member:'vasundhara', title:'Activa 125 Regular Service',date:'2026-04-15', time:'10:00', loc:'Honda Service Center, KPHB',     notes:'Oil change + general check',    vehicle:'activa' },
+      { id:'av4_a5', type:'lab',     member:'rajasekhar', title:'Lipid Panel + HbA1c',       date:'2026-06-01', time:'07:30', loc:'Apollo Diagnostics, Ameerpet',   notes:'Fasting 10 hrs required',       vehicle:'' }
+    );
+  }
+  saveApptsV4(v4);
+  return v4;
+}
+
+// ████████████████████████████████████████████████████████
+// § SCHEDULER     Agenda page — Tasks · Events · Appts
+// initSchedulerPage, switchSchTab, renderSchedTasks,
+// renderSchedEvents, renderSchedAppts,
+// openSchedSheet, saveSchedTask, saveSchedEvent,
+// markTaskDone, undoTaskDone, getSchedTasks, saveSchedTasks
+// ████████████████████████████████████████████████████████
+
+var _schTab = 'tasks';
+var _schTaskEditId = null;
+var _schEventEditId = null;
+var _schApptFilter = 'all';
+var _schDoneCount = 0;
+
+function getSchedTasks() {
+  try { var s = localStorage.getItem('fp_sched_tasks'); if (s) return JSON.parse(s); } catch(e) {}
+  return seedSchedTasks();
+}
+function saveSchedTasks(arr) { localStorage.setItem('fp_sched_tasks', JSON.stringify(arr)); }
+
+function seedSchedTasks() {
+  var tasks = [
+    { id:'st_prop_flat403', icon:'🏘️', title:'Property Tax \u2013 Flat 403', sub:'cdma.ap.gov.in \u00b7 ASSESS 1035037996', dueDate:'2026-02-20', cat:'property', member:'rajasekhar', notes:'Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_prop_shopg5',  icon:'🏬', title:'Property Tax \u2013 Shop G5',  sub:'cdma.ap.gov.in \u00b7 ASSESS 1035038052', dueDate:'2026-02-20', cat:'property', member:'rajasekhar', notes:'Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_car_ins',    icon:'🚗', title:'Car Insurance Renewal',   sub:'AP27AK7873 \u00b7 ICICI LOMBARD', dueDate:'2026-06-28', cat:'finance', member:'rajasekhar', notes:'Policy 3001/103498197/10/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_health_fam', icon:'👨‍👩‍👧‍👦', title:'Family Health Insurance Renewal', sub:'ICICI FLOATER \u00b7 \u20b925,812', dueDate:'2026-08-04', cat:'health', member:'rajasekhar', notes:'Policy 4193i/APRN/400529214/00/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_health_ind', icon:'🏥', title:'Individual Health Insurance Renewal', sub:'RAJASEKHAR \u00b7 \u20b921,502', dueDate:'2026-08-06', cat:'health', member:'rajasekhar', notes:'Policy 4128i/HSNR/92094505/10/000', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_dl',         icon:'🪪', title:'Driving Licence Expiry',  sub:'DLFAP62729122008 \u00b7 SARATHI', dueDate:'2027-01-20', cat:'government', member:'rajasekhar', notes:'Renew at Sarathi portal', status:'pending', createdAt:new Date().toISOString() },
+    { id:'st_bike_ins',   icon:'🛵', title:'Bike Insurance Renewal',  sub:'TS08HJ8438 \u00b7 ICICI LOMBARD', dueDate:'2028-02-24', cat:'finance', member:'vasundhara', notes:'Policy 3005/430080806/00/000', status:'pending', createdAt:new Date().toISOString() }
+  ];
+  saveSchedTasks(tasks);
+  return tasks;
+}
+
+function getCalEvents() {
+  try { var s = localStorage.getItem('fp_cal_events'); if (s) return JSON.parse(s); } catch(e) {}
+  return [];
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function initSchedulerPage() {
+  _schDoneCount = 0;
+  var monthEl = document.getElementById('sched-hdr-month');
+  if (monthEl) monthEl.textContent = new Date().toLocaleString('en-IN',{month:'long',year:'numeric'}).toUpperCase();
+  var avatarEl = document.getElementById('sched-hdr-avatar');
+  if (avatarEl) { var initials={rajasekhar:'RD',vasundhara:'VD',josritha:'JD',jeevan:'JV'}; var am=typeof activeMember!=='undefined'?activeMember:'rajasekhar'; avatarEl.textContent=initials[am]||'RD'; }
+  renderSchedTasks();
+  renderSchedEvents();
+  renderSchedAppts();
+  updateSchedBadges();
+  switchSchTab(_schTab, true);
+  var canvas = document.getElementById('sc-canvas');
+  if (canvas && !canvas._scSwipeInit) {
+    canvas._scSwipeInit = true;
+    var sx = 0;
+    canvas.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; },{passive:true});
+    canvas.addEventListener('touchend', function(e){
+      var dx=e.changedTouches[0].clientX-sx, order=['tasks','events','appts'], idx=order.indexOf(_schTab);
+      if(dx<-50&&idx<order.length-1) switchSchTab(order[idx+1]);
+      if(dx>50&&idx>0) switchSchTab(order[idx-1]);
+    },{passive:true});
+  }
+  // chip onclick wiring for sct (task form — uses sct2-* classes)
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); var badge=document.getElementById('sct2-cat-badge'); if(badge) badge.textContent=(c.dataset.cat||'other')+' ✓'; }; });
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){ c.onclick=function(){ document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(x){x.classList.remove('active');}); c.classList.add('active'); var badge=document.getElementById('sce2-cat-badge'); if(badge) badge.textContent=(c.dataset.cat||'other')+' ✓'; }; });
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){ c.onclick=function(){ c.classList.toggle('active'); }; });
+  // Wire Save + Delete buttons via addEventListener (reliable on iOS Safari in scroll context)
+  function _wireBtn(id, fn) {
+    var btn = document.getElementById(id);
+    if (!btn || btn._wired) return;
+    btn._wired = true;
+    var tapped = false;
+    btn.addEventListener('touchstart', function(){ tapped = false; }, {passive:true});
+    btn.addEventListener('touchend', function(e){
+      e.preventDefault(); tapped = true; fn();
+      setTimeout(function(){ tapped = false; }, 600);
+    }, {passive:false});
+    btn.addEventListener('click', function(){ if(!tapped) fn(); });
+  }
+  _wireBtn('sct-save-btn', saveSchedTask);
+}
+
+function switchSchTab(tab, skipAnim) {
+  var tabs = ['tasks','events','appts'];
+  if (!skipAnim && _schTab !== tab) {
+    var outEl=document.getElementById('sc-panel-'+_schTab); if(outEl){outEl.classList.remove('sc-active');outEl.classList.add('sc-exit-left');setTimeout(function(){outEl.classList.remove('sc-exit-left');},400);}
+    var outBtn=document.getElementById('sc-btn-'+_schTab); if(outBtn) outBtn.classList.remove('active');
+  } else {
+    tabs.forEach(function(t){var p=document.getElementById('sc-panel-'+t);if(p)p.classList.remove('sc-active','sc-exit-left');var b=document.getElementById('sc-btn-'+t);if(b)b.classList.remove('active');});
+  }
+  _schTab=tab;
+  var inEl=document.getElementById('sc-panel-'+tab); if(inEl) inEl.classList.add('sc-active');
+  var inBtn=document.getElementById('sc-btn-'+tab); if(inBtn) inBtn.classList.add('active');
+  var fabLbl=document.getElementById('sc-fab-label'); if(fabLbl) fabLbl.textContent=tab==='events'?'Add Event':tab==='appts'?'Schedule Appt':'Add Task';
+  var fabBtn=document.getElementById('sc-fab-btn'); if(fabBtn){fabBtn.className='sc-add-btn'+(tab==='events'?' ev-fab':tab==='appts'?' ap-fab':'');}
+}
+
+function updateSchedBadges() {
+  var today=new Date();today.setHours(0,0,0,0);
+  var tasks=getSchedTasks().filter(function(t){return t.status!=='done';});
+  var events=getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;});
+  var appts=(typeof getApptsV4==='function'?getApptsV4():[]).filter(function(a){return new Date(a.date+'T12:00:00')>=today;});
+  var overdue=tasks.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;}).length;
+  var tb=document.getElementById('sc-badge-tasks'); if(tb){tb.textContent=tasks.length;tb.className='sc-cb-count sc-count-task'+(overdue>0?' sc-count-danger':'');}
+  var eb=document.getElementById('sc-badge-events'); if(eb) eb.textContent=events.length;
+  var ab=document.getElementById('sc-badge-appts');  if(ab) ab.textContent=appts.length;
+  var dot=document.getElementById('agenda-alert-dot'); if(dot) dot.style.display=overdue>0?'':'none';
+}
+
+function renderSchedTasks() {
+  var rail=document.getElementById('sc-task-rail'); if(!rail) return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var allTasks=getSchedTasks();
+  var pending=allTasks.filter(function(t){return t.status!=='done';});
+  var doneTasks=allTasks.filter(function(t){return t.status==='done';});
+  var pinned=pending.filter(function(t){return t.pinned;});
+  var unpinned=pending.filter(function(t){return !t.pinned;});
+  function _sortByDue(arr){return arr.sort(function(a,b){var da=a.dueDate?new Date(a.dueDate+'T12:00:00'):new Date('2099-12-31'),db=b.dueDate?new Date(b.dueDate+'T12:00:00'):new Date('2099-12-31');return da-db;});}
+  _sortByDue(pinned);_sortByDue(unpinned);
+  var doneCount=doneTasks.length,total=allTasks.length,pct=total>0?Math.round(doneCount/total*100):0;
+  var overdueTasks=pending.filter(function(t){return t.dueDate&&new Date(t.dueDate+'T12:00:00')<today;});
+  var banner=document.getElementById('sc-overdue-banner');
+  if(banner){if(overdueTasks.length>0){banner.style.display='flex';var obT=document.getElementById('sc-ob-text'),obS=document.getElementById('sc-ob-sub');if(obT)obT.textContent=overdueTasks.length+' item'+(overdueTasks.length===1?'':'s')+' overdue';if(obS)obS.textContent=overdueTasks.map(function(t){return t.title;}).join(' \u00b7 ');}else{banner.style.display='none';}}
+  var countLbl=document.getElementById('sc-task-count-lbl');if(countLbl)countLbl.textContent=pending.length+' pending';
+  rail.innerHTML='';
+  if(!allTasks.length){rail.innerHTML='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';return;}
+  function _bc(t){if(!t.dueDate)return 'ok';var d=new Date(t.dueDate+'T12:00:00'),diff=Math.ceil((d-today)/86400000);if(diff<0)return 'urgent';if(diff<=30)return 'soon';return 'ok';}
+  function _bl(t){if(!t.dueDate)return 'No date';var d=new Date(t.dueDate+'T12:00:00'),diff=Math.ceil((d-today)/86400000);if(diff<0)return 'Overdue';if(diff===0)return 'Today';if(diff===1)return 'Tomorrow';return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+  function _card(t){var bc=_bc(t),bl=_bl(t),isDone=t.status==='done',isOvd=bc==='urgent'&&!isDone;return '<div class="sct2-card'+(isOvd?' sct2-overdue':'')+(isDone?' sct2-done-card':'')+'" data-id="'+escHtml(t.id)+'">'+'<div class="sct2-emoji">'+(t.icon||'📋')+'</div>'+'<div class="sct2-body"><div class="sct2-name">'+escHtml(t.title)+'</div><div class="sct2-ref">'+escHtml(t.sub||t.notes||'')+'</div></div>'+'<div class="sct2-right"><span class="sct2-badge '+bc+'">'+bl+'</span>'+(t.pinned&&!isDone?'<div class="sct2-pin-pip"></div>':'')+'<button class="sct2-more-btn" data-id="'+escHtml(t.id)+'">···</button></div>'+'</div>';}
+  function _sec(label,arr){if(!arr.length)return '';var h='<div class="sct2-sec-head"><span class="sct2-sec-label">'+label+'</span><div class="sct2-sec-line"></div></div>';arr.forEach(function(t){h+=_card(t);});return h;}
+  var html='<div class="sct2-prog-wrap"><div class="sct2-pbar"><div class="sct2-pfill" style="width:'+pct+'%"></div></div><span class="sct2-plabel">'+doneCount+' / '+total+'</span></div>';
+  if(pinned.length)html+=_sec('📌 Pinned',pinned);
+  if(unpinned.length)html+=_sec('🗂 Tasks',unpinned);
+  if(doneTasks.length)html+=_sec('✅ Done',doneTasks);
+  if(!pinned.length&&!unpinned.length&&!doneTasks.length)html+='<div class="sc-empty"><div class="sc-empty-ico">✅</div><div class="sc-empty-title">All caught up!</div><div class="sc-empty-sub">No tasks. Tap + to add one.</div></div>';
+  rail.innerHTML=html;
+  if(!rail._sct2Bound){rail._sct2Bound=true;rail.addEventListener('click',function(e){var btn=e.target.closest('.sct2-more-btn');if(!btn)return;e.stopPropagation();var id=btn.dataset.id;if(window._sct2MenuId===id){_sct2CloseMenu();return;}_sct2OpenMenu(id,btn);});}
+}
+
+function _sct2OpenMenu(id,btn){
+  _sct2CloseMenu();
+  window._sct2MenuId=id;
+  var tasks=getSchedTasks(),task=tasks.find(function(t){return t.id===id;});
+  if(!task)return;
+  var card=btn.closest('.sct2-card');if(card)card.classList.add('sct2-menu-open');
+  var dim=document.createElement('div');dim.className='sct2-menu-dim';dim.id='sct2-dim';dim.addEventListener('click',_sct2CloseMenu);
+  var popup=document.createElement('div');popup.className='sct2-menu-popup';popup.id='sct2-popup';
+  var pinLbl=task.pinned?'Unpin':'Pin',pinIco=task.pinned?'📍':'📌';
+  var doneLbl=task.status==='done'?'Undo done':'Mark done',doneIco=task.status==='done'?'↩️':'✅';
+  popup.innerHTML='<button class="sct2-mi" data-action="edit"><span class="sct2-mi-ico">✏️</span><span class="sct2-mi-lbl">Edit</span></button>'
+    +'<button class="sct2-mi" data-action="pin"><span class="sct2-mi-ico">'+pinIco+'</span><span class="sct2-mi-lbl">'+pinLbl+'</span></button>'
+    +'<button class="sct2-mi" data-action="done"><span class="sct2-mi-ico">'+doneIco+'</span><span class="sct2-mi-lbl">'+doneLbl+'</span></button>'
+    +'<button class="sct2-mi sct2-mi-del" data-action="delete"><span class="sct2-mi-ico">🗑️</span><span class="sct2-mi-lbl">Delete</span></button>';
+  popup.querySelectorAll('[data-action]').forEach(function(item){item.addEventListener('click',function(e){e.stopPropagation();var action=item.dataset.action,ts=getSchedTasks(),t=ts.find(function(x){return x.id===id;});
+    if(action==='edit'){_sct2CloseMenu();editSchedTask(id);}
+    else if(action==='pin'){if(t){t.pinned=!t.pinned;saveSchedTasks(ts);}; _sct2CloseMenu();renderSchedTasks();updateSchedBadges();}
+    else if(action==='done'){if(t){if(t.status==='done'){t.status='pending';delete t.doneAt;}else{t.status='done';t.doneAt=new Date().toISOString();}saveSchedTasks(ts);}_sct2CloseMenu();renderSchedTasks();updateSchedBadges();}
+    else if(action==='delete'){_sct2CloseMenu();deleteSchedTaskById(id);}
+  });});
+  var r=btn.getBoundingClientRect();
+  popup.style.top=(r.bottom+6)+'px';
+  popup.style.right=(window.innerWidth-r.right+2)+'px';
+  document.body.appendChild(dim);document.body.appendChild(popup);
+}
+
+function _sct2CloseMenu(){
+  var rail=document.getElementById('sc-task-rail');
+  if(rail)rail.querySelectorAll('.sct2-card.sct2-menu-open').forEach(function(c){c.classList.remove('sct2-menu-open');});
+  var d=document.getElementById('sct2-dim'),p=document.getElementById('sct2-popup');
+  if(d)d.remove();if(p)p.remove();
+  window._sct2MenuId=null;
+}
+
+
+function _buildEvCard(ev,today){
+  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
+  var dotColor=ev.color||CAT_COLORS[ev.cat]||'#a78bfa';
+  var d=new Date(ev.date+'T12:00:00');
+  var timeStr=ev.start?ev.start:d.toLocaleString('en-IN',{day:'2-digit',month:'short'});
+  var daysAway=Math.ceil((d-today)/86400000);
+  var urgClass=daysAway===0?'risk-crit':daysAway<=7?'risk-warn':'risk-ok';
+  var urgLabel=daysAway===0?'TODAY':daysAway===1?'Tomorrow':'In '+daysAway+'d';
+  var card=document.createElement('div');card.className='sc-ev-card';
+  card.innerHTML='<div class="sc-ev-time-col"><div class="sc-ev-time-txt">'+escHtml(timeStr)+'</div><div class="sc-ev-dot" style="background:'+dotColor+';box-shadow:0 0 8px '+dotColor+'88;"></div></div><div class="sc-ev-body" onclick="editSchedEvent(\''+ev.id+'\')"><div class="sc-ev-subject">'+escHtml(ev.title)+'</div><div class="sc-ev-meta">'+(ev.cat||'').toUpperCase()+(Array.isArray(ev.members)&&ev.members.length?' \u00b7 '+ev.members.join(','):'')+'</div><div class="sc-ev-cat '+urgClass+'" style="background:'+dotColor+'18;color:'+dotColor+';border:1px solid '+dotColor+'44;">'+urgLabel+'</div></div><div class="sc-ev-del-btn" onclick="event.stopPropagation();deleteSchedEventById(\''+ev.id+'\')" title="Delete">🗑</div>';
+  return card;
+}
+
+function _buildEvSection(title,icon,events,today,collapsed){
+  var section=document.createElement('div');
+  section.className='sc-ev-section'+(collapsed?' collapsed':'');
+  var bodyH=collapsed?'0px':'auto';
+  var chevron=collapsed?'›':'‹';
+  /* header */
+  var hdr=document.createElement('div');hdr.className='sc-ev-section-hdr';
+  hdr.innerHTML='<div class="sc-ev-section-left"><span style="font-size:14px;">'+icon+'</span><span class="sc-ev-section-title">'+title+'</span><span class="sc-ev-section-badge">'+events.length+'</span></div><span class="sc-ev-section-chevron">'+(collapsed?'▸':'▾')+'</span>';
+  hdr.addEventListener('click',function(){
+    var isCol=section.classList.contains('collapsed');
+    var body=section.querySelector('.sc-ev-section-body');
+    var chev=hdr.querySelector('.sc-ev-section-chevron');
+    if(isCol){section.classList.remove('collapsed');if(chev)chev.textContent='▾';body.style.maxHeight=body.scrollHeight+'px';setTimeout(function(){body.style.maxHeight='none';},320);}
+    else{body.style.maxHeight=body.scrollHeight+'px';requestAnimationFrame(function(){body.style.maxHeight='0px';});section.classList.add('collapsed');if(chev)chev.textContent='▸';}
+  });
+  section.appendChild(hdr);
+  /* body */
+  var body=document.createElement('div');body.className='sc-ev-section-body';
+  if(collapsed)body.style.maxHeight='0px';
+  var tWrap=document.createElement('div');tWrap.style.cssText='position:relative;';
+  var tLine=document.createElement('div');tLine.className='sc-timeline-line';tWrap.appendChild(tLine);
+  events.forEach(function(ev){tWrap.appendChild(_buildEvCard(ev,today));});
+  body.appendChild(tWrap);section.appendChild(body);
+  return section;
+}
+
+function renderSchedEvents(){
+  var wrap=document.getElementById('sc-timeline-wrap');if(!wrap)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var all=getCalEvents().filter(function(e){return new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var countLbl=document.getElementById('sc-events-count-lbl');if(countLbl)countLbl.textContent=all.length+' upcoming';
+  wrap.innerHTML='';
+  if(!all.length){var em=document.createElement('div');em.className='sc-ev-empty';em.innerHTML='<div class="sc-empty-ico">📅</div><div class="sc-empty-title">No upcoming events</div><div class="sc-empty-sub">Tap + to add one</div>';wrap.appendChild(em);return;}
+  var eduEvs=all.filter(function(e){return e.cat==='education';});
+  var lifeEvs=all.filter(function(e){return e.cat!=='education';});
+  /* Life Events section — expanded by default */
+  if(lifeEvs.length) wrap.appendChild(_buildEvSection('Life Events','🗓',lifeEvs,today,false));
+  /* Education section — collapsed by default */
+  if(eduEvs.length) wrap.appendChild(_buildEvSection('Education','🎓',eduEvs,today,true));
+}
+
+function renderSchedAppts(){
+  var wrap=document.getElementById('sc-appt-list-wrap'),statsEl=document.getElementById('sc-appt-stats'),pillWrap=document.getElementById('sc-appt-filter-pills');if(!wrap)return;
+  var today=new Date();today.setHours(0,0,0,0);
+  var all=typeof getApptsV4==='function'?getApptsV4():[];
+  if(statsEl){var counts={doctor:0,vehicle:0,lab:0,other:0};all.filter(function(a){return new Date(a.date+'T12:00:00')>=today;}).forEach(function(a){if(counts[a.type]!=null)counts[a.type]++;});statsEl.innerHTML=Object.entries(APPT_TYPES||{}).map(function(kv){var k=kv[0],t=kv[1];return'<div class="appt-stat-chip" style="background:'+t.bg+';border-color:'+t.border+';color:'+t.color+'">'+t.icon+' '+counts[k]+' '+t.label+'</div>';}).join('');}
+  if(pillWrap){var pills=[{id:'all',label:'All',icon:'🗓'},{id:'doctor',label:'Doctor',icon:'🏥'},{id:'vehicle',label:'Vehicle',icon:'🚗'},{id:'lab',label:'Lab',icon:'🧪'},{id:'other',label:'Other',icon:'📋'}];pillWrap.innerHTML=pills.map(function(p){var t=(APPT_TYPES||{})[p.id]||{};var active=_schApptFilter===p.id;return'<div class="appt-fpill'+(active?' active':'')+'" data-type="'+p.id+'"'+(active?' style="background:'+t.bg+';border-color:'+t.border+';color:'+t.color+'"':'')+' onclick="setSchApptFilter(\''+p.id+'\')">'+p.icon+' '+p.label+'</div>';}).join('');}
+  var upcoming=all.filter(function(a){return new Date(a.date+'T12:00:00')>=today;});var past=all.filter(function(a){return new Date(a.date+'T12:00:00')<today;});
+  if(_schApptFilter!=='all'){upcoming=upcoming.filter(function(a){return a.type===_schApptFilter;});past=past.filter(function(a){return a.type===_schApptFilter;});}
+  upcoming.sort(function(a,b){return a.date.localeCompare(b.date);});past.sort(function(a,b){return b.date.localeCompare(a.date);});
+  var countLbl=document.getElementById('sc-appts-count-lbl');if(countLbl)countLbl.textContent=upcoming.length+' upcoming';
+  if(!upcoming.length&&!past.length){wrap.innerHTML='<div class="sc-empty"><div class="sc-empty-ico">🗓</div><div class="sc-empty-title">No appointments yet</div><div class="sc-empty-sub">Tap + to schedule one</div></div>';return;}
+  var html='';
+  if(upcoming.length){html+='<div class="appt-section-label" style="padding:0 0 8px;">UPCOMING \u00b7 '+upcoming.length+'</div>';html+=upcoming.map(function(a){return buildApptCard(a,today);}).join('');}
+  if(past.length){html+='<div class="appt-section-label" style="padding:12px 0 8px;opacity:.6;">PAST \u00b7 '+past.length+'</div>';html+=past.slice(0,5).map(function(a){return buildApptCard(a,today,true);}).join('');}
+  wrap.innerHTML=html;
+}
+
+function setSchApptFilter(f){_schApptFilter=f;renderSchedAppts();}
+
+/* Show ADD TASK/EVENT/APPT button only when on scheduler page AND no sheet is open */
+function _updateBnavAction(){
+  var el=document.getElementById('sc-fab-wrap');if(!el)return;
+  var taskOpen=!!(document.getElementById('sc-task-sheet')?.classList.contains('open'));
+  var eventOpen=!!(document.getElementById('sc-event-sheet')?.classList.contains('open'));
+  var apptEl=document.getElementById('apptv4-sheet');
+  var apptOpen=apptEl?apptEl.classList.contains('open'):false;
+  var onSched=(typeof currentPage!=='undefined')&&currentPage==='scheduler';
+  el.style.display=(onSched&&!taskOpen&&!eventOpen&&!apptOpen)?'block':'none';
+}
+
+function openSchedSheet(){
+  if(_schTab==='tasks')      openSchedTaskSheet();
+  else if(_schTab==='events') openSchedEventSheet();
+  else if(_schTab==='appts')  openApptSheetV4();
+}
+
+function openSchedTaskSheet(prefill){
+  _schTaskEditId=null;var p=prefill||{};
+  var eyebrow=document.getElementById('sc-task-sheet-title');if(eyebrow)eyebrow.textContent='New Entry';
+  ['sct-title','sct-due','sct-icon','sct-notes','sct-reminder'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='finance');});
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='rajasekhar');});
+  var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent='Finance ✓';
+  var editId=document.getElementById('sct-edit-id');if(editId)editId.value='';
+  document.getElementById('sc-task-sheet').classList.add('open');
+  _updateBnavAction();
+}
+
+function editSchedTask(id){
+  var tasks=getSchedTasks();var task=tasks.find(function(t){return t.id===id;});if(!task)return;
+  _schTaskEditId=id;
+  var eyebrow=document.getElementById('sc-task-sheet-title');if(eyebrow)eyebrow.textContent='Edit Entry';
+  var fmap={'sct-title':task.title||'','sct-due':task.dueDate||'','sct-icon':task.icon||'','sct-notes':task.notes||'','sct-reminder':task.reminder||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sct-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(task.cat||'other'));});
+  document.querySelectorAll('#sct-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member===(task.member||'rajasekhar'));});
+  var badge=document.getElementById('sct2-cat-badge');if(badge)badge.textContent=(task.cat||'other')+' ✓';
+  var editId=document.getElementById('sct-edit-id');if(editId)editId.value=id;
+  document.getElementById('sc-task-sheet').classList.add('open');
+  _updateBnavAction();
+}
+
+function saveSchedTask(){
+  var title=(document.getElementById('sct-title')?.value||'').trim();
+  var due=document.getElementById('sct-due')?.value||'';
+  var icon=(document.getElementById('sct-icon')?.value||'').trim()||'📋';
+  var notes=(document.getElementById('sct-notes')?.value||'').trim();
+  var reminder=(document.getElementById('sct-reminder')?.value||'').trim();
+  var cat=document.querySelector('#sct-cat-row .sct2-cat-chip.active')?.dataset.cat||'other';
+  var member=document.querySelector('#sct-mem-row .sct2-mem-chip.active')?.dataset.member||'rajasekhar';
+  var editId=document.getElementById('sct-edit-id')?.value||'';
+  if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
+  var CAT_ICONS={finance:'\u{1f4b0}',health:'\u{1f3e5}',government:'\u{1faa9}',property:'\u{1f3e0}',vehicle:'\u{1f697}',education:'\u{1f393}',birthday:'\u{1f382}',other:'\u{1f4cb}'};
+  var tasks=getSchedTasks();
+  if(editId){var idx=tasks.findIndex(function(t){return t.id===editId;});if(idx!==-1)tasks[idx]=Object.assign(tasks[idx],{title,dueDate:due,icon,notes,reminder,cat,member});}
+  else{if(icon==='📋'&&CAT_ICONS[cat])icon=CAT_ICONS[cat];tasks.push({id:'st_'+Date.now(),title,dueDate:due,icon,notes,reminder,cat,member,sub:'',status:'pending',createdAt:new Date().toISOString()});}
+  saveSchedTasks(tasks);
+  // Sync due date to EXPIRY entry if this task is linked (editId case only — new tasks don't match)
+  if(editId&&due){try{var ex=EXPIRY.find(function(e){return e.taskId===editId;});if(ex)ex.date=due;}catch(e2){}}
+  closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
+  if(typeof showToast==='function')showToast(editId?'✅ Task updated':'✅ Task saved');
+}
+
+function deleteSchedTask(){
+  var editId=document.getElementById('sct-edit-id')?.value||'';if(!editId)return;
+  saveSchedTasks(getSchedTasks().filter(function(t){return t.id!==editId;}));
+  closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
+  if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Task deleted');
+}
+function deleteSchedTaskById(id){
+  var row=document.getElementById('sct-row-'+id);
+  if(row){row.style.transition='opacity .2s,transform .2s';row.style.opacity='0';row.style.transform='translateX(20px)';}
+  setTimeout(function(){
+    saveSchedTasks(getSchedTasks().filter(function(t){return t.id!==id;}));
+    renderSchedTasks();updateSchedBadges();
+    if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Task deleted');
+  },200);
+}
+
+function openSchedEventSheet(prefill){
+  _schEventEditId=null;var p=prefill||{};
+  var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Add Event';
+  var fmap={'sce-title':p.title||'','sce-date':p.date||new Date().toISOString().slice(0,10),'sce-time':p.time||'','sce-notes':p.notes||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat==='birthday');});
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',c.dataset.member==='all');});
+  var badge=document.getElementById('sce2-cat-badge');if(badge)badge.textContent='Birthday ✓';
+  var editId=document.getElementById('sce-edit-id');if(editId)editId.value='';
+  var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='none';
+  document.getElementById('sc-event-sheet').classList.add('open');
+  _updateBnavAction();
+}
+
+function editSchedEvent(id){
+  var ev=getCalEvents().find(function(e){return e.id===id;});if(!ev)return;
+  _schEventEditId=id;
+  var titleEl=document.getElementById('sc-event-sheet-title');if(titleEl)titleEl.textContent='Edit Event';
+  var fmap={'sce-title':ev.title||'','sce-date':ev.date||'','sce-time':ev.start||'','sce-notes':ev.notes||''};
+  Object.entries(fmap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.value=kv[1];});
+  document.querySelectorAll('#sce-cat-row .sct2-cat-chip').forEach(function(c){c.classList.toggle('active',c.dataset.cat===(ev.cat||'other'));});
+  var evMems=Array.isArray(ev.members)?ev.members:['all'];
+  document.querySelectorAll('#sce-mem-row .sct2-mem-chip').forEach(function(c){c.classList.toggle('active',evMems.includes(c.dataset.member));});
+  var badge=document.getElementById('sce2-cat-badge');if(badge)badge.textContent=(ev.cat||'other')+' ✓';
+  var editId=document.getElementById('sce-edit-id');if(editId)editId.value=id;
+  var delBtn=document.getElementById('sce-del-btn');if(delBtn)delBtn.style.display='';
+  document.getElementById('sc-event-sheet').classList.add('open');
+  _updateBnavAction();
+}
+
+function saveSchedEvent(){
+  var title=(document.getElementById('sce-title')?.value||'').trim();
+  var date=document.getElementById('sce-date')?.value||'';
+  var time=document.getElementById('sce-time')?.value||'';
+  var notes=(document.getElementById('sce-notes')?.value||'').trim();
+  var cat=document.querySelector('#sce-cat-row .sct2-cat-chip.active')?.dataset.cat||'other';
+  var editId=document.getElementById('sce-edit-id')?.value||'';
+  var selMems=Array.from(document.querySelectorAll('#sce-mem-row .sct2-mem-chip.active')).map(function(c){return c.dataset.member;});
+  if(!selMems.length)selMems=['all'];
+  if(!title){if(typeof showToast==='function')showToast('\u26a0\ufe0f Enter a title');return;}
+  if(!date) {if(typeof showToast==='function')showToast('\u26a0\ufe0f Pick a date');return;}
+  var CAT_COLORS={birthday:'#f472b6',finance:'#f0b429',health:'#4f7fff',government:'#ff8c42',education:'#34d399',other:'#a78bfa'};
+  var color=CAT_COLORS[cat]||'#a78bfa';
+  var events=getCalEvents();
+  if(editId){var idx=events.findIndex(function(e){return e.id===editId;});if(idx!==-1)events[idx]=Object.assign(events[idx],{title,date,start:time,cat,color,members:selMems,notes});}
+  else{events.push({id:'e'+Date.now(),title,date,start:time,end:'',cat,color,members:selMems,notes});}
+  localStorage.setItem('fp_cal_events',JSON.stringify(events));
+  closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
+  if(typeof initCalendar==='function'&&typeof currentPage!=='undefined'&&currentPage==='calendar')initCalendar();
+  if(typeof showToast==='function')showToast(editId?'✅ Event updated':'✅ Event saved');
+}
+
+function deleteSchedEvent(){
+  var editId=document.getElementById('sce-edit-id')?.value||'';if(!editId)return;
+  localStorage.setItem('fp_cal_events',JSON.stringify(getCalEvents().filter(function(e){return e.id!==editId;})));
+  closeSchedSheet('event');renderSchedEvents();updateSchedBadges();
+  if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
+}
+function deleteSchedEventById(id){
+  var cards=document.querySelectorAll('.sc-ev-card');
+  cards.forEach(function(c){if(c.querySelector('[onclick*="\''+id+'\'"]'))c.style.cssText='transition:opacity .2s,transform .2s;opacity:0;transform:translateX(20px);';});
+  setTimeout(function(){
+    localStorage.setItem('fp_cal_events',JSON.stringify(getCalEvents().filter(function(e){return e.id!==id;})));
+    renderSchedEvents();updateSchedBadges();
+    if(typeof showToast==='function')showToast('\u{1f5d1}\ufe0f Event deleted');
+  },200);
+}
+
+function closeSchedSheet(type){
+  var id=type==='task'?'sc-task-sheet':'sc-event-sheet';
+  var el=document.getElementById(id);if(el)el.classList.remove('open');
+  _updateBnavAction();
+}
+
+// ██████████████████████████████████████████████████████████
+// § APPOINTMENTS_PAGE  Unified Appointments Hub
+// initAppointmentsPage, renderApptsList, openApptSheetV4,
+// closeApptSheetV4, saveApptV4, deleteApptV4,
+// apptCreateCalEvent, apptDeleteCalEvent
+// ██████████████████████████████████████████████████████████
+
+var _apptSheetMode = 'add'; // 'add' | 'edit'
+var _apptEditId    = null;
+var _apptFilter    = 'all'; // 'all' | 'doctor' | 'vehicle' | 'lab' | 'other'
+
+// ── Page init ──
+function initAppointmentsPage() {
+  renderApptsList();
+  renderApptFilterPills();
+}
+
+// ── Filter pills ──
+function renderApptFilterPills() {
+  const wrap = document.getElementById('appt-filter-pills');
+  if (!wrap) return;
+  const pills = [
+    { id:'all',     label:'All',     icon:'🗓' },
+    { id:'doctor',  label:'Doctor',  icon:'🏥' },
+    { id:'vehicle', label:'Vehicle', icon:'🚗' },
+    { id:'lab',     label:'Lab',     icon:'🧪' },
+    { id:'other',   label:'Other',   icon:'📋' }
+  ];
+  wrap.innerHTML = pills.map(p => {
+    const t = APPT_TYPES[p.id] || {};
+    const active = _apptFilter === p.id;
+    return `<div class="appt-fpill${active?' active':''}" data-type="${p.id}"
+      style="${active ? `background:${t.bg||'rgba(167,139,250,.15)'};border-color:${t.border||'rgba(167,139,250,.4)'};color:${t.color||'var(--purple)'}` : ''}"
+      onclick="setApptFilter('${p.id}')">${p.icon} ${p.label}</div>`;
+  }).join('');
+}
+
+function setApptFilter(f) {
+  _apptFilter = f;
+  renderApptFilterPills();
+  renderApptsList();
+}
+
+// ── Main list renderer ──
+function renderApptsList() {
+  const wrap = document.getElementById('appt-list-wrap');
+  if (!wrap) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let all = getApptsV4();
+
+  // Upcoming (today+)
+  let upcoming = all.filter(a => new Date(a.date + 'T12:00:00') >= today);
+  // Past (yesterday-)
+  let past = all.filter(a => new Date(a.date + 'T12:00:00') < today);
+
+  if (_apptFilter !== 'all') {
+    upcoming = upcoming.filter(a => a.type === _apptFilter);
+    past     = past.filter(a => a.type === _apptFilter);
+  }
+  upcoming.sort((a,b) => a.date.localeCompare(b.date));
+  past.sort((a,b) => b.date.localeCompare(a.date));
+
+  // Stats bar
+  const statsEl = document.getElementById('appt-stats');
+  if (statsEl) {
+    const counts = { doctor:0, vehicle:0, lab:0, other:0 };
+    all.filter(a => new Date(a.date + 'T12:00:00') >= today).forEach(a => { if (counts[a.type] != null) counts[a.type]++; });
+    statsEl.innerHTML = Object.entries(APPT_TYPES).map(([k,t]) =>
+      `<div class="appt-stat-chip" style="background:${t.bg};border-color:${t.border};color:${t.color}">
+        ${t.icon} ${counts[k]} ${t.label}
+      </div>`
+    ).join('');
+  }
+
+  if (!upcoming.length && !past.length) {
+    wrap.innerHTML = `<div class="appt-empty">
+      <div style="font-size:40px;margin-bottom:12px">🗓</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">No appointments yet</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">Tap + to schedule one</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if (upcoming.length) {
+    html += `<div class="appt-section-label">UPCOMING · ${upcoming.length}</div>`;
+    html += upcoming.map(a => buildApptCard(a, today)).join('');
+  }
+  if (past.length) {
+    html += `<div class="appt-section-label" style="margin-top:20px;opacity:.6">PAST · ${past.length}</div>`;
+    html += past.slice(0, 5).map(a => buildApptCard(a, today, true)).join('');
+  }
+  wrap.innerHTML = html;
+}
+
+function buildApptCard(a, today, isPast) {
+  const t = APPT_TYPES[a.type] || APPT_TYPES.other;
+  const d = new Date(a.date + 'T12:00:00');
+  const daysAway = Math.ceil((d - today) / 86400000);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = d.toLocaleString('en-IN',{month:'short'}).toUpperCase();
+  const dow = d.toLocaleString('en-IN',{weekday:'short'}).toUpperCase();
+  const memberMeta = Object.values(MEMBERS || {}).find(m => m.id === a.member || m.shortName?.toLowerCase() === a.member);
+  const memberName = memberMeta ? memberMeta.shortName : (a.member || '—');
+  const urgBadge = !isPast && daysAway <= 7
+    ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:${t.color};background:${t.bg};padding:2px 7px;border-radius:6px;border:1px solid ${t.border}">In ${daysAway}d</span>`
+    : !isPast && daysAway === 0
+    ? `<span style="font-size:9px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);background:rgba(255,79,79,.1);padding:2px 7px;border-radius:6px">TODAY</span>`
+    : '';
+  const metaParts = [];
+  if (a.time) metaParts.push('🕐 ' + escHtml(a.time));
+  if (a.loc) metaParts.push(escHtml(a.loc));
+  if (a.vehicle) metaParts.push('🚗 ' + (a.vehicle === 'activa' ? 'Activa' : 'i10'));
+  metaParts.push('👤 ' + escHtml(memberName));
+  return `<div class="appt-v4-card pressable" onclick="editApptV4('${escHtml(a.id)}')" style="border-left:3px solid ${t.color};opacity:${isPast?'.55':'1'}">
+    <div class="appt-v4-datecol">
+      <div class="appt-v4-dd">${dd}</div>
+      <div class="appt-v4-mm">${mm}</div>
+      <div class="appt-v4-dow">${dow}</div>
+    </div>
+    <div class="appt-v4-body">
+      <div class="appt-v4-row1">
+        <div class="appt-v4-title">${escHtml(a.title)}</div>
+        ${urgBadge}
+      </div>
+      <div class="appt-v4-row2">
+        <span class="appt-v4-type-inline" style="color:${t.color}">${t.icon} ${escHtml(t.label)}</span>
+        <span class="appt-v4-meta2">· ${metaParts.join(' · ')}</span>
+      </div>
+    </div>
+    <div class="appt-v4-chevron">›</div>
+  </div>`;
+}
+
+// ── Open sheet (add mode) ──
+function openApptSheetV4(prefill) {
+  _apptSheetMode = 'add';
+  _apptEditId = null;
+  const p = prefill || {};
+  _setApptSheetTitle('Add Appointment');
+  _resetApptSheet();
+  if (p.type)    _selectApptType(p.type);
+  if (p.vehicle) { const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = p.vehicle; }
+  const dateInp = document.getElementById('apptf-date');
+  if (dateInp) dateInp.value = p.date || new Date().toISOString().slice(0,10);
+  const delBtn = document.getElementById('apptv4-del-btn');
+  if (delBtn) delBtn.style.display = 'none';
+  _openApptSheet();
+}
+
+// ── Open sheet (edit mode) ──
+function editApptV4(id) {
+  const all = getApptsV4();
+  const a = all.find(x => x.id === id);
+  if (!a) return;
+  _apptSheetMode = 'edit';
+  _apptEditId = id;
+  _setApptSheetTitle('Edit Appointment');
+  _resetApptSheet();
+  _selectApptType(a.type || 'doctor');
+  const fields = { 'apptf-title':a.title, 'apptf-date':a.date, 'apptf-time':a.time||'', 'apptf-loc':a.loc||'', 'apptf-notes':a.notes||'' };
+  Object.entries(fields).forEach(([id,val]) => { const el = document.getElementById(id); if (el) el.value = val; });
+  const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = a.vehicle || '';
+  // Set member
+  document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c => c.classList.toggle('active', c.dataset.member === a.member));
+  const delBtn = document.getElementById('apptv4-del-btn');
+  if (delBtn) { delBtn.style.display = ''; delBtn.dataset.id = id; }
+  _openApptSheet();
+}
+
+function _setApptSheetTitle(t) { const el = document.getElementById('apptv4-sheet-title'); if (el) el.textContent = t; }
+
+function _resetApptSheet() {
+  ['apptf-title','apptf-date','apptf-time','apptf-loc','apptf-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const vs = document.getElementById('apptf-vehicle'); if (vs) vs.value = '';
+  _selectApptType('doctor');
+  document.querySelectorAll('#apptf-member-row .sct2-mem-chip').forEach(c => c.classList.toggle('active', c.dataset.member === 'rajasekhar'));
+}
+
+var _apptSheetType = 'doctor';
+function _selectApptType(type) {
+  _apptSheetType = type;
+  document.querySelectorAll('#apptf-type-row .sct2-cat-chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  const badge = document.getElementById('apptf-type-badge');
+  const LABELS = {doctor:'Doctor',vehicle:'Vehicle',lab:'Lab',other:'Other'};
+  if (badge) badge.textContent = (LABELS[type]||type) + ' ✓';
+  // Show vehicle selector only for vehicle type
+  const vrow = document.getElementById('apptf-vehicle-row');
+  if (vrow) vrow.style.display = type === 'vehicle' ? 'block' : 'none';
+}
+
+function _openApptSheet() {
+  document.getElementById('apptv4-sheet').classList.add('open');
+  _updateBnavAction();
+}
+
+function closeApptSheetV4() {
+  document.getElementById('apptv4-sheet').classList.remove('open');
+  _updateBnavAction();
+}
+
+// ── Save appointment ──
+function saveApptV4() {
+  const title  = document.getElementById('apptf-title')?.value.trim();
+  const date   = document.getElementById('apptf-date')?.value;
+  const time   = document.getElementById('apptf-time')?.value || '';
+  const loc    = document.getElementById('apptf-loc')?.value.trim() || '';
+  const notes  = document.getElementById('apptf-notes')?.value.trim() || '';
+  const vehicle = (document.getElementById('apptf-vehicle')?.value || '').trim();
+  const member = document.querySelector('#apptf-member-row .sct2-mem-chip.active')?.dataset.member || 'rajasekhar';
+
+  if (!title) { showToast('⚠️ Enter a title'); return; }
+  if (!date)  { showToast('⚠️ Pick a date');  return; }
+
+  const all = getApptsV4();
+  const t = APPT_TYPES[_apptSheetType] || APPT_TYPES.other;
+
+  if (_apptSheetMode === 'edit' && _apptEditId) {
+    // Update existing
+    const idx = all.findIndex(x => x.id === _apptEditId);
+    if (idx !== -1) {
+      all[idx] = { ...all[idx], type:_apptSheetType, title, date, time, loc, notes, vehicle, member };
+      saveApptsV4(all);
+      showToast('✅ Appointment updated');
+    }
+  } else {
+    // New
+    const id = 'appt_' + Date.now();
+    const appt = { id, type:_apptSheetType, member, title, date, time, loc, notes, vehicle };
+    all.push(appt);
+    saveApptsV4(all);
+    showToast('✅ Appointment saved');
+  }
+
+  closeApptSheetV4();
+  renderApptsList();
+  if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof renderSchedAppts === 'function') { renderSchedAppts(); updateSchedBadges(); }
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+}
+
+// ── Delete appointment ──
+function deleteApptV4(id) {
+  if (!id) return;
+  const all = getApptsV4().filter(a => a.id !== id);
+  saveApptsV4(all);
+  closeApptSheetV4();
+  renderApptsList();
+  if (typeof renderHealthAppts === 'function') renderHealthAppts();
+  if (typeof renderSchedAppts === 'function') { renderSchedAppts(); updateSchedBadges(); }
+  if (typeof auraRenderHome === 'function') auraRenderHome();
+  if (typeof auraRenderOverview === 'function') auraRenderOverview();
+  if (typeof auraRenderAlerts === 'function') auraRenderAlerts();
+  showToast('🗑 Appointment removed');
+}
+
+// ── Calendar sync helpers (appointments no longer mirror to fp_cal_events) ──
+// apptCreateCalEvent kept as no-op stub for safety (not called from saveApptV4/deleteApptV4)
+function apptCreateCalEvent(a) { /* intentionally empty — appointments live in fp_appts_v4 only */ }
+
+// apptDeleteCalEvent: kept only as a purge utility for legacy cleanup
+function apptDeleteCalEvent(apptId) {
+  try {
+    const evts = getCalEvents().filter(e => e.id !== 'appt_cal_' + apptId);
+    saveCalEvents(evts);
+  } catch(err) {}
 }
 
 // ── Report history storage ──
@@ -6336,17 +7017,22 @@ initHealthPage = function() {
 };
 
 // ── Render appointments for active member ──
+// ── Health appts: read-only view (filtered to active member) ──
+// Full management moved to Appointments Hub page
 function renderHealthAppts() {
   const wrap = document.getElementById('health-appt-list');
   if (!wrap) return;
   const today = new Date(); today.setHours(0,0,0,0);
-  const appts = getAppts()
-    .filter(a => a.member === healthActiveMember)
+  // Read from fp_appts_v4 (unified store), filter to doctor type + member
+  const appts = (typeof getApptsV4 === 'function' ? getApptsV4() : getAppts())
+    .filter(a => (a.type === 'doctor' || !a.type) && a.member === healthActiveMember)
     .filter(a => new Date(a.date + 'T12:00:00') >= today)
     .sort((a,b) => a.date.localeCompare(b.date));
 
   if (!appts.length) {
-    wrap.innerHTML = `<div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">No upcoming appointments<br><span style="font-size:10px;opacity:.6">Tap + Add to schedule one</span></div>`;
+    wrap.innerHTML = `<div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">No upcoming appointments<br>
+      <button onclick="goPage('appointments')" style="margin-top:8px;padding:6px 14px;border-radius:8px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);color:#f472b6;font-size:11px;font-weight:700;cursor:pointer;">+ Schedule one →</button>
+    </div>`;
     return;
   }
   wrap.innerHTML = appts.map(a => {
@@ -6355,31 +7041,25 @@ function renderHealthAppts() {
     const dd = String(d.getDate()).padStart(2,'0');
     const mm = d.toLocaleString('en-IN',{month:'short'}).toUpperCase();
     const col = daysAway <= 7 ? 'var(--red)' : daysAway <= 30 ? 'var(--gold)' : 'var(--green)';
-    return `<div class="appt-card">
+    return `<div class="appt-card" onclick="goPage('appointments')" style="cursor:pointer">
       <div class="appt-datebox">
         <div class="appt-dd">${dd}</div>
         <div class="appt-mm">${mm}</div>
       </div>
       <div class="appt-body">
         <div class="appt-title">${a.title}</div>
-        <div class="appt-who">${a.time ? '🕐 '+a.time+' · ' : ''}${a.loc}</div>
+        <div class="appt-who">${a.time ? '🕐 '+a.time+' · ' : ''}${a.loc||'—'}</div>
         ${a.notes ? `<div class="appt-loc">${a.notes}</div>` : ''}
       </div>
       <div class="appt-right">
         <div class="appt-days" style="color:${col}">${daysAway}</div>
         <div class="appt-dlbl">days</div>
       </div>
-      <button class="appt-del" onclick="deleteAppt('${a.id}')">−</button>
     </div>`;
-  }).join('');
+  }).join('') + `<div style="text-align:center;padding:8px 0 4px;"><button onclick="goPage('appointments')" style="padding:7px 16px;border-radius:10px;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.25);color:#f472b6;font-size:11px;font-weight:700;cursor:pointer;">Manage in Appointments Hub →</button></div>`;
 }
 
-function deleteAppt(id) {
-  const arr = getAppts().filter(a => a.id !== id);
-  saveAppts(arr);
-  renderHealthAppts();
-  showToast('Appointment removed');
-}
+function deleteAppt(id) { /* legacy stub — deletions handled in Appointments Hub */ }
 
 // ── Render report history ──
 function renderReportHistory() {
@@ -6542,21 +7222,14 @@ function saveLabReport() {
 }
 
 // ── Add Appointment sheet ──
+// ── openAddApptSheet: redirect to unified Appointments Hub ──
 function openAddApptSheet() {
-  haActiveMember = healthActiveMember;
-  renderHaMemberSelect();
-  document.getElementById('ha-title').value = '';
-  document.getElementById('ha-date').value  = '';
-  document.getElementById('ha-time').value  = '';
-  document.getElementById('ha-loc').value   = '';
-  document.getElementById('ha-notes').value = '';
-  var _sy=window.scrollY||window.pageYOffset;document.body.dataset.scrollY=_sy;document.body.style.top='-'+_sy+'px';document.body.classList.add('modal-open');
-  document.getElementById('ha-sheet').classList.remove('hidden');
+  goPage('appointments');
+  setTimeout(function() {
+    if (typeof openApptSheetV4 === 'function') openApptSheetV4({ type: 'doctor' });
+  }, 250);
 }
-function closeAddApptSheet() {
-  document.getElementById('ha-sheet').classList.add('hidden');
-  var _sy2=parseInt(document.body.dataset.scrollY||'0',10);document.body.classList.remove('modal-open');document.body.style.top='';window.scrollTo(0,_sy2);
-}
+function closeAddApptSheet() { /* noop — sheet is now on appointments page */ }
 function renderHaMemberSelect() {
   const wrap = document.getElementById('ha-member-select');
   if (!wrap) return;
@@ -6578,9 +7251,9 @@ function saveAppt() {
   const notes = document.getElementById('ha-notes').value.trim();
   if (!title) { showToast('⚠️ Enter appointment title'); return; }
   if (!date)  { showToast('⚠️ Pick a date'); return; }
-  const appts = getAppts();
-  appts.push({ id:'a'+Date.now(), member:haActiveMember, title, date, time, loc, notes });
-  saveAppts(appts);
+  const appts = getApptsV4();
+  appts.push({ id:'a'+Date.now(), type:'doctor', member:haActiveMember, title, date, time, loc, notes, vehicle:'' });
+  saveApptsV4(appts);
   closeAddApptSheet();
   if (haActiveMember === healthActiveMember) renderHealthAppts();
   showToast('✓ Appointment saved for ' + HEALTH_MEMBER_META[haActiveMember].label);
@@ -7125,7 +7798,11 @@ function renderBiomarkers() {
 
 function switchHealthMember(id) {
   healthActiveMember = id;
-  initHealthPage();
+  renderHealthMemberTabs();
+  renderHealthHero();
+  renderHealthReportStrip();
+  renderHealthCatTabs();
+  renderBiomarkers();
 }
 
 function switchHealthCat(cat) {
@@ -7381,6 +8058,33 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#gm-pill') && !e.target.closest('#gm-dropdown')) closeGmDropdown();
 }, true);
 
+let _tbMgOpen = false;
+function toggleTbMore() {
+  _tbMgOpen ? closeTbMore() : openTbMore();
+}
+function openTbMore() {
+  const modal = document.getElementById('tb-mg-modal');
+  const popup = document.getElementById('tb-mg-popup');
+  if (!modal) return;
+  // Replay stagger animations
+  modal.querySelectorAll('.a').forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetHeight;
+    el.style.animation = '';
+  });
+  _tbMgOpen = true;
+  modal.classList.add('open');
+}
+function closeTbMore() {
+  const modal = document.getElementById('tb-mg-modal');
+  if (!modal) return;
+  _tbMgOpen = false;
+  modal.classList.remove('open');
+}
+function handleTbMgBackdrop(e) {
+  if (e.target === e.currentTarget) closeTbMore();
+}
+
 // ── Context banner builder ──
 function gmContextBanner(pageId) {
   if (activePortalMember === 'all') return '';
@@ -7403,7 +8107,6 @@ function applyMemberContextToCurrentPage() {
     case 'members':     applyGmMembers();     break;
     case 'documents':   applyGmDocuments();   break;
     case 'health':      applyGmHealth();      break;
-    case 'calendar':    applyGmCalendar();    break;
     case 'expiry':      break; // expiry is family-wide, no filter needed
   }
 }
@@ -7487,22 +8190,7 @@ function applyGmHealth() {
   renderHealthPage();
 }
 
-// ── Calendar: set member filter ──
-function applyGmCalendar() {
-  if (activePortalMember === 'all') {
-    setCalFilter('all');
-    // Show all chips
-    document.querySelectorAll('#cal-chips .cal-chip').forEach(c => c.style.display = '');
-  } else {
-    const name = GM_META[activePortalMember].label;
-    setCalFilter(name);
-    // Hide other member chips
-    document.querySelectorAll('#cal-chips .cal-chip').forEach(c => {
-      const txt = c.textContent.trim();
-      c.style.display = (txt.includes('All') || txt.includes(name)) ? '' : 'none';
-    });
-  }
-}
+// ── Calendar: set member filter ──}
 
 /* ═══════════════════════════════════════════════
    BACKUP JSON AUTO-LOADER
@@ -7510,7 +8198,7 @@ function applyGmCalendar() {
    without requiring manual restore
 ═══════════════════════════════════════════════ */
 (function() {
-  var BACKUP_DATA = {"fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
+  var BACKUP_DATA = {"fp_sched_tasks":"[{\"id\": \"st_prop_flat403\", \"icon\": \"\ud83c\udfd8\ufe0f\", \"title\": \"Property Tax \u2013 Flat 403\", \"sub\": \"cdma.ap.gov.in \u00b7 ASSESS 1035037996\", \"dueDate\": \"2026-02-20\", \"cat\": \"property\", \"member\": \"rajasekhar\", \"notes\": \"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_prop_shopg5\", \"icon\": \"\ud83c\udfec\", \"title\": \"Property Tax \u2013 Shop G5\", \"sub\": \"cdma.ap.gov.in \u00b7 ASSESS 1035038052\", \"dueDate\": \"2026-02-20\", \"cat\": \"property\", \"member\": \"rajasekhar\", \"notes\": \"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_car_ins\", \"icon\": \"\ud83d\ude97\", \"title\": \"Car Insurance Renewal\", \"sub\": \"AP27AK7873 \u00b7 ICICI LOMBARD\", \"dueDate\": \"2026-06-28\", \"cat\": \"finance\", \"member\": \"rajasekhar\", \"notes\": \"Policy 3001/103498197/10/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_health_fam\", \"icon\": \"\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66\", \"title\": \"Family Health Insurance Renewal\", \"sub\": \"ICICI FLOATER \u00b7 \u20b925,812\", \"dueDate\": \"2026-08-04\", \"cat\": \"health\", \"member\": \"rajasekhar\", \"notes\": \"Policy 4193i/APRN/400529214/00/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_health_ind\", \"icon\": \"\ud83c\udfe5\", \"title\": \"Individual Health Insurance Renewal\", \"sub\": \"RAJASEKHAR \u00b7 \u20b921,502\", \"dueDate\": \"2026-08-06\", \"cat\": \"health\", \"member\": \"rajasekhar\", \"notes\": \"Policy 4128i/HSNR/92094505/10/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_dl\", \"icon\": \"\ud83e\udeaa\", \"title\": \"Driving Licence Expiry\", \"sub\": \"DLFAP62729122008 \u00b7 SARATHI\", \"dueDate\": \"2027-01-20\", \"cat\": \"government\", \"member\": \"rajasekhar\", \"notes\": \"Renew at Sarathi portal\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}, {\"id\": \"st_bike_ins\", \"icon\": \"\ud83d\udef5\", \"title\": \"Bike Insurance Renewal\", \"sub\": \"TS08HJ8438 \u00b7 ICICI LOMBARD\", \"dueDate\": \"2028-02-24\", \"cat\": \"finance\", \"member\": \"vasundhara\", \"notes\": \"Policy 3005/430080806/00/000\", \"status\": \"pending\", \"createdAt\": \"2026-03-01T00:00:00.000Z\"}]","fp_cal_events":"[{\"id\":\"e4\",\"title\":\"Jeevan Birthday \uD83C\uDF82\",\"date\":\"2026-08-22\",\"start\":\"\",\"end\":\"\",\"cat\":\"birthday\",\"color\":\"#f472b6\",\"members\":[\"all\"],\"notes\":\"Plan family celebration\"},{\"id\":\"e6\",\"title\":\"Income Tax Filing Deadline\",\"date\":\"2026-07-31\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Submit via CA\"},{\"id\":\"tr_prop_flat403\",\"title\":\"\uD83C\uDFD8\uFE0F Property Tax \u2013 Flat 403\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035037996 \u00b7 Mangamuru Donka, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_prop_shopg5\",\"title\":\"\uD83C\uDFEC Property Tax \u2013 Shop G5\",\"date\":\"2026-02-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#ff4f4f\",\"members\":[\"Rajasekhar\"],\"notes\":\"Assessment 1035038052 \u00b7 Silver Spring Apts, Ongole \u00b7 Pay at cdma.ap.gov.in\"},{\"id\":\"tr_car_ins\",\"title\":\"\uD83D\uDE97 Car Insurance Renewal\",\"date\":\"2026-06-28\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"Hyundai i10 \u00b7 AP27AK7873 \u00b7 Policy 3001/103498197/10/000 \u00b7 ICICI Lombard\"},{\"id\":\"tr_health_fam\",\"title\":\"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Health Insurance Renewal\",\"date\":\"2026-08-04\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard Family Floater \u00b7 Policy 4193i/APRN/400529214/00/000 \u00b7 \u20b925,812\"},{\"id\":\"tr_health_ind\",\"title\":\"\uD83C\uDFE5 Individual Health Insurance Renewal\",\"date\":\"2026-08-06\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Rajasekhar\"],\"notes\":\"ICICI Lombard \u00b7 Rajasekhar \u00b7 Policy 4128i/HSNR/92094505/10/000 \u00b7 \u20b921,502\"},{\"id\":\"tr_dl\",\"title\":\"\uD83E\uDEAA Driving Licence Expiry\",\"date\":\"2027-01-20\",\"start\":\"\",\"end\":\"\",\"cat\":\"government\",\"color\":\"#ff8c42\",\"members\":[\"Rajasekhar\"],\"notes\":\"DLFAP62729122008 \u00b7 Renew at Sarathi portal\"},{\"id\":\"tr_bike_ins\",\"title\":\"\uD83D\uDEF5 Bike Insurance Renewal\",\"date\":\"2028-02-24\",\"start\":\"\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#3ecf8e\",\"members\":[\"Rajasekhar\"],\"notes\":\"Honda Activa 125 \u00b7 TS08HJ8438 \u00b7 Policy 3005/430080806/00/000 \u00b7 ICICI Lombard\"},{\"id\":\"e1772740339031\",\"title\":\"Maid Bill Payment\",\"date\":\"2026-03-06\",\"start\":\"01:21\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#f472b6\",\"members\":[\"Rajasekhar\"],\"notes\":\"Maid bill\"},{\"id\":\"e1772740438429\",\"title\":\"Maintenance Payment\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#a78bfa\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740464314\",\"title\":\"Daddy Amount Transfer\",\"date\":\"2026-04-01\",\"start\":\"01:23\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772740504905\",\"title\":\"Josritha Semester Fees\",\"date\":\"2026-04-01\",\"start\":\"01:24\",\"end\":\"\",\"cat\":\"finance\",\"color\":\"#f0b429\",\"members\":[\"Josritha\"],\"notes\":\"\"},{\"id\":\"e1772740591048\",\"title\":\"AC Service\",\"date\":\"2026-03-09\",\"start\":\"01:26\",\"end\":\"\",\"cat\":\"other\",\"color\":\"#38bdf8\",\"members\":[\"Rajasekhar\"],\"notes\":\"\"},{\"id\":\"e1772786486992\",\"title\":\"Thyroid Doctor appointment\",\"date\":\"2026-03-07\",\"start\":\"\",\"end\":\"\",\"cat\":\"health\",\"color\":\"#4f7fff\",\"members\":[\"Vasundhara\"],\"notes\":\"\"}]","fp_health_v3":"{\"rajasekhar\":{\"lastUpdated\":\"2026-03-05\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":102,\"hba1c\":6,\"ldl\":86,\"hdl\":37,\"triglycerides\":138,\"tsh\":4,\"creatinine\":1.1,\"uricacid\":5.6,\"vitd\":45,\"vitb12\":388,\"wbc\":8.84,\"bilirubin\":1.51,\"alt\":11,\"ast\":102,\"alp\":81,\"ggt\":11}},\"vasundhara\":{\"lastUpdated\":\"2025-10-31\",\"labName\":\"Mfine\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":99.34,\"hba1c\":5.1,\"cholesterol\":182,\"ldl\":121.02,\"hdl\":48.7,\"triglycerides\":200,\"hemoglobin\":11.7,\"tsh\":6.004,\"uricacid\":3.7,\"vitd\":25,\"vitb12\":132,\"wbc\":4.77,\"platelets\":150,\"ast\":20,\"alp\":59,\"ggt\":14}},\"josritha\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"cholesterol\":80,\"ldl\":80,\"hdl\":80,\"triglycerides\":200,\"hemoglobin\":15,\"tsh\":8,\"creatinine\":9,\"uricacid\":20,\"vitd\":7,\"wbc\":16,\"bilirubin\":15,\"alp\":13,\"ggt\":13}},\"jeevan\":{\"lastUpdated\":\"2025-10-26\",\"labName\":\"Lab Report\",\"reportRef\":\"\",\"vitals\":{\"weight\":null,\"height\":null,\"bmi\":null},\"markers\":{\"glucose\":98.77,\"hba1c\":5.08,\"cholesterol\":121,\"ldl\":70.34,\"hdl\":34.4,\"triglycerides\":200,\"hemoglobin\":14.2,\"tsh\":3.132,\"uricacid\":6.2,\"vitd\":25,\"vitb12\":240,\"wbc\":6.67,\"platelets\":150,\"ast\":15.8,\"alp\":202,\"ggt\":11.4}}}","fp_health_appts_v3":"[{\"id\":\"a1\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\"},{\"id\":\"a2\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \u00b7 6 hrs\"}]","fp_appts_v4":"[{\"id\":\"av4_a1\",\"type\":\"doctor\",\"member\":\"rajasekhar\",\"title\":\"Cardiology Consultation\",\"date\":\"2026-03-20\",\"time\":\"10:00\",\"loc\":\"Dr. Reddy, Yashoda Hospitals\",\"notes\":\"Bring ECG + last lipid report\",\"vehicle\":\"\"},{\"id\":\"av4_a2\",\"type\":\"doctor\",\"member\":\"vasundhara\",\"title\":\"Thyroid Follow-up\",\"date\":\"2026-04-05\",\"time\":\"09:30\",\"loc\":\"Dr. Priya, KIMS Hospital\",\"notes\":\"Fasting required \\u00b7 6 hrs\",\"vehicle\":\"\"},{\"id\":\"av4_a3\",\"type\":\"doctor\",\"member\":\"josritha\",\"title\":\"Annual Health Check-up\",\"date\":\"2026-05-12\",\"time\":\"08:00\",\"loc\":\"Apollo Diagnostics, Hyderabad\",\"notes\":\"Full body check package\",\"vehicle\":\"\"},{\"id\":\"av4_a4\",\"type\":\"vehicle\",\"member\":\"vasundhara\",\"title\":\"Activa 125 Regular Service\",\"date\":\"2026-04-15\",\"time\":\"10:00\",\"loc\":\"Honda Service Center, KPHB\",\"notes\":\"Oil change + general check\",\"vehicle\":\"activa\"},{\"id\":\"av4_a5\",\"type\":\"lab\",\"member\":\"rajasekhar\",\"title\":\"Lipid Panel + HbA1c\",\"date\":\"2026-06-01\",\"time\":\"07:30\",\"loc\":\"Apollo Diagnostics, Ameerpet\",\"notes\":\"Fasting 10 hrs required\",\"vehicle\":\"\"}]","fp_bank_stmt_icici":"{\"bank\":\"ICICI\",\"accountLast4\":\"6595\",\"holder\":\"Rajasekhar Reddy Duggireddy\",\"fetchedOn\":\"2026-03-07\",\"period\":\"FEB 1, 2026 to MAR 7, 2026\",\"openingBalance\":1302.41,\"closingBalance\":19113.82,\"txnCount\":10,\"transactions\":[{\"date\":\"2026-03-07\",\"title\":\"OTHERS\",\"sub\":\"UPL/858653471223\",\"remark\":\"UPI Transfer\",\"credit\":0,\"debit\":1500,\"balance\":19113.82,\"type\":\"DR\"},{\"date\":\"2026-03-06\",\"title\":\"VATTIPALLI\",\"sub\":\"UPI/9866725991\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":400,\"balance\":20613.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"AIRTEL\",\"sub\":\"Airtel/billpay\",\"remark\":\"Mobile Recharge\",\"credit\":0,\"debit\":1188.26,\"balance\":21013.82,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"IMPS Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":649,\"balance\":22202.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"SELF\",\"sub\":\"NEFT Transfer\",\"remark\":\"Self Transfer\",\"credit\":0,\"debit\":9371.33,\"balance\":22851.08,\"type\":\"DR\"},{\"date\":\"2026-03-05\",\"title\":\"RAJASEKHAR\",\"sub\":\"NEFT/INW\",\"remark\":\"Salary Credit\",\"credit\":30000,\"debit\":0,\"balance\":32222.41,\"type\":\"CR\"},{\"date\":\"2026-03-05\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1022,\"debit\":0,\"balance\":2222.41,\"type\":\"CR\"},{\"date\":\"2026-03-04\",\"title\":\"OTHERS\",\"sub\":\"UPI Transfer\",\"remark\":\"UPI Payment\",\"credit\":0,\"debit\":1500,\"balance\":1200.41,\"type\":\"DR\"},{\"date\":\"2026-03-03\",\"title\":\"NOBROKER T\",\"sub\":\"NoBroker/Rent\",\"remark\":\"Rent Payment\",\"credit\":0,\"debit\":7000,\"balance\":2700.41,\"type\":\"DR\"},{\"date\":\"2026-03-02\",\"title\":\"OTHERS\",\"sub\":\"UPI/Credit\",\"remark\":\"UPI Receipt\",\"credit\":1081,\"debit\":0,\"balance\":9700.41,\"type\":\"CR\"}]}"};
 
   // Load each key into localStorage only if not already present (don't overwrite fresh scrapes)
   var keys = Object.keys(BACKUP_DATA);
@@ -7540,22 +8228,14 @@ function init() {
 }
 
 // ═══════════════════════════════════════
-// AUTO-RESTORE FROM backup.json (first load only)
-// Runs ONCE when localStorage is empty (fresh deployment).
-// After restore, localStorage takes over — backup.json never loaded again.
-// To update baseline: Download Backup → rename to family-portal-backup.json → commit to GitHub.
+// AUTO-RESTORE FROM backup.json (timestamp-based, every load)
+// On every load: fetch backup.json, compare _ts to fp_last_restore_ts in localStorage.
+// If backup is newer → restore all keys → reload. Else → boot normally.
+// Workflow: edit in portal → take backup → rename to family-portal-backup.json → commit to GitHub.
+// Next load will detect newer _ts and auto-restore on all devices.
 // ═══════════════════════════════════════
-(function autoRestoreOnFirstLoad() {
-  // Trigger if either cal_events OR attendance is missing (covers partial restores)
-  var hasEvents     = localStorage.getItem('fp_cal_events') !== null;
-  var hasAttendance = localStorage.getItem('fp_attendance_synced') !== null;
-  if (hasEvents && hasAttendance) {
-    init();
-    return;
-  }
-  // Show "restoring" status in loader if still visible
+(function autoRestoreFromBackup() {
   var statusEl = document.getElementById('loader-status');
-  if (statusEl) statusEl.textContent = 'Restoring from backup\u2026';
   fetch('./family-portal-backup.json?_=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } })
     .then(function(res) {
       if (!res.ok) throw new Error('No backup file');
@@ -7563,15 +8243,26 @@ function init() {
     })
     .then(function(data) {
       if (!data.keys || typeof data.keys !== 'object') throw new Error('Invalid backup');
+      var backupTs  = data._ts || '';
+      var localTs   = localStorage.getItem('fp_last_restore_ts') || '';
+      if (backupTs && backupTs <= localTs) {
+        // Backup same or older — boot from localStorage as-is
+        if (statusEl) statusEl.textContent = 'Initialising\u2026';
+        init();
+        return;
+      }
+      // Backup is newer — restore all keys
+      if (statusEl) statusEl.textContent = 'Syncing latest data\u2026';
       Object.entries(data.keys).forEach(function(entry) {
         localStorage.setItem(entry[0], entry[1]);
       });
+      localStorage.setItem('fp_last_restore_ts', backupTs);
       localStorage.setItem('fp_auto_restored_ts', new Date().toISOString());
-      if (statusEl) statusEl.textContent = 'Data restored \u2713 Loading\u2026';
+      if (statusEl) statusEl.textContent = 'Data synced \u2713 Loading\u2026';
       setTimeout(function() { location.reload(); }, 600);
     })
     .catch(function() {
-      // No backup.json or invalid — boot normally with seed data
+      // No backup.json or network error — boot from localStorage
       if (statusEl) statusEl.textContent = 'Initialising\u2026';
       init();
     });
@@ -7618,7 +8309,7 @@ function syncSidebarNav(page) {
 // ═══════════════════════════════════════
 var _wovAnimId = null;
 var _wovStartTime = null;
-var WOV_DURATION = 6000; // ms
+var WOV_DURATION = 15000; // ms
 
 function startWelcomeTimer() {
   _wovStartTime = Date.now();
@@ -7640,6 +8331,24 @@ function startWelcomeTimer() {
   // FAB has z-index:9100 — hide it while overlay is visible
   var fab = document.getElementById('fab-btn-wrap');
   if (fab) fab.style.display = 'none';
+  // Inject actual member photos into constellation badges (fallback: emoji stays if no photo)
+  var wovMemMap = [
+    {sel:'.wov-m1 span',id:'rajasekhar'},
+    {sel:'.wov-m2 span',id:'vasundhara'},
+    {sel:'.wov-m3 span',id:'josritha'},
+    {sel:'.wov-m4 span',id:'jeevan'}
+  ];
+  wovMemMap.forEach(function(entry){
+    var span = document.querySelector(entry.sel);
+    if (span && MEMBER_PHOTOS[entry.id]) {
+      span.textContent = '';
+      var img = document.createElement('img');
+      img.src = MEMBER_PHOTOS[entry.id];
+      img.alt = entry.id;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;display:block;';
+      span.appendChild(img);
+    }
+  });
   // Timer starts in showWelcomeOverlay() — called after the loader screen fades out
 })();
 
@@ -7822,7 +8531,9 @@ function checkPinSession() {
 // ═══════════════════════════════════════
 const BACKUP_KEYS = [
   'fp_cal_events',
-  'fp_health_v3','fp_health_appts_v3','fp_health_reports_v3',
+  'fp_sched_tasks',  // ← Scheduler tasks (Deadlines & To-dos)
+  'fp_health_v3','fp_health_reports_v3',
+  'fp_appts_v4',  // ← Unified appointments (Doctor/Vehicle/Lab/Other)
   'fp_attendance_synced','fp_attendance_synced_ts',
   'fp_timetable_synced','fp_timetable_synced_ts',
   'fp_bank_stmt_icici','fp_bank_stmt_icici_ts',
@@ -7831,7 +8542,9 @@ const BACKUP_KEYS = [
   'fp_widgets','fp_widgets_ver',
   'fp_theme','fp_active_member','fp_pin','emg_collapsed',
   'fp_groq_key',  // ← AI key — included in backup so it survives redeployment
-  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap'
+  'fp_grocery','fp_tasks','fp_vehicle_service','fp_photos','fp_interests','fp_briefing_cache','fp_weekly_recap',
+  'fp_budget_v1',  // ← Budget data (Monthly, Yearly, Assets, Income)
+  'fp_bank_vault_v1'  // ← Bank vault cards (savings/FD/etc amounts per bank)
 ];
 
 
@@ -8065,10 +8778,13 @@ var _tlMonthOffset = 0; // 0=current month, 1=next, -1=prev
 /* Chip data — NO apostrophes in strings to avoid HTML attribute breakage */
 var AI_CHIPS = {
   dashboard: [
-    ["skip", "Can Josritha skip classes today?"],
-    ["predict", "Predict Josritha attendance for each subject by semester end and tell me which subjects are at risk of being barred"],
-    ["report", "Give Josritha full attendance risk report"],
-    ["docs", "Which family documents are expiring soon?"]
+    ["members_info",    "__local_family_members"],
+    ["josritha_edu",    "__local_josritha_edu"],
+    ["vehicle_details", "__local_vehicle_details"],
+    ["balance_assets",  "__local_balance_assets"],
+    ["exp",             "Which documents or policies are expiring soon and what should be done?"],
+    ["ins",             "Summarize all family insurance policies and their status"],
+    ["prop_tax",        "What is the status of family property tax payments for Ongole properties?"]
   ],
   members: [
     ["skip", "Can Josritha skip classes today?"],
@@ -8091,6 +8807,11 @@ var AI_CHIPS = {
 };
 
 var AI_CHIP_LABELS = {
+  members_info:    "👨‍👩‍👧‍👦 Family members",
+  josritha_edu:    "🎓 Josritha's education",
+  vehicle_details: "🚗 Vehicle details",
+  balance_assets:  "💰 Balance assets",
+  prop_tax:        "🏠 Property taxes",
   skip: "🏃 Can she skip today?",
   predict: "🔮 Predict semester end",
   report: "📊 Attendance risk",
@@ -8101,7 +8822,7 @@ var AI_CHIP_LABELS = {
   miss: "🎯 How many can she miss?",
   events: "📅 Events coming up?",
   tip: "💡 Family tip",
-  exp: "⚠️ What is expiring?",
+  exp: "⚠️ What's expiring?",
   ins: "🏥 Insurance summary",
   hlth: "🏥 Health summary",
   appt: "💊 Appointments due?"
@@ -8354,14 +9075,7 @@ function restoreWidgetCollapse() {
 // aiPanelAppendMsg, aiPanelFormatResponse, aiPanelClear, aiPanelSend
 // ████████████████████████████████████████████████████████
 function toggleAIPanel() {
-  /* Close FAB menu if open */
-  if (typeof fabOpen !== 'undefined' && fabOpen) {
-    var fmenu = document.getElementById('fab-menu');
-    var fbtn  = document.getElementById('fab-btn');
-    fabOpen = false;
-    if (fmenu) fmenu.classList.add('hidden');
-    if (fbtn)  { fbtn.textContent = '\uFF0B'; fbtn.style.background = ''; }
-  }
+  /* FAB removed — nothing to close here */
   aiPanelOpen = !aiPanelOpen;
   var panel    = document.getElementById('ai-panel');
   var backdrop = document.getElementById('ai-panel-backdrop');
@@ -8375,12 +9089,10 @@ function toggleAIPanel() {
     fab.classList.add('panel-open');
     document.body.classList.add('ai-panel-open');
     fabIcon.textContent = '\u2715';
+    aiPanelClear();
     aiPanelUpdateChips();
     aiPanelUpdateStatus();
     aiPanelAutoGreet();
-    // Close + menu if open (don't hide the button itself — it's on the left, no overlap)
-    var plusMenu = document.getElementById('fab-menu');
-    if (plusMenu && fabOpen) { plusMenu.classList.add('hidden'); fabOpen=false; }
     if (typeof haptic === 'function') haptic('medium');
   } else {
     panel.classList.add('ai-panel-closed');
@@ -8505,6 +9217,361 @@ function aiPanelClear() {
   if (typeof haptic === 'function') haptic('light');
 }
 
+function aiPanelLocalHandler(text) {
+  if (text === '__local_family_members')  return _aiBuildFamilyMembersCard();
+  if (text === '__local_josritha_edu')    return _aiBuildJosrithaEduCard();
+  if (text === '__local_vehicle_details') return _aiBuildVehicleCard();
+  if (text === '__local_balance_assets')  return _aiBuildBalanceCard();
+  return null;
+}
+
+function _aiInfoRow(label, val, mono) {
+  return '<div style="display:flex;align-items:baseline;gap:6px;line-height:2;">'
+    + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;">' + label + '</span>'
+    + '<span style="font-size:11px;color:var(--text2);' + (mono ? 'font-family:\'DM Mono\',monospace;' : '') + '">' + val + '</span>'
+    + '</div>';
+}
+
+function _aiDocRow(label, val, mono, copyText, viewSrc) {
+  var mono_style = mono ? 'font-family:\'DM Mono\',monospace;' : '';
+  var copyBtn = copyText
+    ? '<button onclick="navigator.clipboard.writeText(\'' + copyText + '\').then(function(){showToast(\'Copied!\');})" title="Copy" '
+      + 'style="background:rgba(124,58,237,.2);border:none;border-radius:4px;color:#a78bfa;font-size:9px;padding:1px 4px;cursor:pointer;line-height:1;flex-shrink:0;">📋</button>'
+    : '';
+  var viewBtn = (viewSrc && DOC_LINKS && DOC_LINKS[viewSrc])
+    ? '<a href="' + DOC_LINKS[viewSrc] + '" target="_blank" title="View document" '
+      + 'style="font-size:9px;text-decoration:none;padding:1px 3px;color:var(--text3);flex-shrink:0;">👁️</a>'
+    : '';
+  return '<div style="display:flex;align-items:center;gap:5px;line-height:2;">'
+    + '<span style="color:var(--text3);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;min-width:54px;flex-shrink:0;">' + label + '</span>'
+    + '<span style="font-size:11px;color:var(--text2);' + mono_style + 'flex:1;">' + val + '</span>'
+    + copyBtn + viewBtn
+    + '</div>';
+}
+
+function _aiBuildFamilyMembersCard() {
+  var members = [
+    { name:'Rajasekhar Reddy Duggireddy', initials:'RR', role:'Father',   dob:'21 Jan 1977',
+      aadhaar:'610617784861', aadhaarSrc:'ID_Rajasekhar_Aadhaar_6106-1778-4861.pdf',
+      pan:'AICPD3992N',  panSrc:'ID_Rajasekhar_PANCard_AICPD3992N.pdf',
+      mobile:'9640656595',
+      insurance:'4128i/HSNR/92094505/10/000', insSrc:'INS_Rajasekhar_HealthInsurance_ICICI_Individual_2025-26.pdf',
+      color:'#3b6fd4', grad:'linear-gradient(135deg,#1a3a6b 0%,#3b6fd4 100%)' },
+    { name:'Vasundhara Duggireddy', initials:'VD', role:'Mother', dob:'26 Aug 1982',
+      aadhaar:'337231069560', aadhaarSrc:'ID_Vasundhara_Aadhaar_3372-3106-9560.pdf',
+      pan:'BDXPD9514R',  panSrc:'ID_Vasundhara_PANCard_BDXPD9514R.pdf',
+      mobile:'9652948966',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#9333ea', grad:'linear-gradient(135deg,#5b21b6 0%,#9333ea 100%)' },
+    { name:'Josritha Duggireddy', initials:'JD', role:'Daughter', dob:'26 Feb 2006',
+      aadhaar:'831664586848', aadhaarSrc:'ID_Josritha_Aadhaar_8316-6458-6848.pdf',
+      pan:'—', panSrc:null,
+      mobile:'9392932602',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#ec4899', grad:'linear-gradient(135deg,#9d174d 0%,#ec4899 100%)' },
+    { name:'Jeevan Vidyadhar Duggireddy', initials:'JV', role:'Son', dob:'22 Aug 2010',
+      aadhaar:'691829467739', aadhaarSrc:'ID_Jeevan_Aadhaar_6918-2946-7739.pdf',
+      pan:'—', panSrc:null,
+      mobile:'9063359446',
+      insurance:'4193i/APRN/400529214/00/000', insSrc:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf',
+      color:'#0d9488', grad:'linear-gradient(135deg,#065f46 0%,#0d9488 100%)' }
+  ];
+
+  function calcAge(dobStr) {
+    var d = new Date(dobStr); var now = new Date();
+    var a = now.getFullYear() - d.getFullYear();
+    if (now < new Date(now.getFullYear(), d.getMonth(), d.getDate())) a--;
+    return a;
+  }
+  function infoRow(label, valHtml) {
+    return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);">'
+      + '<span style="color:rgba(255,255,255,.42);font-family:\'DM Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.65px;min-width:62px;flex-shrink:0;">' + label + '</span>'
+      + '<span style="flex:1;min-width:0;">' + valHtml + '</span>'
+      + '</div>';
+  }
+  function valText(txt, mono) {
+    return '<span style="font-size:9.5px;color:rgba(255,255,255,.88);' + (mono ? 'font-family:\'DM Mono\',monospace;letter-spacing:.15px;' : 'font-family:Inter,sans-serif;') + '">' + txt + '</span>';
+  }
+  function cpBtn(text) {
+    return text
+      ? ' <button onclick="navigator.clipboard.writeText(\'' + text + '\').then(function(){showToast(\'Copied!\');})" title="Copy"'
+        + ' style="background:rgba(255,255,255,.14);border:none;border-radius:3px;color:rgba(255,255,255,.75);font-size:7px;padding:1px 3px;cursor:pointer;line-height:1;flex-shrink:0;margin-left:3px;">📋</button>'
+      : '';
+  }
+  function vwBtn(src) {
+    return (src && typeof DOC_LINKS !== 'undefined' && DOC_LINKS && DOC_LINKS[src])
+      ? ' <a href="' + DOC_LINKS[src] + '" target="_blank" style="font-size:7px;text-decoration:none;color:rgba(255,255,255,.45);flex-shrink:0;margin-left:2px;">👁️</a>'
+      : '';
+  }
+
+  // Inject keyframe once
+  var s = '<style>@keyframes aiFmIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}</style>';
+  s += '<div style="font-family:Inter,sans-serif;">';
+  s += '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.45);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09);">👨‍👩‍👧‍👦 Family Members &nbsp;·&nbsp; ' + members.length + ' people</div>';
+
+  members.forEach(function(m, i) {
+    var delay = (i * 0.1).toFixed(1) + 's';
+    var age = calcAge(m.dob);
+    // Card wrapper with stagger animation
+    s += '<div style="border-radius:16px;overflow:hidden;margin-bottom:11px;'
+       + 'box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 0 1px ' + m.color + '55;'
+       + 'animation:aiFmIn .48s cubic-bezier(.34,1.35,.64,1) both;animation-delay:' + delay + ';">';
+
+    // ── Gradient header ──
+    s += '<div style="background:' + m.grad + ';padding:12px 14px;display:flex;align-items:center;gap:11px;position:relative;overflow:hidden;">';
+    // Shine overlay
+    s += '<div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none;"></div>';
+    // Avatar
+    s += '<div style="width:42px;height:42px;border-radius:13px;flex-shrink:0;'
+       + 'background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.40);'
+       + 'display:flex;align-items:center;justify-content:center;'
+       + 'font-size:14px;font-weight:900;color:#fff;letter-spacing:-.3px;'
+       + 'box-shadow:0 2px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.35);">'
+       + m.initials + '</div>';
+    // Name + role + age
+    s += '<div style="flex:1;min-width:0;">'
+       + '<div style="font-size:13.5px;font-weight:800;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,.25);">' + m.name + '</div>'
+       + '<div style="font-size:10px;color:rgba(255,255,255,.78);font-weight:600;margin-top:3px;letter-spacing:.02em;">'
+       + m.role + ' &nbsp;·&nbsp; Age ' + age
+       + '</div>'
+       + '</div>';
+    s += '</div>'; // end header
+
+    // ── Info body ──
+    s += '<div style="background:rgba(12,8,28,.72);padding:10px 14px 6px;">';
+    s += infoRow('DOB',     valText(m.dob, false));
+    s += infoRow('Aadhaar', valText(m.aadhaar, true) + cpBtn(m.aadhaar) + vwBtn(m.aadhaarSrc));
+    s += infoRow('PAN',     valText(m.pan, true) + (m.pan !== '—' ? cpBtn(m.pan) + vwBtn(m.panSrc) : ''));
+    s += infoRow('Mobile',
+      '<a href="tel:' + m.mobile + '" style="font-size:9.5px;color:' + m.color + ';font-family:\'DM Mono\',monospace;text-decoration:none;font-weight:700;letter-spacing:.15px;">' + m.mobile + '</a>');
+    s += infoRow('Ins', valText(m.insurance, true) + vwBtn(m.insSrc));
+    s += '</div>'; // end body
+
+    s += '</div>'; // end card
+  });
+
+  s += '</div>';
+  return s;
+}
+
+function _aiEduSection(title, rows, warn) {
+  var bg = warn ? 'rgba(239,68,68,.06)' : 'rgba(255,255,255,.04)';
+  var border = warn ? 'rgba(239,68,68,.2)' : 'rgba(255,255,255,.08)';
+  var tc = warn ? '#f87171' : '#a78bfa';
+  var s = '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:10px;padding:10px 12px;margin-bottom:7px;">';
+  s += '<div style="font-weight:700;font-size:11px;color:' + tc + ';margin-bottom:5px;">' + title + '</div>';
+  s += '<div style="font-size:11px;color:var(--text2);font-family:\'DM Mono\',monospace;line-height:2;">';
+  rows.forEach(function(r) { s += r + '<br>'; });
+  return s + '</div></div>';
+}
+
+function _aiBuildBalanceCard() {
+  var bv = bvGetData();
+  var bd = bgtGetData();
+  var calc = bgtCalc(bd);
+
+  function fmt(n) { return '\u20b9' + Math.abs(n).toLocaleString('en-IN'); }
+
+  var banks    = bv.banks || [];
+  var bankTotal = banks.reduce(function(s,b){ return s + (b.assets||[]).reduce(function(ss,a){return ss+(a.amount||0);},0); }, 0);
+  var nb       = bd.assets.nonBanking || [];
+  var nbTotal  = nb.reduce(function(s,r){ return s+(r.amount||0); }, 0);
+  var mTotal   = bd.monthly.reduce(function(s,r){return s+r.amount;},0);
+  var yTotal   = bd.yearly.reduce(function(s,r){return s+r.amount;},0);
+  var yAvg     = Math.round(yTotal / 12);
+  var burnTotal = mTotal + yAvg;
+  var gross    = bankTotal + nbTotal;
+
+  // ── helpers ──────────────────────────────────────────────────────────
+  function secBar(icon, label, amt, col) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0 5px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px;">'
+      + '<span style="font-size:9px;font-weight:700;color:'+col+';font-family:\'DM Mono\',monospace;letter-spacing:.8px;text-transform:uppercase;">'+icon+' '+label+'</span>'
+      + '<span style="font-size:12px;font-weight:800;color:'+col+';font-family:\'DM Mono\',monospace;">'+fmt(amt)+'</span>'
+      + '</div>';
+  }
+
+  // ── Banking breakdown ─────────────────────────────────────────────────
+  var banksHtml = banks.map(function(bank) {
+    var bAmt = (bank.assets||[]).reduce(function(s,a){return s+(a.amount||0);},0);
+    var rows = (bank.assets||[]).map(function(a) {
+      var pct = bAmt > 0 ? Math.round(a.amount / bAmt * 100) : 0;
+      return '<div style="display:flex;align-items:center;gap:6px;padding:2px 0 2px 6px;">'
+        + '<span style="font-size:10px;width:14px;flex-shrink:0;line-height:1;">'+a.icon+'</span>'
+        + '<span style="font-size:9px;color:var(--text3);flex:1;font-family:\'DM Mono\',monospace;">'+a.section+'</span>'
+        + '<div style="width:36px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;flex-shrink:0;overflow:hidden;">'
+          + '<div style="width:'+pct+'%;height:100%;background:rgba(79,127,255,.55);border-radius:2px;"></div>'
+        + '</div>'
+        + '<span style="font-size:10px;color:var(--text2);font-family:\'DM Mono\',monospace;min-width:66px;text-align:right;">'+fmt(a.amount)+'</span>'
+        + '</div>';
+    }).join('');
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 9px;margin-bottom:5px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+        + '<span style="font-size:11px;font-weight:700;color:var(--blue2);">🏦 '+bank.name+'</span>'
+        + '<span style="font-size:11px;font-weight:800;color:var(--text1);font-family:\'DM Mono\',monospace;">'+fmt(bAmt)+'</span>'
+      + '</div>'
+      + rows
+      + '</div>';
+  }).join('');
+
+  // ── Non-banking breakdown (group by type) ────────────────────────────
+  var NB_ICON  = {life_ins:'🛡️',gold:'🥇',mutual_fund:'📈',property:'🏠',vehicle:'🚗',fd:'🔒',personal_loan:'🤝',other:'💰'};
+  var NB_LABEL = {life_ins:'Life Insurance',gold:'Gold',mutual_fund:'Mutual Fund',property:'Property',vehicle:'Vehicle',fd:'Fixed Deposit',personal_loan:'Loans Given',other:'Other'};
+  var nbGroups = {};
+  nb.forEach(function(r){
+    var t = r.type||'other';
+    if (!nbGroups[t]) nbGroups[t]={items:[],total:0};
+    nbGroups[t].items.push(r);
+    nbGroups[t].total += r.amount||0;
+  });
+  var nbHtml = Object.keys(nbGroups).map(function(t) {
+    var g = nbGroups[t];
+    var sub = g.items.length > 1 ? g.items.map(function(r){
+      return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 18px;">'
+        + '<span style="font-size:9px;color:var(--text3);font-family:\'DM Mono\',monospace;">'+r.item+'</span>'
+        + '<span style="font-size:9px;color:var(--text2);font-family:\'DM Mono\',monospace;">'+fmt(r.amount)+'</span>'
+        + '</div>';
+    }).join('') : '';
+    return '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(167,139,250,.09);border-radius:7px;padding:6px 9px;margin-bottom:4px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+        + '<span style="font-size:10px;font-weight:600;color:#c084fc;">'+(NB_ICON[t]||'💰')+' '+(NB_LABEL[t]||t)+'</span>'
+        + '<span style="font-size:11px;font-weight:700;color:var(--text1);font-family:\'DM Mono\',monospace;">'+fmt(g.total)+'</span>'
+      + '</div>'
+      + sub
+      + '</div>';
+  }).join('');
+
+  // ── Expenditure rows ─────────────────────────────────────────────────
+  var expRows = [
+    {icon:'📅', label:'Monthly Recurring', amt:mTotal,    col:'#fb923c'},
+    {icon:'📆', label:'Yearly One-time',   amt:yTotal,    col:'#f97316'},
+    {icon:'📊', label:'Avg Monthly (total)',amt:burnTotal, col:'#ef4444'}
+  ].map(function(e){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">'
+      + '<span style="font-size:10px;color:var(--text3);">'+e.icon+' '+e.label+'</span>'
+      + '<span style="font-size:11px;font-weight:700;color:'+e.col+';font-family:\'DM Mono\',monospace;">'+fmt(e.amt)+'</span>'
+      + '</div>';
+  }).join('');
+
+  // ── Assemble ─────────────────────────────────────────────────────────
+  var s = '<div style="font-family:Inter,sans-serif;">';
+
+  // Hero header
+  s += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">'
+    + '<div>'
+      + '<div style="font-weight:800;font-size:13px;color:var(--text1);">💰 Balance Sheet</div>'
+      + '<div style="font-size:9px;color:var(--text3);font-family:\'DM Mono\',monospace;margin-top:2px;">Live · vault &amp; budget</div>'
+    + '</div>'
+    + '<div style="text-align:right;">'
+      + '<div style="font-size:19px;font-weight:900;color:#34d399;font-family:\'DM Mono\',monospace;letter-spacing:-0.5px;">'+fmt(gross)+'</div>'
+      + '<div style="font-size:9px;color:var(--text3);margin-top:1px;font-family:\'DM Mono\',monospace;">GROSS ASSETS</div>'
+    + '</div>'
+    + '</div>';
+
+  // Banking section
+  s += '<div style="background:rgba(79,127,255,.04);border:1px solid rgba(79,127,255,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+  s += secBar('🏦','Banking Assets', bankTotal, 'var(--blue2)');
+  s += banksHtml;
+  s += '</div>';
+
+  // Non-banking section
+  if (nb.length) {
+    s += '<div style="background:rgba(167,139,250,.03);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+    s += secBar('🌐','Non-Banking Assets', nbTotal, '#c084fc');
+    s += nbHtml;
+    s += '</div>';
+  }
+
+  // Expenditure section
+  s += '<div style="background:rgba(251,146,60,.03);border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:10px 11px;margin-bottom:8px;">';
+  s += '<div style="font-size:9px;font-weight:700;color:#fb923c;font-family:\'DM Mono\',monospace;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">📊 Expenditure</div>';
+  s += expRows;
+  s += '</div>';
+
+  // Total balance footer
+  s += '<div style="background:linear-gradient(135deg,rgba(52,211,153,.09),rgba(16,185,129,.04));border:1px solid rgba(52,211,153,.28);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">'
+    + '<div>'
+      + '<div style="font-size:10px;font-weight:700;color:#34d399;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.5px;">Total Balance</div>'
+      + '<div style="font-size:9px;color:var(--text3);margin-top:2px;">Banking + Non-Banking</div>'
+    + '</div>'
+    + '<div style="font-size:17px;font-weight:900;color:#34d399;font-family:\'DM Mono\',monospace;">'+fmt(gross)+'</div>'
+    + '</div>';
+
+  s += '</div>';
+  return s;
+}
+
+function _aiBuildJosrithaEduCard() {
+  var s = '<div style="font-family:Inter,sans-serif;">'
+    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">🎓 Josritha\'s Education</div>';
+  s += _aiEduSection('10th / SSC', [
+    'Board: CBSE',
+    'School: Global Edge School, Hyderabad',
+    'Roll No: 20164403',
+    'Year: 2022 · Result: PASS'
+  ]);
+  s += _aiEduSection('Intermediate / 12th', [
+    'Board: BIE, Andhra Pradesh',
+    'College: Sri Harshini Junior College, Ongole',
+    'Reg No: 2417214778',
+    'Marks: 878 / 1000 · Grade: A · PASS'
+  ]);
+  s += _aiEduSection('B.Tech (Current)', [
+    'KL Deemed to be University — KLH Campus',
+    'Roll No: 2420030493',
+    'CGPA: 9.24 (Till Sem 3)',
+    'Sem 1: SGPA 9.26 · Sem 2: SGPA 9.29 · Sem 3: SGPA 9.17'
+  ]);
+  var attRaw = localStorage.getItem('fp_attendance_synced');
+  if (attRaw) {
+    try {
+      var att = JSON.parse(attRaw);
+      var risky = att.filter(function(a) { return Math.round(a.present / a.total * 100) < 75; });
+      if (risky.length) {
+        s += _aiEduSection('⚠️ Subjects Below 75%', risky.map(function(a) {
+          return a.subject + ' — ' + Math.round(a.present / a.total * 100) + '% (' + a.present + '/' + a.total + ')';
+        }), true);
+      } else {
+        s += _aiEduSection('Attendance', ['All subjects ≥ 75% ✓']);
+      }
+    } catch(e) {}
+  } else {
+    s += _aiEduSection('Subjects Below 75%', ['Upload attendance data to view.']);
+  }
+  return s + '</div>';
+}
+
+function _aiBuildVehicleCard() {
+  var vins = {
+    activa: { name:'Honda Activa 125', reg:'TS08HJ8438', year:'2021', policy:'3005/430080806/00/000', expiry:'Feb 24, 2028', icon:'🛵', color:'rgba(167,139,250,.1)' },
+    i10:    { name:'Hyundai i10 Sportz', reg:'AP27AK7873', year:'2011', policy:'3001/103498197/10/000', expiry:'Jun 28, 2026', icon:'🚗', color:'rgba(79,127,255,.1)' }
+  };
+  var svc = (typeof getVehData === 'function') ? getVehData() : {};
+  var s = '<div style="font-family:Inter,sans-serif;">'
+    + '<div style="font-weight:800;font-size:13px;color:var(--text1);margin-bottom:10px;">🚗 Vehicle Details</div>';
+  ['activa','i10'].forEach(function(id) {
+    var v = vins[id];
+    var vd = svc[id] || {};
+    var hist = vd.history || [];
+    var last = hist.length ? hist[hist.length - 1] : null;
+    var lastDate = vd.lastService || (last ? last.date : '—');
+    var lastKm   = last && last.km     ? last.km + ' km' : '—';
+    var lastAmt  = last && last.amount ? '₹' + last.amount : '—';
+    s += '<div style="background:' + v.color + ';border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;margin-bottom:8px;">';
+    s += '<div style="font-weight:700;font-size:12px;color:var(--text1);margin-bottom:6px;">' + v.icon + ' ' + v.name + '</div>';
+    s += _aiInfoRow('Reg No',   v.reg,    true);
+    s += _aiInfoRow('Year',     v.year,   false);
+    s += _aiInfoRow('KMS',      lastKm,   true);
+    s += _aiInfoRow('Last Svc', lastDate, true);
+    s += _aiInfoRow('Amt Paid', lastAmt,  true);
+    s += _aiInfoRow('Policy',   v.policy, true);
+    s += _aiInfoRow('Expiry',   v.expiry, false);
+    s += _aiInfoRow('RC No',    '—',      true);
+    s += '</div>';
+  });
+  s += '<div style="font-size:10px;color:var(--text3);font-family:\'DM Mono\',monospace;padding:2px 0;">KMS · Last Svc · Amount from service log</div>';
+  return s + '</div>';
+}
+
 async function aiPanelSend() {
   if (aiPanelBusy) return;
   var input   = document.getElementById('ai-panel-input');
@@ -8521,6 +9588,17 @@ async function aiPanelSend() {
   aiPanelAppendMsg('user', text);
   aiPanelHistory.push({role: 'user', content: text});
   aiPanelShowTyping();
+
+  var localResp = aiPanelLocalHandler(text);
+  if (localResp) {
+    setTimeout(function() {
+      aiPanelRemoveTyping();
+      aiPanelAppendMsg('ai', localResp);
+      aiPanelBusy = false;
+      if (sendBtn) sendBtn.disabled = false;
+    }, 350);
+    return;
+  }
 
   try {
     var key = (typeof groqGetKey === 'function') ? groqGetKey() : '';
@@ -8564,51 +9642,13 @@ async function aiPanelSend() {
   aiPanelBusy = false;
 
 // ████████████████████████████████████████████████████████
-// § FAB           Floating action button + More nav overflow menu
-// toggleFab, fabAction, toggleMoreMenu, moreMenuAction,
-// closeMoreMenuIfOpen, updateFabVisibility
+// § BNAV_MORE      Bottom nav overflow menu
+// toggleMoreMenu, moreMenuAction, closeMoreMenuIfOpen
 // ████████████████████████████████████████████████████████
   if (sendBtn) sendBtn.disabled = false;
 }
 
-// UI IMPROVEMENT 3 — FAB BUTTON
-// ═══════════════════════════════════════════════════════
-let fabOpen = false;
-
-function toggleFab() {
-  haptic('medium');
-  // Close AI panel if open
-  if (aiPanelOpen) toggleAIPanel();
-  fabOpen = !fabOpen;
-  const menu = document.getElementById('fab-menu');
-  const btn = document.getElementById('fab-btn');
-  if (fabOpen) {
-    menu.classList.remove('hidden');
-    btn.textContent = '✕';
-    btn.style.background = 'linear-gradient(135deg,#ff4f4f,#cc1a1a)';
-  } else {
-    menu.classList.add('hidden');
-    btn.textContent = '＋';
-    btn.style.background = '';
-  }
-}
-
-function fabAction(action) {
-  haptic('light');
-  toggleFab();
-  if (action === 'ai') {
-    setTimeout(() => { if (typeof toggleAIPanel === 'function') toggleAIPanel(); }, 80);
-  } else if (action === 'upload') {
-    openSyncModal();
-  } else if (action === 'event') {
-    goPage('calendar');
-    setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200);
-  } else if (action === 'search') {
-    openCommandPalette();
-  } else if (action === 'backup') {
-    openBackupModal();
-  }
-}
+// FAB removed — actions consolidated into three-dot menu (⋮)
 
 // ── BNAV MORE MENU ──────────────────────────────────────
 let moreMenuOpen = false;
@@ -8623,8 +9663,6 @@ function toggleMoreMenu() {
     btn.classList.toggle('active', moreMenuOpen);
     if (moreMenuOpen) moveBnavSelector(btn);
   }
-  // Close FAB if open
-  if (moreMenuOpen && fabOpen) toggleFab();
 }
 
 function moreMenuAction(page) {
@@ -8661,19 +9699,8 @@ document.addEventListener('touchstart', function(e) {
 }, {passive: true});
 // ────────────────────────────────────────────────────────
 
-// Update FAB visibility per page — hide on search/dashboard
-function updateFabVisibility(page) {
-  const fab = document.getElementById('fab-btn');
-  const menu = document.getElementById('fab-menu');
-  if (!fab) return;
-  if (page === 'search') {
-    fab.classList.add('hidden');
-  } else {
-    fab.classList.remove('hidden');
-  }
-  // Close menu on page change
-  if (fabOpen) toggleFab();
-}
+// FAB removed — updateFabVisibility no longer needed
+function updateFabVisibility(page) { /* noop */ }
 
 // ═══════════════════════════════════════════════════════
 
@@ -8691,12 +9718,12 @@ const CMD_PAGES = [
   { icon: '👨‍👩‍👧‍👦', title: 'Members', sub: 'Family profiles & documents', action: () => goPage('members'), badge: 'Page' },
   { icon: '📁', title: 'Documents', sub: 'All family records', action: () => goPage('documents'), badge: 'Page' },
   { icon: '⏰', title: 'Expiry Tracker', sub: 'Passports, insurance, visas', action: () => goPage('expiry'), badge: 'Page' },
-  { icon: '📅', title: 'Calendar', sub: 'Family events & reminders', action: () => goPage('calendar'), badge: 'Page' },
+  { icon: '📅', title: 'Agenda', sub: 'Tasks, events & appointments', action: () => goPage('scheduler'), badge: 'Page' },
   { icon: '💊', title: 'Health', sub: 'Medical records & appointments', action: () => goPage('health'), badge: 'Page' },
   { icon: '🔍', title: 'Search', sub: 'Find documents & IDs', action: () => goPage('search'), badge: 'Page' },
   { icon: '🌙', title: 'Toggle Theme', sub: 'Switch dark / light mode', action: () => toggleTheme(), badge: 'Action' },
   { icon: '💾', title: 'Backup Data', sub: 'Download backup JSON', action: () => openBackupModal(), badge: 'Action' },
-  { icon: '➕', title: 'Add Calendar Event', sub: 'Create a new family event', action: () => { goPage('calendar'); setTimeout(() => { if(typeof openCalSheet === 'function') openCalSheet(); }, 200); }, badge: 'Action' },
+  { icon: '➕', title: 'Add Event', sub: 'Create a new event in Agenda', action: () => { goPage('scheduler'); setTimeout(function(){ if(typeof setSchedTab==='function') setSchedTab('events',true); if(typeof openSchedEventSheet==='function') openSchedEventSheet(); }, 200); }, badge: 'Action' },
 ];
 
 // Build member entries from MEMBERS data
@@ -9876,16 +10903,16 @@ function initUploadHub() {
 
 const BGT_DEFAULTS = {
   monthly: [
-    {item:'Maintenance', amount:4400,  balance:0},
-    {item:'Maid',        amount:6000,  balance:6000},
-    {item:'Milk',        amount:1000,  balance:1000},
-    {item:'Current',     amount:2500,  balance:0},
-    {item:'TV/Mobile',   amount:3000,  balance:500},
-    {item:'Rice/Gas',    amount:2000,  balance:1500},
-    {item:'Nanna',       amount:14000, balance:0},
-    {item:'Vasundhara',  amount:14000, balance:4000},
-    {item:'Petrol',      amount:3000,  balance:3000},
-    {item:'Food',        amount:24000, balance:24000}
+    {item:'Maintenance', amount:4400,  paid:4400,  balance:0},
+    {item:'Maid',        amount:6000,  paid:0,     balance:6000},
+    {item:'Milk',        amount:1000,  paid:0,     balance:1000},
+    {item:'Current',     amount:2500,  paid:2500,  balance:0},
+    {item:'TV/Mobile',   amount:3000,  paid:2500,  balance:500},
+    {item:'Rice/Gas',    amount:2000,  paid:500,   balance:1500},
+    {item:'Nanna',       amount:14000, paid:14000, balance:0},
+    {item:'Vasundhara',  amount:14000, paid:10000, balance:4000},
+    {item:'Petrol',      amount:3000,  paid:0,     balance:3000},
+    {item:'Food',        amount:24000, paid:0,     balance:24000}
   ],
   yearly: [
     {item:'Health Insurance',      amount:74000, balance:74000, next:''},
@@ -9907,7 +10934,22 @@ const BGT_DEFAULTS = {
     {source:'Salary',      amount:166000},
     {source:'FD Interest', amount:15000},
     {source:'Rent',        amount:20700}
-  ]
+  ],
+  assets: {
+    banking: [
+      {item:'ICICI Bank', amount:912000},
+      {item:'HDFC Bank',  amount:1567000},
+      {item:'AXIS Bank',  amount:1082000},
+      {item:'NPS',        amount:50000}
+    ],
+    nonBanking: [
+      {item:'HDFC Life', amount:270000, type:'life_ins'},
+      {item:'Babai',     amount:500000, type:'personal_loan'},
+      {item:'Murali',    amount:22200,  type:'personal_loan'},
+      {item:'Krishna',   amount:25000,  type:'personal_loan'},
+      {item:'NPS',       amount:50000,  type:'other'}
+    ]
+  }
 };
 
 
@@ -9921,7 +10963,27 @@ const BGT_DEFAULTS = {
 function bgtGetData() {
   try {
     const s = localStorage.getItem('fp_budget_v1');
-    return s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    const d = s ? JSON.parse(s) : JSON.parse(JSON.stringify(BGT_DEFAULTS));
+    // Migrate old flat assets array → {banking, nonBanking}
+    if (Array.isArray(d.assets)) {
+      d.assets = { banking: [], nonBanking: d.assets };
+      bgtSaveData(d);
+    }
+    if (!d.assets) d.assets = { banking: [], nonBanking: [] };
+    // Migrate: auto-assign type to old nonBanking items without type
+    (d.assets.nonBanking||[]).forEach(function(r) {
+      if (!r.type) {
+        var n = (r.item||'').toLowerCase();
+        if (n.includes('life')||n.includes('insurance')) r.type='life_ins';
+        else if (n.includes('gold')) r.type='gold';
+        else if (n.includes('mutual')||n.includes('fund')||n.includes('sip')) r.type='mutual_fund';
+        else if (n.includes('property')||n.includes('flat')||n.includes('house')||n.includes('plot')) r.type='property';
+        else if (n.includes('car')||n.includes('bike')||n.includes('vehicle')) r.type='vehicle';
+        else if (n.includes('fd')||n.includes('deposit')) r.type='fd';
+        else r.type='personal_loan';
+      }
+    });
+    return d;
   } catch(e) { return JSON.parse(JSON.stringify(BGT_DEFAULTS)); }
 }
 function bgtSaveData(d) { localStorage.setItem('fp_budget_v1', JSON.stringify(d)); }
@@ -9933,10 +10995,14 @@ function bgtCalc(d) {
   const yBal   = d.yearly.reduce((s,r)=>s+r.balance, 0);
   const yAvg   = Math.round(yTotal / 12);
   const iTotal = d.income.reduce((s,r)=>s+r.amount, 0);
-  const totalMonthly  = mTotal + yAvg;
-  const monthlySaving = iTotal - mTotal;
-  const yearlySaving  = (monthlySaving * 12) - yTotal;
-  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,totalMonthly,monthlySaving,yearlySaving};
+  const bTotal  = (d.assets?.banking||[]).reduce((s,r)=>s+r.amount, 0);
+  const nbTotal = (d.assets?.nonBanking||[]).reduce((s,r)=>s+r.amount, 0);
+  const aTotal  = bTotal + nbTotal;
+  const totalMonthly   = mTotal + yAvg;
+  const monthlySaving  = iTotal - mTotal;
+  const yearlySaving   = (monthlySaving * 12) - yTotal;
+  const currentBalance = aTotal - (mBal + yBal);
+  return {mTotal,mBal,yTotal,yBal,yAvg,iTotal,aTotal,bTotal,nbTotal,totalMonthly,monthlySaving,yearlySaving,currentBalance};
 }
 
 function bgtInr(n) {
@@ -9946,15 +11012,37 @@ function bgtInr(n) {
 // ── Budget Rail & Panel Switching ──
 let _bgtPanel = 0;
 
-function bgtGoPanel(idx) {
+function bgtGoPanel(idx, vel) {
+  var prev = _bgtPanel;
   _bgtPanel = idx;
-  const track = document.getElementById('budget-track');
-  if (track) track.style.transform = 'translateX(' + (-idx * 100) + 'vw)';
+  // Always re-render Summary with fresh data when navigating to it
+  if (idx === 3) { var _sd=bgtGetData(); renderBgtSummary(_sd, bgtCalc(_sd)); }
+  var track = document.getElementById('budget-track');
+  if (!track) return;
+  var w = window.innerWidth;
+  var spd = Math.abs(vel || 0);
+  var dur, ease;
+  if (idx === prev) {
+    // Snap-back to same panel — soft spring return
+    dur = 360;
+    ease = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  } else if (spd > 0.5) {
+    // Fast flick — match velocity, smooth deceleration
+    dur = Math.max(260, 400 - Math.round(spd * 70));
+    ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  } else {
+    // Slow drag or tap — full smooth landing curve
+    dur = 430;
+    ease = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  }
+  track.style.transition = 'transform ' + dur + 'ms ' + ease;
+  track.style.transform = 'translateX(' + (-idx * w) + 'px)';
   document.querySelectorAll('.bgt-cat').forEach(function(c, i) {
     c.classList.toggle('bgt-active', i === idx);
   });
   bgtMoveSel();
-  setTimeout(bgtAnimateBars, 50);
+  // Animate bars after slide fully settles — not during (avoids visual noise)
+  setTimeout(bgtAnimateBars, dur - 40);
 }
 
 function bgtMoveSel() {
@@ -9989,38 +11077,454 @@ function bgtInitSwipe() {
   var track = document.getElementById('budget-track');
   if (!stage || !track) return;
   var tx0=0, ty0=0, t0=0, dragging=false, ddx=0, intentLocked=false, intentH=false;
-  function vw() { return window.innerWidth; }
+
+  function baseX() { return -_bgtPanel * window.innerWidth; }
+
   stage.addEventListener('touchstart', function(e) {
-    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
+    var t = e.touches[0];
+    tx0=t.clientX; ty0=t.clientY;
     t0=Date.now(); dragging=false; ddx=0; intentLocked=false; intentH=false;
-    track.classList.add('bgt-live');
+    // Immediately freeze any in-flight transition at its current pixel position
+    // so a new drag starts from exactly where the card stopped (no jump)
+    var cs = window.getComputedStyle(track);
+    var mat = new (window.DOMMatrix || window.WebKitCSSMatrix)(cs.transform);
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(' + mat.m41 + 'px)';
   }, {passive:true});
+
   stage.addEventListener('touchmove', function(e) {
     var dx=e.touches[0].clientX-tx0, dy=e.touches[0].clientY-ty0;
-    if (!intentLocked && (Math.abs(dx)>6 || Math.abs(dy)>6)) {
-      intentLocked=true;
-      intentH = Math.abs(dx) > Math.abs(dy) * 0.8;
+    if (!intentLocked && (Math.abs(dx)>5 || Math.abs(dy)>5)) {
+      intentLocked = true;
+      // Stricter: dx must dominate dy by 1.5x before we claim horizontal intent
+      intentH = Math.abs(dx) > Math.abs(dy) * 1.5;
     }
     if (!intentH) return;
     e.preventDefault();
-    if (!dragging && Math.abs(dx)>6) dragging=true;
-    if (dragging) {
-      ddx=dx;
-      var resist=(_bgtPanel===0&&dx>0)||(_bgtPanel===2&&dx<0)?.15:1;
-      track.style.transform='translateX('+((-_bgtPanel*vw())+dx*resist)+'px)';
-    }
+    dragging = true;
+    ddx = dx;
+    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0) ? 0.08 : 1;
+    track.style.transform = 'translateX(' + (baseX() + dx * resist) + 'px)';
   }, {passive:false});
-  stage.addEventListener('touchend', function() {
-    track.classList.remove('bgt-live');
-    if (!dragging) { bgtGoPanel(_bgtPanel); return; }
-    var elapsed=Math.max(1, Date.now()-t0);
-    var velocity=Math.abs(ddx)/elapsed;
-    var th=velocity>0.3 ? vw()*.12 : vw()*.22;
-    if (ddx<-th && _bgtPanel<2) bgtGoPanel(_bgtPanel+1);
-    else if (ddx>th && _bgtPanel>0) bgtGoPanel(_bgtPanel-1);
-    else bgtGoPanel(_bgtPanel);
-    dragging=false;
-  }, {passive:true});
+
+  function onRelease() {
+    if (!dragging) { bgtGoPanel(_bgtPanel, 0); return; }
+    var elapsed = Math.max(1, Date.now()-t0);
+    var velocity = ddx / elapsed; // signed px/ms
+    var spd = Math.abs(velocity);
+    var w = window.innerWidth;
+    // Lower threshold for fast flicks, higher for slow drags
+    var th = spd > 0.35 ? w * 0.10 : w * 0.20;
+    if (ddx < -th && _bgtPanel < 3) bgtGoPanel(_bgtPanel+1, spd);
+    else if (ddx > th && _bgtPanel > 0) bgtGoPanel(_bgtPanel-1, spd);
+    else bgtGoPanel(_bgtPanel, spd * 0.4); // snap back — use partial speed for feel
+    dragging = false;
+  }
+
+  stage.addEventListener('touchend',    onRelease, {passive:true});
+  stage.addEventListener('touchcancel', onRelease, {passive:true});
+}
+
+// ████████████████████████████████████████████████████████
+// § BANK VAULT   Data-driven card carousel with edit + add
+// ████████████████████████████████████████████████████████
+
+var BV_ASSET_TYPES = [
+  {value:'savings', label:'Savings Account',   sub:'Current Balance',     icon:'💳', cls:'bv-ico-s', section:'Savings'},
+  {value:'fd',      label:'Fixed Deposit',     sub:'Locked Deposit',      icon:'🔒', cls:'bv-ico-f', section:'Fixed Deposit'},
+  {value:'rd',      label:'Recurring Deposit', sub:'RD · Active',         icon:'📅', cls:'bv-ico-s', section:'Recurring Deposit'},
+  {value:'life',    label:'Life Insurance',    sub:'Insurance · Active',  icon:'🛡️', cls:'bv-ico-l', section:'Life Insurance'},
+  {value:'loan',    label:'Loan / EMI',        sub:'Outstanding Balance', icon:'💸', cls:'bv-ico-f', section:'Loan'},
+  {value:'other',   label:'Other',             sub:'Other Asset',         icon:'💰', cls:'bv-ico-s', section:'Other'}
+];
+
+var BV_DEFAULTS = { banks: [
+  {id:'icici', name:'ICICI Bank',  sub:'Private Sector · Savings & FD',       acct:'020201506595',    bg:'bv-bg-icici', network:'visa',       blob:'rgba(255,140,0,0.22)',   holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',       amount:29000 },
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit', amount:883000}]},
+  {id:'hdfc',  name:'HDFC Bank',   sub:'Private Sector · Savings, FD & Life', acct:'50100245463742',  bg:'bv-bg-hdfc',  network:'mastercard', blob:'rgba(0,100,200,0.3)',    holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',          amount:797000},
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit',    amount:500000},
+           {label:'HDFC Life',      sub:'Insurance · Active', icon:'🛡️',cls:'bv-ico-l',section:'Life Insurance',  amount:270000}]},
+  {id:'axis',  name:'AXIS Bank',   sub:'Private Sector · Savings & FD',       acct:'008010101337901', bg:'bv-bg-axis',  network:'visa',       blob:'rgba(220,30,100,0.28)', holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'Savings Account',sub:'Current Balance',    icon:'💳',cls:'bv-ico-s',section:'Savings',       amount:32000 },
+           {label:'Fixed Deposit',  sub:'Locked Deposit',     icon:'🔒',cls:'bv-ico-f',section:'Fixed Deposit', amount:1050000}]},
+  {id:'nps',   name:'NPS',         sub:'National Pension System · PFRDA',     acct:'110141031812',    bg:'bv-bg-nps',   network:'rupay',      blob:'rgba(0,180,60,0.22)',   holder:'RAJASEKHAR REDDY D',
+   assets:[{label:'NPS Corpus',     sub:'Retirement · Active',icon:'🏦',cls:'bv-ico-n',section:'National Pension Scheme',amount:50000}]}
+]};
+
+function bvGetData() {
+  try { var s=localStorage.getItem('fp_bank_vault_v1'); return s?JSON.parse(s):JSON.parse(JSON.stringify(BV_DEFAULTS)); }
+  catch(e) { return JSON.parse(JSON.stringify(BV_DEFAULTS)); }
+}
+function bvSaveData(d) { localStorage.setItem('fp_bank_vault_v1',JSON.stringify(d)); }
+function bvBankTotal(bank) { return (bank.assets||[]).reduce(function(s,a){return s+(a.amount||0);},0); }
+
+function bvNetworkHtml(n) {
+  if (n==='visa') return '<svg width="36" height="14" viewBox="0 0 36 14"><text x="0" y="13" fill="white" font-size="15" font-style="italic" font-weight="800" font-family="Arial,sans-serif" letter-spacing="-0.5">VISA</text></svg>';
+  if (n==='mastercard') return '<div class="bv-mc"><div class="bv-mc1"></div><div class="bv-mc2"></div></div>';
+  return '<div class="bv-rupay">RuPay</div>';
+}
+
+function bvCardHtml(bank, idx) {
+  var total = bvBankTotal(bank);
+  var theme = bank.bg.replace('bv-bg-','');
+  var rowsHtml = (bank.assets||[]).map(function(a) {
+    return '<div class="bv-gl-row">'+
+      '<div class="bv-gl-ico">'+a.icon+'</div>'+
+      '<div class="bv-gl-text">'+
+        '<div class="bv-gl-name">'+a.label+'</div>'+
+        '<div class="bv-gl-sub">'+a.sub+'</div>'+
+      '</div>'+
+      '<div class="bv-gl-amt">'+bgtFmt(a.amount)+'</div>'+
+    '</div>';
+  }).join('');
+  return '<div class="bv-card" id="bvc'+idx+'" data-idx="'+idx+'" data-pos="'+idx+'">' +
+    '<div class="bv-tap-prev">‹</div><div class="bv-tap-next">›</div>'+
+    '<div class="bv-top-card bv-tc-'+theme+'">'+
+      '<div class="bv-copy-toast" id="bv-toast'+idx+'">Copied!</div>'+
+      '<div class="bv-blob" style="width:190px;height:190px;background:'+(bank.blob||'rgba(255,255,255,0.1)')+';top:-60px;right:-20px;--bd:7.5s;"></div>'+
+      '<div class="bv-sweep"></div><div class="bv-refl"></div>'+
+      '<div class="bv-tc-top-row">'+
+        '<span class="bv-tc-acno">'+bank.acct+'</span>'+
+        '<div style="display:flex;align-items:center;gap:6px;">'+
+          '<div class="bv-copy-btn" onclick="bvCopyAcct(\''+bank.acct+'\',\'bv-toast'+idx+'\');event.stopPropagation();">'+
+            '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'+
+          '</div>'+
+          '<div class="bv-edit-btn" onclick="bvOpenEditSheet('+idx+');event.stopPropagation();">✏</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="bv-tc-bal-lbl">Total Balance</div>'+
+      '<div class="bv-tc-bal-row">'+
+        '<div class="bv-tc-bal-amt">'+bgtFmt(total)+'</div>'+
+        '<div class="bv-tc-badge"><svg width="9" height="9" viewBox="0 0 24 24" fill="white"><path d="M7 14l5-5 5 5z"/></svg>Active</div>'+
+      '</div>'+
+      '<div class="bv-tc-footer">'+
+        '<div><div class="bv-tc-bank-name">'+bank.name+'</div><div class="bv-tc-bank-sub">'+bank.sub+'</div></div>'+
+        '<div class="bv-tc-right"><div class="bv-tc-holder">'+bank.holder+'</div>'+bvNetworkHtml(bank.network)+'</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="bv-rows-wrap">'+rowsHtml+'</div>'+
+  '</div>';
+}
+
+function bvRenderCards(d) {
+  var carousel = document.getElementById('bv-carousel');
+  if (!carousel) return;
+  _bvN = d.banks.length;
+  if (_bvActive >= _bvN) _bvActive = 0;
+  carousel.innerHTML = d.banks.map(function(bank,idx){return bvCardHtml(bank,idx);}).join('');
+}
+
+function bvSetupTapHandlers() {
+  document.querySelectorAll('.bv-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.bv-copy-btn')||e.target.closest('.bv-edit-btn')) return;
+      var pos=parseInt(card.getAttribute('data-pos'),10);
+      var idx=parseInt(card.getAttribute('data-idx'),10);
+      if (pos!==0) { bvGoTo(idx); return; }
+      var rect=card.getBoundingClientRect();
+      if ((e.clientX-rect.left)<rect.width/2) { bvGoTo(_bvActive-1); }
+      else { bvGoTo(_bvActive+1); }
+    });
+  });
+}
+
+function bvUpdateHero(d) {
+  var bTotal=d.banks.reduce(function(s,b){return s+bvBankTotal(b);},0);
+  var bgt=bgtGetData(); var c=bgtCalc(bgt);
+  var el=document.getElementById('bv-total-amt'); if(el) el.textContent=bgtFmt(bTotal);
+  var bp=document.getElementById('bv-b-total');   if(bp) bp.textContent=bgtFmt(bTotal);
+  var np=document.getElementById('bv-nb-total-pill'); if(np) np.textContent=bgtFmt(c.nbTotal);
+  var at=document.getElementById('bgt-a-total');  if(at) at.textContent=bgtFmt(bTotal+c.nbTotal);
+}
+
+function bvSyncToBgt(d) {
+  var bgt=bgtGetData();
+  bgt.assets.banking=d.banks.map(function(b){return{item:b.name,amount:bvBankTotal(b)};});
+  bgtSaveData(bgt);
+  // Re-render Summary immediately so Total Assets / Current Balance reflect the new bank values
+  var _fresh=bgtGetData(); renderBgtSummary(_fresh, bgtCalc(_fresh));
+}
+
+// ── Copy ──
+function bvCopyAcct(num, toastId) {
+  navigator.clipboard.writeText(num).catch(function(){});
+  var t=document.getElementById(toastId); if(!t) return;
+  t.classList.add('bv-show');
+  setTimeout(function(){t.classList.remove('bv-show');},1800);
+}
+
+// ── Carousel state ──
+var _bvActive=0, _bvN=4, _bvReady=false;
+var _bvSS=[
+  {top:'0px',  tr:'scale(1) rotateX(0deg)',    op:'1',    zi:'4',pe:'auto',sh:'0 28px 70px rgba(0,0,0,0.75)'},
+  {top:'14px', tr:'scale(0.93) rotateX(3deg)', op:'0.78', zi:'3',pe:'auto',sh:'0 14px 35px rgba(0,0,0,0.5)'},
+  {top:'25px', tr:'scale(0.86) rotateX(6deg)', op:'0.45', zi:'2',pe:'none',sh:'0 8px 20px rgba(0,0,0,0.3)'},
+  {top:'33px', tr:'scale(0.79) rotateX(9deg)', op:'0.18', zi:'1',pe:'none',sh:'none'}
+];
+
+function bvPos(i) { return ((i-_bvActive)+_bvN)%_bvN; }
+
+function bvLayout() {
+  var carousel=document.getElementById('bv-carousel');
+  for (var i=0;i<_bvN;i++) {
+    var el=document.getElementById('bvc'+i); if(!el) continue;
+    var p=bvPos(i); var s=_bvSS[Math.min(p,3)];
+    el.style.top=s.top; el.style.transform=s.tr; el.style.opacity=s.op;
+    el.style.zIndex=s.zi; el.style.pointerEvents=s.pe; el.style.boxShadow=s.sh;
+    el.setAttribute('data-pos',p);
+  }
+  // Measure after browser paints so scrollHeight reflects actual rendered height
+  requestAnimationFrame(function() {
+    var front=document.getElementById('bvc'+_bvActive);
+    if (carousel && front) carousel.style.height=(front.scrollHeight+8)+'px';
+  });
+}
+
+function bvGoTo(idx) {
+  var n=((idx%_bvN)+_bvN)%_bvN;
+  if (n===_bvActive) return;
+  // Flip out old front card
+  var oldEl=document.getElementById('bvc'+_bvActive);
+  if (oldEl) oldEl.classList.add('bv-flip-out');
+  // Panel glow burst
+  var wrap=document.querySelector('.bv-wrap');
+  if (wrap){wrap.classList.remove('bv-glow');void wrap.offsetWidth;wrap.classList.add('bv-glow');setTimeout(function(){wrap.classList.remove('bv-glow');},600);}
+  // Flip in new front card after flip-out midpoint
+  setTimeout(function(){
+    if (oldEl) oldEl.classList.remove('bv-flip-out');
+    _bvActive=n;
+    bvLayout();
+    var newEl=document.getElementById('bvc'+_bvActive);
+    if (newEl){newEl.classList.add('bv-flip-in');setTimeout(function(){newEl.classList.remove('bv-flip-in');},620);}
+  },300);
+}
+
+// ── Edit Sheet ──
+var _bvEditIdx=-1;
+
+function bvOpenEditSheet(bankIdx) {
+  var d=bvGetData(); var bank=d.banks[bankIdx]; if(!bank) return;
+  _bvEditIdx=bankIdx;
+  var body='<div class="bv-edit-form">';
+  (bank.assets||[]).forEach(function(a,i) {
+    body+='<div class="bv-edit-row">'+
+      '<div class="bv-edit-ico">'+a.icon+'</div>'+
+      '<div class="bv-edit-info"><div class="bv-edit-lbl">'+a.label+'</div><div class="bv-edit-sub">'+a.section+'</div></div>'+
+      '<div class="bv-edit-amt-wrap"><span class="bv-rupee-sign">₹</span>'+
+        '<input class="bv-edit-input" type="number" inputmode="numeric" data-aidx="'+i+'" value="'+(a.amount||0)+'" min="0">'+
+      '</div></div>';
+  });
+  body+='</div>';
+  document.getElementById('bgt-sheet-title').textContent='✏ '+bank.name;
+  document.getElementById('bgt-sheet-body').innerHTML=body;
+  document.querySelector('.bgt-sheet-btn.save').setAttribute('onclick','bvSaveEditSheet()');
+  document.querySelector('.bgt-sheet-btn.cancel').setAttribute('onclick','bvCloseVaultSheet()');
+  _bgtOpenSheet();
+}
+
+function bvSaveEditSheet() {
+  var d=bvGetData(); var bank=d.banks[_bvEditIdx]; if(!bank){bvCloseVaultSheet();return;}
+  document.querySelectorAll('.bv-edit-input').forEach(function(inp){
+    var i=parseInt(inp.getAttribute('data-aidx'),10);
+    bank.assets[i].amount=parseFloat(inp.value)||0;
+  });
+  bvSaveData(d); bvCloseVaultSheet();
+  bvRenderCards(d); bvSetupTapHandlers();
+  bvLayout(); setTimeout(bvLayout,300);
+  bvUpdateHero(d); bvSyncToBgt(d);
+}
+
+// ── Add Sheet (2-step) ──
+var _bvAddBank=null;
+var BV_TYPE_OPTS='<option value="savings">💳 Savings Account</option><option value="fd">🔒 Fixed Deposit</option><option value="rd">📅 Recurring Deposit</option><option value="life">🛡️ Life Insurance</option><option value="loan">💸 Loan / EMI</option><option value="other">💰 Other</option>';
+
+function bvOpenAddSheet() {
+  var d=bvGetData(); _bvAddBank=null;
+  var chips=d.banks.map(function(b){
+    return '<div class="bv-bank-chip bv-bc-'+b.bg.replace('bv-bg-','')+'" onclick="bvPickBank(\''+b.id+'\',this)">'+b.name+'</div>';
+  }).join('')+'<div class="bv-bank-chip bv-bc-new" onclick="bvPickBank(\'new\',this)">＋ New Bank</div>';
+  document.getElementById('bgt-sheet-title').textContent='Add Banking Asset';
+  document.getElementById('bgt-sheet-body').innerHTML=
+    '<div class="bv-add-lbl">Select Bank</div>'+
+    '<div class="bv-bank-chips">'+chips+'</div>'+
+    '<div id="bv-add-step2"></div>';
+  document.querySelector('.bgt-sheet-btn.save').setAttribute('onclick','bvSaveAddSheet()');
+  document.querySelector('.bgt-sheet-btn.cancel').setAttribute('onclick','bvCloseVaultSheet()');
+  _bgtOpenSheet();
+}
+
+function bvPickBank(bankId, el) {
+  _bvAddBank=bankId;
+  document.querySelectorAll('.bv-bank-chip').forEach(function(c){c.classList.remove('bv-bc-active');});
+  el.classList.add('bv-bc-active');
+  var step2=document.getElementById('bv-add-step2'); if(!step2) return;
+  var d=bvGetData();
+  if (bankId==='new') {
+    step2.innerHTML=
+      '<div class="bgt-field" style="margin-top:16px;"><label>Bank Name</label><input id="bv-new-name" type="text" placeholder="e.g. SBI Bank"></div>'+
+      '<div class="bgt-field"><label>Account Number</label><input id="bv-new-acct" type="text" inputmode="numeric" placeholder="Account number"></div>'+
+      '<div class="bgt-field"><label>Asset Type</label><select id="bv-new-type" class="bv-select">'+BV_TYPE_OPTS+'</select></div>'+
+      '<div class="bgt-field"><label>Amount (₹)</label><input id="bv-new-amt" type="number" inputmode="numeric" placeholder="0" min="0"></div>';
+  } else {
+    var bank=d.banks.find(function(b){return b.id===bankId;});
+    step2.innerHTML=
+      '<div class="bv-add-to-lbl" style="margin-top:14px;">Adding to <strong>'+(bank?bank.name:bankId)+'</strong></div>'+
+      '<div class="bgt-field" style="margin-top:10px;"><label>Asset Type</label><select id="bv-ex-type" class="bv-select">'+BV_TYPE_OPTS+'</select></div>'+
+      '<div class="bgt-field"><label>Amount (₹)</label><input id="bv-ex-amt" type="number" inputmode="numeric" placeholder="0" min="0"></div>';
+  }
+  setTimeout(function(){var s2=document.getElementById('bv-add-step2');if(s2)s2.scrollIntoView({behavior:'smooth',block:'nearest'});},120);
+}
+
+function bvSaveAddSheet() {
+  if (!_bvAddBank){bvCloseVaultSheet();return;}
+  var d=bvGetData();
+  var newBgs=['bv-bg-new1','bv-bg-new2','bv-bg-new3'];
+  if (_bvAddBank==='new') {
+    var name=(document.getElementById('bv-new-name')||{}).value||'';
+    name=name.trim(); if(!name){var n=document.getElementById('bv-new-name');if(n)n.focus();return;}
+    var acct=((document.getElementById('bv-new-acct')||{}).value||'').trim()||'—';
+    var tv=(document.getElementById('bv-new-type')||{}).value||'savings';
+    var amt=parseFloat((document.getElementById('bv-new-amt')||{}).value)||0;
+    var ti=BV_ASSET_TYPES.find(function(t){return t.value===tv;})||BV_ASSET_TYPES[0];
+    d.banks.push({id:'bank_'+Date.now(),name:name,sub:'Custom Bank',acct:acct,
+      bg:newBgs[Math.max(0,d.banks.length-4)%newBgs.length],network:'rupay',
+      blob:'rgba(255,255,255,0.1)',holder:'RAJASEKHAR REDDY D',
+      assets:[{label:ti.label,sub:ti.sub,icon:ti.icon,cls:ti.cls,section:ti.section,amount:amt}]});
+  } else {
+    var bank=d.banks.find(function(b){return b.id===_bvAddBank;}); if(!bank){bvCloseVaultSheet();return;}
+    var tv=(document.getElementById('bv-ex-type')||{}).value||'savings';
+    var amt=parseFloat((document.getElementById('bv-ex-amt')||{}).value)||0;
+    var ti=BV_ASSET_TYPES.find(function(t){return t.value===tv;})||BV_ASSET_TYPES[0];
+    bank.assets.push({label:ti.label,sub:ti.sub,icon:ti.icon,cls:ti.cls,section:ti.section,amount:amt});
+  }
+  bvSaveData(d); bvCloseVaultSheet();
+  bvRenderCards(d); bvSetupTapHandlers();
+  bvLayout(); setTimeout(bvLayout,300);
+  bvUpdateHero(d); bvSyncToBgt(d);
+}
+
+function bvCloseVaultSheet() {
+  bgtCloseSheet();
+  var sv=document.querySelector('.bgt-sheet-btn.save');
+  var cn=document.querySelector('.bgt-sheet-btn.cancel');
+  if(sv) sv.setAttribute('onclick','bgtSheetSave()');
+  if(cn) cn.setAttribute('onclick','bgtCloseSheet()');
+}
+
+// ── Init ──
+function initBankVault() {
+  if (_bvReady) return;
+  var d=bvGetData();
+  bvRenderCards(d);
+  bvSyncToBgt(d);
+  // Stars
+  var sf=document.getElementById('bv-sf');
+  if (sf&&sf.children.length===0) {
+    for (var k=0;k<55;k++) {
+      var s=document.createElement('div'); var z=Math.random()*1.4+0.3;
+      s.className='bv-st';
+      s.style.cssText='width:'+z+'px;height:'+z+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;--d:'+(2+Math.random()*5)+'s;--dl:'+(Math.random()*5)+'s';
+      sf.appendChild(s);
+    }
+  }
+  bvLayout(); setTimeout(bvLayout,200); setTimeout(bvLayout,500);
+  bvUpdateHero(d);
+  if (_bvReady) return;
+  _bvReady=true;
+  bvSetupTapHandlers();
+}
+
+// ████████████████████████████████████████████████████████
+// § NON-BANKING   Liquid glass card grid
+// ████████████████████████████████████████████████████████
+
+var NB_TYPES = [
+  {value:'personal_loan', label:'Personal Loan',   icon:'👤', r:'99,102,241'},
+  {value:'life_ins',      label:'Life Insurance',  icon:'🛡️', r:'168,85,247'},
+  {value:'mutual_fund',   label:'Mutual Fund',     icon:'📈', r:'34,197,94'},
+  {value:'gold',          label:'Gold',            icon:'🥇', r:'234,179,8'},
+  {value:'property',      label:'Property',        icon:'🏠', r:'249,115,22'},
+  {value:'vehicle',       label:'Vehicle',         icon:'🚗', r:'20,184,166'},
+  {value:'fd',            label:'Fixed Deposit',   icon:'🔒', r:'59,130,246'},
+  {value:'other',         label:'Other',           icon:'💰', r:'107,114,128'}
+];
+
+function _nbTypeOpts(selected) {
+  return NB_TYPES.map(function(t) {
+    return '<option value="'+t.value+'"'+(selected===t.value?' selected':'')+'>'+t.icon+' '+t.label+'</option>';
+  }).join('');
+}
+
+function _nbFields(row) {
+  return '<div class="bgt-field"><label>Name / Description</label><input id="bgt-f1" type="text" placeholder="e.g. Babai, HDFC Life" value="'+(row?row.item||'':'')+'"></div>'+
+         '<div class="bgt-field"><label>Type</label><select id="bgt-nb-type" class="bv-select">'+_nbTypeOpts(row?row.type:'personal_loan')+'</select></div>'+
+         '<div class="bgt-field"><label>Amount (₹)</label><input id="bgt-f2" type="number" inputmode="numeric" placeholder="0" value="'+(row?row.amount||'':'')+'"></div>'+
+         '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+}
+
+function _bgtToggle(bodyId, chevId) {
+  var body = document.getElementById(bodyId);
+  var chev = document.getElementById(chevId);
+  if (!body) return;
+  var opening = body.classList.contains('collapsed');
+  body.classList.toggle('collapsed');
+  if (chev) chev.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+
+function renderBgtNonBanking(d, c) {
+  var nbList = document.getElementById('bgt-asset-nb-list');
+  if (!nbList) return;
+  var items = d.assets.nonBanking || [];
+  var total = c.nbTotal;
+  if (items.length === 0) {
+    nbList.innerHTML = '<div class="nb-empty">No non-banking assets yet. Tap <strong>＋ Add</strong> to get started.</div>';
+  } else {
+    nbList.innerHTML = '<div class="nb-grid">'+items.map(function(r,i) {
+      var t = NB_TYPES.find(function(x){return x.value===r.type;})||NB_TYPES[NB_TYPES.length-1];
+      var rgb = t.r;
+      return '<div class="nb-card" style="--nb-r:'+rgb+'" onclick="_nbMcTap(this,event)">'+
+        '<div class="nb-card-glow"></div>'+
+        '<div class="nb-card-shimmer"></div>'+
+        '<div class="nb-acts">'+
+          '<div class="nb-act-ico" onclick="event.stopPropagation();nbEditItem('+i+')">\u270e</div>'+
+          '<div class="nb-act-ico del" onclick="event.stopPropagation();nbDeleteItem('+i+')">\u2715</div>'+
+        '</div>'+
+        '<div class="nb-ico-wrap">'+t.icon+'</div>'+
+        '<div class="nb-name">'+r.item+'</div>'+
+        '<div class="nb-type-lbl">'+t.label+'</div>'+
+        '<div class="nb-amt">'+bgtFmt(r.amount)+'</div>'+
+      '</div>';
+    }).join('')+'</div>';
+  }
+  var nbt = document.getElementById('bgt-nb-total');
+  if (nbt) nbt.textContent = bgtFmt(c.nbTotal);
+}
+
+function nbAddItem() {
+  _bgtState = {type:'assets_nb', idx:-1};
+  document.getElementById('bgt-sheet-title').textContent = '＋ Non-Banking Asset';
+  document.getElementById('bgt-sheet-body').innerHTML = _nbFields(null);
+  _bgtOpenSheet();
+}
+
+function nbEditItem(idx) {
+  var d = bgtGetData();
+  var row = (d.assets.nonBanking||[])[idx];
+  if (!row) return;
+  _bgtState = {type:'assets_nb', idx:idx};
+  document.getElementById('bgt-sheet-title').textContent = '✏ '+row.item;
+  document.getElementById('bgt-sheet-body').innerHTML = _nbFields(row);
+  _bgtOpenSheet();
+}
+
+function nbDeleteItem(idx) {
+  var d = bgtGetData();
+  var name = ((d.assets.nonBanking||[])[idx]||{}).item || 'this item';
+  if (!confirm('Delete "'+name+'"?\nThis cannot be undone.')) return;
+  d.assets.nonBanking.splice(idx,1);
+  bgtSaveData(d); initBudget();
 }
 
 function initBudget() {
@@ -10028,7 +11532,9 @@ function initBudget() {
   const c = bgtCalc(d);
   renderBgtMonthly(d, c);
   renderBgtYearly(d, c);
+  renderBgtAssets(d, c);
   renderBgtSummary(d, c);
+  initBankVault();
   bgtInitSwipe();
   // Move selector and animate bars after render
   setTimeout(function() {
@@ -10037,29 +11543,138 @@ function initBudget() {
   }, 80);
 }
 
+var _bgtMcColors = ['#3d9eff','#f5c842','#00e5a0','#ff4d6d','#a855f7','#fb923c','#22d3ee','#f472b6'];
+
+function _bgtMcTap(card, e) {
+  var now = Date.now();
+  var last = card._bgtLastTap || 0;
+  card._bgtLastTap = now;
+  if (now - last < 300) {
+    // Double tap — toggle actions
+    document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { if (c !== card) c.classList.remove('show-acts'); });
+    card.classList.toggle('show-acts');
+  } else {
+    // Single tap — collapse any open card
+    document.querySelectorAll('.bgt-mc.show-acts').forEach(function(c) { c.classList.remove('show-acts'); });
+  }
+}
+
+function _nbMcTap(card, e) {
+  var now = Date.now();
+  var last = card._nbLastTap || 0;
+  card._nbLastTap = now;
+  if (now - last < 300) {
+    document.querySelectorAll('.nb-card.nb-show-acts').forEach(function(c) { if (c !== card) c.classList.remove('nb-show-acts'); });
+    card.classList.toggle('nb-show-acts');
+  } else {
+    document.querySelectorAll('.nb-card.nb-show-acts').forEach(function(c) { c.classList.remove('nb-show-acts'); });
+  }
+}
+
+function _bgtPickColor(dot, color) {
+  document.querySelectorAll('#bgt-color-row .bgt-color-dot').forEach(function(d) { d.classList.remove('active'); });
+  dot.classList.add('active');
+  var inp = document.getElementById('bgt-color-val');
+  if (inp) inp.value = color;
+}
+
 function renderBgtMonthly(d, c) {
-  // Hero strip
-  const mPct = c.iTotal > 0 ? Math.min(100, Math.round(c.mTotal / c.iTotal * 100)) : 0;
-  const sPct = c.iTotal > 0 ? Math.max(0, Math.min(100, Math.round(c.monthlySaving / c.iTotal * 100))) : 0;
-  const heroM = document.getElementById('bgt-hero-m');
+  // Pre-compute totals
+  var totalPaid = d.monthly.reduce(function(s,r){ return s + (r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance)); }, 0);
+  var totalDue  = d.monthly.reduce(function(s,r){ return s + (r.balance !== undefined ? r.balance : 0); }, 0);
+
+  // TOP: 3-stat strip (replaces old summary card)
+  var heroM = document.getElementById('bgt-hero-m');
   if (heroM) {
     heroM.innerHTML =
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Income</div>' +
-        '<div class="bgh-val gold">' + bgtFmt(c.iTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.mTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>' +
+      '</div>';
+  }
+
+  // Sort: fully paid (balance=0) first by amount DESC, then unpaid by balance DESC
+  var sorted = d.monthly.map(function(r, i) { return {r: r, i: i}; });
+  sorted.sort(function(a, b) {
+    var aPaid = (a.r.balance === 0);
+    var bPaid = (b.r.balance === 0);
+    if (aPaid && !bPaid) return -1;
+    if (!aPaid && bPaid) return 1;
+    if (aPaid && bPaid) return b.r.amount - a.r.amount;   // paid: biggest amount first
+    return b.r.balance - a.r.balance;                      // unpaid: highest due first
+  });
+
+  // Monthly 2-col cards
+  var mgrid = document.getElementById('bgt-m-grid');
+  if (mgrid) {
+    mgrid.innerHTML = sorted.length ? sorted.map(function(entry, si) {
+      var r = entry.r; var i = entry.i; // keep original index for edit/delete
+      var color = r.color || _bgtMcColors[i % 8];
+      var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - r.balance);
+      var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
+      var remaining = r.balance !== undefined ? r.balance : 0;
+      var isPaid = remaining === 0;
+      var balRatio = r.amount > 0 ? remaining / r.amount : 0;
+      var borderColor = isPaid ? 'rgba(0,229,160,0.55)' : 'rgba(240,180,41,' + (0.12 + balRatio * 0.35).toFixed(2) + ')';
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-border-color:' + borderColor + ';animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
+        '<div class="bgt-mc-acts">' +
+          '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'monthly\',' + i + ')">\u270e</div>' +
+          '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'monthly\',' + i + ')">\u2715</div>' +
+        '</div>' +
+        '<div class="bgt-mc-name">' + r.item + '</div>' +
+        '<div class="bgt-mc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-mc-bar-track"><div class="bgt-mc-bar-fill" data-bw="' + barPct + '"></div></div>' +
+        '<div class="bgt-mc-bal-row">' +
+          '<div class="bgt-mc-bal-lbl">Balance</div>' +
+          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (isPaid ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') :
+    '<div style="grid-column:1/-1;text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses yet. Tap \uff0b Add.</div>';
+  }
+
+  // Hide bottom total row — info already shown at top
+  var mt = document.getElementById('bgt-m-total');
+  if (mt) mt.parentElement.style.display = 'none';
+}
+
+function renderBgtAssets(d, c) {
+  function assetRow(r, i, type) {
+    return '<div class="bgt-inc-row">' +
+      '<div class="bgt-inc-name">' + r.item + '</div>' +
+      '<div class="bgt-inc-amt bgt-amt-green">' + bgtFmt(r.amount) + '</div>' +
+      '<div class="bgt-row-acts">' +
+        '<button class="bgt-act" onclick="bgtEdit(\'' + type + '\',' + i + ')">\u270f\ufe0f</button>' +
+        '<button class="bgt-act" onclick="bgtDelete(\'' + type + '\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
       '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Spent</div>' +
-        '<div class="bgh-val red">' + bgtFmt(c.mTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + mPct + '"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Saving</div>' +
-        '<div class="bgh-val ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.monthlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + sPct + '"></div></div>' +
+    '</div>';
+  }
+  // Banking: rendered as static vault carousel — update hero total pill only
+  const bvTotalEl = document.getElementById('bv-total-amt');
+  if (bvTotalEl) bvTotalEl.textContent = bgtFmt(c.bTotal);
+  const bvBPillEl = document.getElementById('bv-b-total');
+  if (bvBPillEl) bvBPillEl.textContent = bgtFmt(c.bTotal);
+  const bvNbPillEl = document.getElementById('bv-nb-total-pill');
+  if (bvNbPillEl) bvNbPillEl.textContent = bgtFmt(c.nbTotal);
+  // Non-Banking — liquid glass card grid
+  renderBgtNonBanking(d, c);
+  // Grand Total (live bank data if available)
+  var vd2 = (typeof bvGetData==='function') ? bvGetData() : null;
+  var vbTot = vd2 ? vd2.banks.reduce(function(s,b){return s+bvBankTotal(b);},0) : c.bTotal;
+  var netWorth = vbTot + c.nbTotal;
+  // 3-stat strip at top
+  var heroA = document.getElementById('bgt-hero-a');
+  if (heroA) {
+    heroA.innerHTML =
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Banks</div><div class="bgt-m-stat-val gold">' + bgtFmt(vbTot) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Investments</div><div class="bgt-m-stat-val green">' + bgtFmt(c.nbTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Net Worth</div><div class="bgt-m-stat-val" style="color:#a78bfa;">' + bgtFmt(netWorth) + '</div></div>' +
       '</div>';
   }
   // Income list
@@ -10076,105 +11691,112 @@ function renderBgtMonthly(d, c) {
       '</div>';
     }).join('');
   }
-  // Monthly 2-col grid
-  const mgrid = document.getElementById('bgt-m-grid');
-  if (mgrid) {
-    mgrid.innerHTML = d.monthly.map(function(r, i) {
-      const barW = c.mTotal > 0 ? Math.min(100, Math.round(r.amount / c.mTotal * 100)) : 0;
-      return '<div class="bgt-cell">' +
-        '<div class="bgt-cell-name">' + r.item + '</div>' +
-        '<div class="bgt-cell-bottom">' +
-          '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
-          '<div class="bgt-cell-acts">' +
-            '<button class="bgt-act" onclick="bgtEdit(\'monthly\',' + i + ')">\u270f\ufe0f</button>' +
-            '<button class="bgt-act" onclick="bgtDelete(\'monthly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
-      '</div>';
-    }).join('');
-  }
-  // Monthly total
-  const mt = document.getElementById('bgt-m-total');
-  if (mt) mt.textContent = bgtFmt(c.mTotal);
+  const it = document.getElementById('bgt-i-total');
+  if (it) it.textContent = bgtFmt(c.iTotal);
 }
 
 function renderBgtYearly(d, c) {
-  // Hero strip (annual perspective)
-  const annualIncome = c.iTotal * 12;
-  const ySpentPct = annualIncome > 0 ? Math.min(100, Math.round(c.yTotal / annualIncome * 100)) : 0;
-  const ySavPct   = annualIncome > 0 ? Math.max(0, Math.min(100, Math.round(c.yearlySaving / annualIncome * 100))) : 0;
-  const heroY = document.getElementById('bgt-hero-y');
+  // Pre-compute totals — use explicit r.paid if present (new model), else derive from balance
+  var totalPaid = d.yearly.reduce(function(s,r){
+    if (r.paid !== undefined) return s + r.paid;
+    var b = r.balance !== undefined ? r.balance : r.amount;
+    return s + Math.max(0, r.amount - b);
+  }, 0);
+  var totalDue = d.yearly.reduce(function(s,r){
+    return s + (r.balance !== undefined ? r.balance : r.amount);
+  }, 0);
+
+  // TOP: 3-stat strip — identical to monthly
+  var heroY = document.getElementById('bgt-hero-y');
   if (heroY) {
     heroY.innerHTML =
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Annual</div>' +
-        '<div class="bgh-val gold">' + bgtFmt(annualIncome) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--gold)" data-bw="100"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Yearly Exp</div>' +
-        '<div class="bgh-val red">' + bgtFmt(c.yTotal) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:var(--red)" data-bw="' + ySpentPct + '"></div></div>' +
-      '</div>' +
-      '<div class="bgh-sep"></div>' +
-      '<div class="bgh-item">' +
-        '<div class="bgh-lbl">Net Save</div>' +
-        '<div class="bgh-val ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
-        '<div class="bgh-bar"><div class="bgh-bar-fill" style="background:' + (c.yearlySaving >= 0 ? 'var(--green)' : 'var(--red)') + '" data-bw="' + ySavPct + '"></div></div>' +
+      '<div class="bgt-m-3stat bgt-m-3stat-top">' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Budgeted</div><div class="bgt-m-stat-val gold">' + bgtFmt(c.yTotal) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Paid</div><div class="bgt-m-stat-val green">' + bgtFmt(totalPaid) + '</div></div>' +
+        '<div class="bgt-m-stat-sep"></div>' +
+        '<div class="bgt-m-stat"><div class="bgt-m-stat-lbl">Due</div><div class="bgt-m-stat-val ' + (totalDue > 0 ? 'warn' : 'green') + '">' + bgtFmt(totalDue) + '</div></div>' +
       '</div>';
   }
-  // Yearly 2-col grid
-  const ylist = document.getElementById('bgt-y-list');
+
+  // Sort: fully paid (balance=0) first by amount DESC, then unpaid by balance DESC
+  var sorted = d.yearly.map(function(r, i) { return {r: r, i: i}; });
+  sorted.sort(function(a, b) {
+    var ab = a.r.balance !== undefined ? a.r.balance : a.r.amount;
+    var bb = b.r.balance !== undefined ? b.r.balance : b.r.amount;
+    var aPaid = (ab === 0);
+    var bPaid = (bb === 0);
+    if (aPaid && !bPaid) return -1;
+    if (!aPaid && bPaid) return 1;
+    if (aPaid && bPaid) return b.r.amount - a.r.amount;
+    return bb - ab;
+  });
+
+  // 2-col cards — identical layout to monthly
+  var ylist = document.getElementById('bgt-y-list');
   if (ylist) {
-    const cells = d.yearly.map(function(r, i) {
-      const barW = c.yTotal > 0 ? Math.min(100, Math.round(r.amount / c.yTotal * 100)) : 0;
-      const mavg = Math.round(r.amount / 12);
-      const dot = r.balance > 0 ? '<div class="bgt-ycell-dot"></div>' : '';
-      const due = r.next ? '<div class="bgt-ycell-due">' + r.next + '</div>' : '';
-      return '<div class="bgt-cell bgt-yr">' +
-        dot +
-        '<div class="bgt-cell-name">' + r.item + '</div>' +
-        due +
-        '<div class="bgt-cell-bottom">' +
-          '<div>' +
-            '<div class="bgt-cell-amt">' + bgtFmt(r.amount) + '</div>' +
-            '<div class="bgt-ycell-mavg">~' + bgtFmt(mavg) + '/mo</div>' +
-          '</div>' +
-          '<div class="bgt-cell-acts">' +
-            '<button class="bgt-act" onclick="bgtEdit(\'yearly\',' + i + ')">\u270f\ufe0f</button>' +
-            '<button class="bgt-act" onclick="bgtDelete(\'yearly\',' + i + ')">\ud83d\uddd1\ufe0f</button>' +
-          '</div>' +
+    ylist.innerHTML = sorted.length ? '<div class="bgt-grid">' + sorted.map(function(entry, si) {
+      var r = entry.r; var i = entry.i;
+      var color = r.color || _bgtMcColors[i % 8];
+      var remaining = r.balance !== undefined ? r.balance : r.amount;
+      var paid = r.paid !== undefined ? r.paid : Math.max(0, r.amount - remaining);
+      var barPct = r.amount > 0 ? Math.min(100, Math.round(paid / r.amount * 100)) : 0;
+      var isPaid = remaining === 0;
+      var balRatio = r.amount > 0 ? remaining / r.amount : 0;
+      var borderColor = isPaid ? 'rgba(0,229,160,0.55)' : 'rgba(240,180,41,' + (0.12 + balRatio * 0.35).toFixed(2) + ')';
+      return '<div class="bgt-mc' + (isPaid ? ' bgt-mc-paid' : '') + '" style="--mc-border-color:' + borderColor + ';animation-delay:' + (si * 0.04) + 's" onclick="_bgtMcTap(this,event)">' +
+        '<div class="bgt-mc-acts">' +
+          '<div class="bgt-mc-btn" onclick="event.stopPropagation();bgtEdit(\'yearly\',' + i + ')">\u270e</div>' +
+          '<div class="bgt-mc-btn del" onclick="event.stopPropagation();bgtDelete(\'yearly\',' + i + ')">\u2715</div>' +
         '</div>' +
-        '<div class="bgt-cell-bar"><div class="bgt-cell-fill" data-bw="' + barW + '"></div></div>' +
+        '<div class="bgt-mc-name">' + r.item + '</div>' +
+        '<div class="bgt-mc-amt">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-mc-bar-track"><div class="bgt-mc-bar-fill" data-bw="' + barPct + '"></div></div>' +
+        '<div class="bgt-mc-bal-row">' +
+          '<div class="bgt-mc-bal-lbl">Balance</div>' +
+          '<div class="bgt-mc-bal-val' + (remaining > 0 ? ' neg' : '') + '">' + (isPaid ? '\u2713 Paid' : bgtFmt(remaining)) + '</div>' +
+        '</div>' +
       '</div>';
-    }).join('');
-    ylist.innerHTML = '<div class="bgt-grid">' + cells + '</div>';
+    }).join('') + '</div>' :
+    '<div style="text-align:center;padding:32px 20px;color:rgba(255,255,255,.3);font-size:13px;">No yearly expenses yet. Tap \uff0b Add.</div>';
   }
-  // Totals
-  const yt = document.getElementById('bgt-y-total');
-  if (yt) yt.textContent = bgtFmt(c.yTotal);
-  const ya = document.getElementById('bgt-y-avg');
-  if (ya) ya.textContent = bgtFmt(c.yAvg) + '/mo';
+
+  // Hide both bottom total rows — info already shown at top
+  var yt = document.getElementById('bgt-y-total');
+  if (yt) yt.parentElement.style.display = 'none';
+  var ya = document.getElementById('bgt-y-avg');
+  if (ya) ya.parentElement.style.display = 'none';
 }
 
 function renderBgtSummary(d, c) {
-  // Summary banner — 2 big saving numbers
+  // Summary banner — removed (Monthly Save / Yearly Save)
   const banner = document.getElementById('bgt-sum-banner');
-  if (banner) {
-    banner.innerHTML =
-      '<div class="bgt-sum-pair">' +
-        '<div class="bgt-sum-item">' +
-          '<div class="bgt-sum-lbl">Monthly Save</div>' +
-          '<div class="bgt-sum-big ' + (c.monthlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.monthlySaving) + '</div>' +
-          '<div class="bgt-sum-sub">Income \u2212 Monthly Exp</div>' +
-        '</div>' +
-        '<div class="bgt-sum-sep"></div>' +
-        '<div class="bgt-sum-item">' +
-          '<div class="bgt-sum-lbl">Yearly Save</div>' +
-          '<div class="bgt-sum-big ' + (c.yearlySaving >= 0 ? 'green' : 'red') + '">' + bgtFmt(c.yearlySaving) + '</div>' +
-          '<div class="bgt-sum-sub">Save\u00d712 \u2212 Yearly Exp</div>' +
+  if (banner) banner.innerHTML = '';
+  // Current Balance — wow hero card
+  const cb = document.getElementById('bgt-cur-balance');
+  if (cb) {
+    var isPos = c.currentBalance >= 0;
+    var balColor = isPos ? 'green' : 'red';
+    var balRgb   = isPos ? '0,229,160' : '255,80,80';
+    cb.innerHTML =
+      '<div class="bgt-curbal-card" style="--cb-rgb:' + balRgb + '">' +
+        '<div class="bgt-curbal-sweep"></div>' +
+        '<div class="bgt-curbal-glow"></div>' +
+        '<div class="bgt-curbal-eyebrow">\u25ce CURRENT BALANCE</div>' +
+        '<div class="bgt-curbal-big ' + balColor + '">' + bgtFmt(c.currentBalance) + '</div>' +
+        '<div class="bgt-curbal-formula">' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Total Assets</span>' +
+            '<span class="bgt-curbal-val green">+ ' + bgtFmt(c.aTotal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Monthly Due</span>' +
+            '<span class="bgt-curbal-val neg">\u2212 ' + bgtFmt(c.mBal) + '</span>' +
+          '</div>' +
+          '<div class="bgt-curbal-row">' +
+            '<span class="bgt-curbal-lbl">Yearly Due</span>' +
+            '<span class="bgt-curbal-val neg">\u2212 ' + bgtFmt(c.yBal) + '</span>' +
+          '</div>' +
         '</div>' +
       '</div>';
   }
@@ -10182,14 +11804,14 @@ function renderBgtSummary(d, c) {
   const bd = document.getElementById('bgt-breakdown');
   if (bd) {
     const allItems = [];
-    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount}); });
-    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, yr: true}); });
+    d.monthly.forEach(function(r) { allItems.push({name: r.item, amt: r.amount * 12, tag: '×12'}); });
+    d.yearly.forEach(function(r)  { allItems.push({name: r.item, amt: r.amount, tag: 'yr'}); });
     allItems.sort(function(a, b) { return b.amt - a.amt; });
     const top = allItems.slice(0, 8);
     const maxAmt = top[0] ? top[0].amt : 1;
     bd.innerHTML = top.map(function(item) {
       const pct = Math.round(item.amt / maxAmt * 100);
-      const tag = item.yr ? ' <span style="font-size:9px;opacity:.4">(yr)</span>' : '';
+      const tag = ' <span style="font-size:9px;opacity:.45">' + item.tag + '</span>';
       return '<div class="bgt-bd-item">' +
         '<div class="bgt-bd-row">' +
           '<div class="bgt-bd-name">' + item.name + tag + '</div>' +
@@ -10209,20 +11831,42 @@ function _bgtOpenSheet() {
   const sheet = document.getElementById('bgt-sheet');
   const card  = document.querySelector('.bgt-sheet-card');
   sheet.classList.remove('hidden');
-  // Scroll input into view when keyboard opens (Android Chrome fix)
+
   if (card) {
-    card.addEventListener('focusin', function(e) {
+    // ── Clean up any previous listeners ──
+    if (card._bgtFocusIn) card.removeEventListener('focusin', card._bgtFocusIn);
+    if (card._bgtVpHandler && window.visualViewport)
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+
+    // ── focusin: scroll active input into view ──
+    card._bgtFocusIn = function(e) {
       if (e.target.tagName === 'INPUT' && e.target.type !== 'hidden') {
-        setTimeout(function() { e.target.scrollIntoView({behavior:'smooth', block:'center'}); }, 350);
+        setTimeout(function() { e.target.scrollIntoView({behavior:'instant', block:'nearest'}); }, 80);
       }
-    }, {once: false});
+    };
+    card.addEventListener('focusin', card._bgtFocusIn);
+
+    // ── visualViewport: push card above iOS keyboard ──
+    // iOS fixed overlays don't shrink with the keyboard — we add paddingBottom
+    // equal to keyboard height so the last input is never hidden behind it.
+    if (window.visualViewport) {
+      card._bgtVpHandler = function() {
+        var kbH = window.innerHeight - window.visualViewport.height;
+        card.style.paddingBottom = kbH > 50 ? (kbH + 24) + 'px' : '';
+        var active = document.activeElement;
+        if (active && active.tagName === 'INPUT' && active.type !== 'hidden') {
+          setTimeout(function() { active.scrollIntoView({behavior:'instant', block:'nearest'}); }, 60);
+        }
+      };
+      window.visualViewport.addEventListener('resize', card._bgtVpHandler);
+    }
   }
-  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); }, 100);
+  setTimeout(function(){ var f=document.getElementById('bgt-f1'); if(f) f.focus(); bgtCalcBal(); }, 120);
 }
 
 function bgtAdd(type) {
   _bgtState = {type, idx: -1};
-  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source'};
+  const labels = {monthly:'Add Monthly Item', yearly:'Add Yearly Item', income:'Add Income Source', assets:'Add Asset', assets_b:'Add Banking', assets_nb:'Add Non-Banking'};
   document.getElementById('bgt-sheet-title').textContent = labels[type];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, null);
   _bgtOpenSheet();
@@ -10231,19 +11875,21 @@ function bgtAdd(type) {
 function bgtEdit(type, idx) {
   const d = bgtGetData();
   _bgtState = {type, idx};
-  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source'};
-  document.getElementById('bgt-sheet-title').textContent = labels[type];
-  const row = type==='income' ? d.income[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
+  const labels = {monthly:'Edit Monthly Item', yearly:'Edit Yearly Item', income:'Edit Income Source', assets_b:'Edit Banking', assets_nb:'Edit Non-Banking'};
+  document.getElementById('bgt-sheet-title').textContent = labels[type] || 'Edit Item';
+  const row = type==='income' ? d.income[idx] : type==='assets_b' ? (d.assets.banking||[])[idx] : type==='assets_nb' ? (d.assets.nonBanking||[])[idx] : type==='monthly' ? d.monthly[idx] : d.yearly[idx];
   document.getElementById('bgt-sheet-body').innerHTML = _bgtFields(type, row);
   _bgtOpenSheet();
 }
 
 function bgtDelete(type, idx) {
   const d = bgtGetData();
-  const name = type==='income' ? d.income[idx].source : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
+  const name = type==='income' ? d.income[idx].source : type==='assets_b' ? (d.assets.banking||[])[idx].item : type==='assets_nb' ? (d.assets.nonBanking||[])[idx].item : (type==='monthly' ? d.monthly[idx].item : d.yearly[idx].item);
   if (!confirm('Delete "' + name + '"?\nThis cannot be undone.')) return;
   if (type==='monthly') d.monthly.splice(idx, 1);
   else if (type==='yearly') d.yearly.splice(idx, 1);
+  else if (type==='assets_b') { d.assets.banking.splice(idx, 1); }
+  else if (type==='assets_nb') { d.assets.nonBanking.splice(idx, 1); }
   else d.income.splice(idx, 1);
   bgtSaveData(d);
   initBudget();
@@ -10260,11 +11906,33 @@ function bgtSheetSave() {
   if (!f1) { if(document.getElementById('bgt-f1')) document.getElementById('bgt-f1').focus(); return; }
   const d = bgtGetData();
   if (type === 'monthly') {
-    const obj = {item:f1, amount:f2, balance:f3};
+    const paid = f3;
+    const balance = Math.max(0, f2 - paid);
+    const colorEl = document.getElementById('bgt-color-val');
+    const color = colorEl ? colorEl.value : '';
+    const obj = {item:f1, amount:f2, paid:paid, balance:balance};
+    if (color) obj.color = color;
     if (idx < 0) d.monthly.push(obj); else d.monthly[idx] = obj;
   } else if (type === 'yearly') {
-    const obj = {item:f1, amount:f2, balance:f3, next:f4};
+    const paid = f3;
+    const balance = Math.max(0, f2 - paid);
+    const obj = {item:f1, amount:f2, paid:paid, balance:balance};
     if (idx < 0) d.yearly.push(obj); else d.yearly[idx] = obj;
+  } else if (type === 'assets' || type === 'assets_b' || type === 'assets_nb') {
+    if (!d.assets) d.assets = {banking:[], nonBanking:[]};
+    const nbTypeEl = document.getElementById('bgt-nb-type');
+    const nbTypeVal = nbTypeEl ? nbTypeEl.value : 'other';
+    const obj = type === 'assets_nb'
+      ? {item:f1, amount:f2, type:nbTypeVal}
+      : {item:f1, amount:f2};
+    // For new adds, check toggle; for edits, use encoded type
+    let cat = type === 'assets_b' ? 'banking' : type === 'assets_nb' ? 'nonBanking' : null;
+    if (!cat) {
+      // Read toggle selection from DOM
+      const activeCatBtn = document.querySelector('.bgt-cat-btn.active');
+      cat = (activeCatBtn && activeCatBtn.dataset.cat === 'nb') ? 'nonBanking' : 'banking';
+    }
+    if (idx < 0) d.assets[cat].push(obj); else d.assets[cat][idx] = obj;
   } else {
     const obj = {source:f1, amount:f2};
     if (idx < 0) d.income.push(obj); else d.income[idx] = obj;
@@ -10276,23 +11944,382 @@ function bgtSheetSave() {
 
 function bgtCloseSheet() {
   document.getElementById('bgt-sheet').classList.add('hidden');
+  // Clean up listeners and reset keyboard padding
+  var card = document.querySelector('.bgt-sheet-card');
+  if (card) {
+    card.style.paddingBottom = '';
+    if (card._bgtFocusIn) { card.removeEventListener('focusin', card._bgtFocusIn); card._bgtFocusIn = null; }
+    if (card._bgtVpHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', card._bgtVpHandler);
+      card._bgtVpHandler = null;
+    }
+  }
   _bgtState = null;
+}
+
+function bgtToggleAssetCat(btn) {
+  document.querySelectorAll('.bgt-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function bgtCalcBal() {
+  var amt  = parseInt((document.getElementById('bgt-f2') || {}).value) || 0;
+  var paid = parseInt((document.getElementById('bgt-f3') || {}).value) || 0;
+  var bal  = Math.max(0, amt - paid);
+  var el   = document.getElementById('bgt-bal-val');
+  if (el) {
+    el.textContent = bgtFmt(bal);
+    el.style.color = bal > 0 ? 'var(--gold)' : 'var(--green)';
+  }
 }
 
 function _bgtFields(type, row) {
   if (type === 'monthly') {
+    // For backward compat: if row has no paid field, derive it from amount - balance
+    var paidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - row.balance)) : '';
+    var selColor = (row && row.color) ? row.color : _bgtMcColors[0];
+    var colorDots = _bgtMcColors.map(function(col) {
+      return '<div class="bgt-color-dot' + (col === selColor ? ' active' : '') + '" style="background:' + col + '" onclick="_bgtPickColor(this,\'' + col + '\')"></div>';
+    }).join('');
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Groceries" value="' + (row ? row.item : '') + '"></div>' +
-           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + paidVal + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
+           '<div class="bgt-field"><label>Card Color</label><div class="bgt-color-row" id="bgt-color-row">' + colorDots + '</div></div>' +
+           '<input id="bgt-color-val" type="hidden" value="' + selColor + '">' +
            '<input id="bgt-f4" type="hidden" value="">';
   }
   if (type === 'yearly') {
+    var yPaidVal = row ? (row.paid !== undefined ? row.paid : Math.max(0, row.amount - (row.balance !== undefined ? row.balance : row.amount))) : '';
     return '<div class="bgt-field"><label>Item Name</label><input id="bgt-f1" type="text" placeholder="e.g. Term Insurance" value="' + (row ? row.item : '') + '"></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-field"><label>Paid Amount (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + yPaidVal + '" oninput="bgtCalcBal()"></div>' +
+           '<div class="bgt-bal-display"><span class="bgt-bal-label">Balance Remaining</span><span class="bgt-bal-val" id="bgt-bal-val">\u20b9 0</span></div>' +
+           '<input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets') {
+    // New add — show Banking / Non-Banking toggle
+    return '<div class="bgt-asset-toggle">' +
+             '<button class="bgt-cat-btn active" data-cat="b" onclick="bgtToggleAssetCat(this)">\ud83c\udfd7\ufe0f Banking</button>' +
+             '<button class="bgt-cat-btn" data-cat="nb" onclick="bgtToggleAssetCat(this)">\ud83d\udcca Non-Banking</button>' +
+           '</div>' +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. ICICI Bank, HDFC Life" value=""></div>' +
+           '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value=""></div>' +
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets_b') {
+    const badge = '<div class="bgt-cat-badge bgt-cat-banking">\ud83c\udfd7\ufe0f Banking</div>';
+    return badge +
+           '<div class="bgt-field"><label>Item / Description</label><input id="bgt-f1" type="text" placeholder="e.g. ICICI Bank" value="' + (row ? row.item : '') + '"></div>' +
            '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
-           '<div class="bgt-field"><label>Balance Remaining (\u20b9)</label><input id="bgt-f3" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.balance : '') + '"></div>' +
-           '<div class="bgt-field"><label>Next Due Date</label><input id="bgt-f4" type="text" inputmode="text" placeholder="e.g. Aug 2026" value="' + (row ? (row.next||'') : '') + '"></div>';
+           '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+  }
+  if (type === 'assets_nb') {
+    return _nbFields(row);
   }
   return '<div class="bgt-field"><label>Source</label><input id="bgt-f1" type="text" placeholder="e.g. Freelance" value="' + (row ? row.source : '') + '"></div>' +
          '<div class="bgt-field"><label>Amount (\u20b9)</label><input id="bgt-f2" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="' + (row ? row.amount : '') + '"></div>' +
          '<input id="bgt-f3" type="hidden" value="0"><input id="bgt-f4" type="hidden" value="">';
+}
+
+/* ═══════════════════════════════════════════════════════
+   HERO BANNER CAROUSEL
+   ═══════════════════════════════════════════════════════ */
+(function initHeroCarousel() {
+  var banner   = document.getElementById('heroBanner');
+  var track    = document.getElementById('heroTrack');
+  var progress = document.getElementById('heroProgressFill');
+  var dotsEl   = document.getElementById('heroDots');
+  if (!banner || !track) return;
+
+  var slides   = track.querySelectorAll('.hero-slide');
+  var dots     = dotsEl ? dotsEl.querySelectorAll('.hero-dot') : [];
+  var current  = 0;
+  var DURATION = 4500;
+  var autoTimer, dragging = false, startX = 0, tx = 0;
+
+  function setSlide(idx) {
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = ((idx % slides.length) + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    resetProgress();
+  }
+
+  function resetProgress() {
+    if (!progress) return;
+    progress.style.animation = 'none';
+    progress.offsetHeight; // force reflow
+    progress.style.animation = 'heroProgressFill ' + DURATION + 'ms linear forwards';
+  }
+
+  function startAuto() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(function() { setSlide(current + 1); }, DURATION);
+  }
+
+  // expose for inline onclick on dots
+  window.heroGoSlide = function(idx) { setSlide(idx); startAuto(); };
+
+  resetProgress();
+  startAuto();
+
+  // Touch swipe
+  banner.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX; dragging = true; clearInterval(autoTimer);
+  }, { passive: true });
+  banner.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    tx = e.touches[0].clientX - startX;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + tx + 'px))';
+  }, { passive: true });
+  banner.addEventListener('touchend', function() {
+    dragging = false;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(tx < -50 ? current + 1 : tx > 50 ? current - 1 : current);
+    tx = 0; startAuto();
+  });
+
+  // Mouse drag
+  var mouseDown = false, mouseStartX = 0;
+  banner.addEventListener('mousedown', function(e) { mouseDown = true; mouseStartX = e.clientX; clearInterval(autoTimer); });
+  banner.addEventListener('mousemove', function(e) {
+    if (!mouseDown) return;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(calc(-' + (current * 100) + '% + ' + (e.clientX - mouseStartX) + 'px))';
+  });
+  banner.addEventListener('mouseup', function(e) {
+    if (!mouseDown) return;
+    mouseDown = false;
+    var dx = e.clientX - mouseStartX;
+    track.style.transition = 'transform .55s cubic-bezier(.22,1,.36,1)';
+    setSlide(dx < -50 ? current + 1 : dx > 50 ? current - 1 : current);
+    startAuto();
+  });
+  banner.addEventListener('mouseleave', function() {
+    if (mouseDown) { mouseDown = false; setSlide(current); startAuto(); }
+  });
+})();
+
+// ████████████████████████████████████████████████████████
+// § VEHICLE_SERVICE_MODAL
+// Full-screen vehicle service tracker — topbar three-dot menu entry
+// openVsvcModal, closeVsvcModal, vsvcSelectVeh, vsvcRenderAll,
+// vsvcRenderTabs, vsvcRenderRibbon, vsvcRenderTimeline,
+// openVsvcAddSheet, closeVsvcAddSheet, vsvcSelectChip, vsvcSave
+// ████████████████████████████████████████████████████████
+
+var VSVC_SEED = {
+  'i10': {
+    history: [
+      { id:'s1', date:'2025-12-10', type:'Full Service',   workshop:'Hyundai Khivansons KPHB', km:44250, cost:3800, nextKm:50000, nextDate:'', notes:'Engine oil 5W-30, air filter, coolant top-up, brake inspection' },
+      { id:'s2', date:'2025-08-05', type:'Oil Change',     workshop:'Quick Service Centre',    km:40100, cost:1200, nextKm:44000, nextDate:'', notes:'Mobil 1 5W-30 synthetic' },
+      { id:'s3', date:'2025-02-14', type:'Tyre Rotation',  workshop:'Hyundai Khivansons KPHB', km:36800, cost:800,  nextKm:0,     nextDate:'', notes:'Rotation + tyre pressure check' }
+    ]
+  },
+  'activa': {
+    history: [
+      { id:'s4', date:'2025-11-20', type:'Oil Change',    workshop:'Honda KPHB',         km:18200, cost:850,  nextKm:22000, nextDate:'', notes:'Honda Genuine oil, chain lube' },
+      { id:'s5', date:'2025-04-10', type:'Full Service',  workshop:'Honda Autoriders',   km:14500, cost:2100, nextKm:18000, nextDate:'', notes:'Full service + brake pads + coolant' }
+    ]
+  }
+};
+
+function vsvcSeedData() {
+  var data = getVehData();
+  var changed = false;
+  Object.keys(VSVC_SEED).forEach(function(vid) {
+    if (!data[vid] || !data[vid].history || data[vid].history.length === 0) {
+      data[vid] = JSON.parse(JSON.stringify(VSVC_SEED[vid]));
+      changed = true;
+    }
+  });
+  if (changed) saveVehData(data);
+}
+
+var _vsvcActiveVeh = 'i10';
+
+function openVsvcModal() {
+  vsvcSeedData();
+  _vsvcActiveVeh = 'i10';
+  vsvcRenderAll();
+  var modal = document.getElementById('vsvc-modal');
+  if (modal) modal.classList.remove('hidden');
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function closeVsvcModal() {
+  var modal = document.getElementById('vsvc-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function vsvcSelectVeh(id) {
+  _vsvcActiveVeh = id;
+  vsvcRenderAll();
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function vsvcRenderAll() {
+  vsvcRenderTabs();
+  vsvcRenderRibbon();
+  vsvcRenderTimeline();
+}
+
+function vsvcRenderTabs() {
+  var el = document.getElementById('vsvc-vtabs');
+  if (!el) return;
+  var html = '';
+  VEHICLES_DEF.forEach(function(v) {
+    var active = v.id === _vsvcActiveVeh ? ' active' : '';
+    html += '<div class="vsvc-vtab' + active + '" onclick="vsvcSelectVeh(\'' + v.id + '\')">'
+      + '<div class="vsvc-vtab-icon">' + v.icon + '</div>'
+      + '<div class="vsvc-vtab-name">' + v.name + '</div>'
+      + '<div class="vsvc-vtab-reg">' + v.reg + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function vsvcRenderRibbon() {
+  var el = document.getElementById('vsvc-ribbon');
+  if (!el) return;
+  var data = getVehData();
+  var vdata = data[_vsvcActiveVeh] || {};
+  var history = (vdata.history || []).slice().sort(function(a, b) { return b.date.localeCompare(a.date); });
+  var last = history[0] || null;
+
+  var lastDateStr = last ? (typeof fmtDate === 'function' ? fmtDate(last.date) : last.date) : '—';
+  var lastKmStr   = last && last.km ? Number(last.km).toLocaleString() + ' km' : '—';
+
+  var nextStr = '—', nextClass = '';
+  if (last) {
+    if (last.nextKm) {
+      nextStr = Number(last.nextKm).toLocaleString() + ' km';
+      nextClass = (last.nextKm - (last.km || 0)) <= 2000 ? 'warn' : 'ok';
+    } else if (last.nextDate) {
+      nextStr = typeof fmtDate === 'function' ? fmtDate(last.nextDate) : last.nextDate;
+      var dLeft = typeof daysUntil === 'function' ? daysUntil(last.nextDate) : null;
+      nextClass = dLeft !== null ? (dLeft < 0 ? 'overdue' : dLeft <= 30 ? 'warn' : 'ok') : 'ok';
+    }
+  }
+
+  el.innerHTML =
+    '<div class="vsvc-rstat"><div class="vsvc-rstat-val">' + lastDateStr + '</div><div class="vsvc-rstat-lbl">Last Service</div></div>'
+  + '<div class="vsvc-rstat"><div class="vsvc-rstat-val">' + lastKmStr   + '</div><div class="vsvc-rstat-lbl">Last Odometer</div></div>'
+  + '<div class="vsvc-rstat"><div class="vsvc-rstat-val ' + nextClass + '">' + nextStr + '</div><div class="vsvc-rstat-lbl">Next Service</div></div>';
+}
+
+function vsvcRenderTimeline() {
+  var el = document.getElementById('vsvc-timeline');
+  if (!el) return;
+  var data = getVehData();
+  var vdata = data[_vsvcActiveVeh] || {};
+  var history = (vdata.history || []).slice().sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+  if (!history.length) {
+    el.innerHTML = '<div class="vsvc-tl-empty"><strong>🔧</strong>No service records yet.<br>Tap <b>+ Log Service</b> to add your first entry.</div>';
+    return;
+  }
+
+  var html = '';
+  history.forEach(function(h, idx) {
+    var isLast = idx === history.length - 1;
+    var metaParts = [];
+    if (h.date)     metaParts.push(typeof fmtDate === 'function' ? fmtDate(h.date) : h.date);
+    if (h.km)       metaParts.push(Number(h.km).toLocaleString() + ' km');
+    if (h.workshop) metaParts.push(h.workshop);
+    if (h.cost)     metaParts.push('\u20B9' + Number(h.cost).toLocaleString());
+
+    var nextParts = [];
+    if (h.nextKm)   nextParts.push('Next: ' + Number(h.nextKm).toLocaleString() + ' km');
+    if (h.nextDate) nextParts.push((nextParts.length ? ' \u00B7 ' : 'Next: ') + (typeof fmtDate === 'function' ? fmtDate(h.nextDate) : h.nextDate));
+
+    html += '<div class="vsvc-tl-entry">'
+      + '<div class="vsvc-tl-line">'
+      +   '<div class="vsvc-tl-dot"></div>'
+      +   (isLast ? '' : '<div class="vsvc-tl-track"></div>')
+      + '</div>'
+      + '<div class="vsvc-tl-body">'
+      +   '<div class="vsvc-tl-type">' + (h.type || 'Service') + '</div>'
+      +   (metaParts.length ? '<div class="vsvc-tl-meta">' + metaParts.join(' \u00B7 ') + '</div>' : '')
+      +   (h.notes ? '<div class="vsvc-tl-note">' + h.notes + '</div>' : '')
+      +   (nextParts.length ? '<div class="vsvc-tl-next">\uD83D\uDCCD ' + nextParts.join('') + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function openVsvcAddSheet() {
+  var sel = document.getElementById('vsvc-add-veh');
+  if (sel) sel.value = _vsvcActiveVeh;
+  var dateEl = document.getElementById('vsvc-add-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
+  document.querySelectorAll('.vsvc-chip').forEach(function(c, i) { c.classList.toggle('selected', i === 0); });
+  ['vsvc-add-workshop','vsvc-add-km','vsvc-add-cost','vsvc-add-next-km','vsvc-add-next-date','vsvc-add-notes'].forEach(function(id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  var btn = document.getElementById('vsvc-save-btn');
+  if (btn) { btn.textContent = 'SAVE SERVICE ENTRY'; btn.classList.remove('saved'); btn.disabled = false; }
+  var sheet = document.getElementById('vsvc-add-sheet');
+  if (sheet) sheet.classList.remove('hidden');
+  if (typeof haptic === 'function') haptic('light');
+}
+
+function closeVsvcAddSheet() {
+  var sheet = document.getElementById('vsvc-add-sheet');
+  if (sheet) sheet.classList.add('hidden');
+}
+
+function vsvcSelectChip(el) {
+  document.querySelectorAll('.vsvc-chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function vsvcSave() {
+  var vehEl  = document.getElementById('vsvc-add-veh');
+  var dateEl = document.getElementById('vsvc-add-date');
+  if (!dateEl || !dateEl.value) {
+    if (typeof showToast === 'function') showToast('\u26A0\uFE0F Please enter a service date');
+    return;
+  }
+  var vehId    = vehEl ? vehEl.value : _vsvcActiveVeh;
+  var dateVal  = dateEl.value;
+  var chip     = document.querySelector('.vsvc-chip.selected');
+  var type     = chip ? chip.textContent : 'Service';
+  var workshop = (document.getElementById('vsvc-add-workshop') || {}).value || '';
+  var km       = parseInt((document.getElementById('vsvc-add-km')      || {}).value) || 0;
+  var cost     = parseFloat((document.getElementById('vsvc-add-cost')  || {}).value) || 0;
+  var nextKm   = parseInt((document.getElementById('vsvc-add-next-km') || {}).value) || 0;
+  var nextDate = ((document.getElementById('vsvc-add-next-date') || {}).value) || '';
+  var notes    = ((document.getElementById('vsvc-add-notes')     || {}).value || '').trim();
+
+  var entry = { id: 's' + Date.now(), date: dateVal, type: type, workshop: workshop.trim(),
+                km: km, cost: cost, nextKm: nextKm, nextDate: nextDate, notes: notes };
+
+  var data = getVehData();
+  if (!data[vehId])          data[vehId] = { history: [] };
+  if (!data[vehId].history)  data[vehId].history = [];
+  data[vehId].history.push(entry);
+  data[vehId].lastService = dateVal;
+  if (nextDate) data[vehId].nextService = nextDate;
+  saveVehData(data);
+
+  _vsvcActiveVeh = vehId;
+
+  var btn = document.getElementById('vsvc-save-btn');
+  if (btn) { btn.textContent = '\u2713 SAVED'; btn.classList.add('saved'); btn.disabled = true; }
+
+  var vObj = VEHICLES_DEF.find(function(v) { return v.id === vehId; }) || { name: vehId };
+  if (typeof showToast === 'function') showToast('\uD83D\uDD27 Service logged for ' + vObj.name);
+  if (typeof haptic === 'function') haptic('success');
+
+  setTimeout(function() {
+    closeVsvcAddSheet();
+    vsvcRenderAll();
+    if (typeof initWidgetDynamic === 'function') setTimeout(initWidgetDynamic, 150);
+  }, 900);
 }
