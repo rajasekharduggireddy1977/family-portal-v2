@@ -86,13 +86,13 @@ const MEMBERS = {
 const FAMILY_FLOATER = {insurer:'ICICI Lombard General Insurance',policy:'4193i/APRN/400529214/00/000',type:'Health AdvantEdge – Family Floater',plan:'Apex Plus R New',holder:'D Rajasekhar',members:['Vasundhara Duggireddy (Spouse)','Josritha Duggireddy (Daughter)','Jeevan Vidyadhar Duggireddy (Son)'],sumInsured:'₹15,00,000 per member',period:'05-Aug-2025 to 04-Aug-2026',premium:'₹25,812',issued:'17-Jul-2025',src:'INS_Family_HealthInsurance_ICICI_Floater_2025-26.pdf'};
 
 const EXPIRY = [
-  {id:'prop_tax_flat403',label:'Property Tax – Flat 403',sub:'Mangamuru Donka, Ongole · Vasundhara',icon:'🏘️',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035037996'},
-  {id:'prop_tax_shopg5',label:'Property Tax – Shop G5',sub:'Silver Spring Apts, Ongole · Vasundhara',icon:'🏬',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035038052'},
-  {id:'car_ins',label:'Car Insurance',sub:'Hyundai i10 · AP27AK7873',icon:'🚗',date:'2026-06-28',person:'Vasundhara',policy:'3001/103498197/10/000'},
-  {id:'health_fam',label:'Health Insurance – Family',sub:'ICICI Lombard Family Floater',icon:'👨‍👩‍👧‍👦',date:'2026-08-04',person:'Family',policy:'4193i/APRN/400529214/00/000'},
-  {id:'health_ind',label:'Health Insurance – Individual',sub:'ICICI Lombard · Rajasekhar',icon:'🏥',date:'2026-08-06',person:'Rajasekhar',policy:'4128i/HSNR/92094505/10/000'},
-  {id:'dl',label:'Driving Licence',sub:'Rajasekhar · DLFAP62729122008',icon:'🪪',date:'2027-01-20',person:'Rajasekhar',policy:'DLFAP62729122008'},
-  {id:'bike_ins',label:'Bike Insurance',sub:'Honda Activa 125 · TS08HJ8438',icon:'🛵',date:'2028-02-24',person:'Vasundhara',policy:'3005/430080806/00/000'}
+  {id:'prop_tax_flat403',taskId:'st_prop_flat403',label:'Property Tax – Flat 403',sub:'Mangamuru Donka, Ongole · Vasundhara',icon:'🏘️',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035037996'},
+  {id:'prop_tax_shopg5',taskId:'st_prop_shopg5',label:'Property Tax – Shop G5',sub:'Silver Spring Apts, Ongole · Vasundhara',icon:'🏬',date:'2026-02-20',person:'Vasundhara',policy:'Assessment 1035038052'},
+  {id:'car_ins',taskId:'st_car_ins',label:'Car Insurance',sub:'Hyundai i10 · AP27AK7873',icon:'🚗',date:'2026-06-28',person:'Vasundhara',policy:'3001/103498197/10/000'},
+  {id:'health_fam',taskId:'st_health_fam',label:'Health Insurance – Family',sub:'ICICI Lombard Family Floater',icon:'👨‍👩‍👧‍👦',date:'2026-08-04',person:'Family',policy:'4193i/APRN/400529214/00/000'},
+  {id:'health_ind',taskId:'st_health_ind',label:'Health Insurance – Individual',sub:'ICICI Lombard · Rajasekhar',icon:'🏥',date:'2026-08-06',person:'Rajasekhar',policy:'4128i/HSNR/92094505/10/000'},
+  {id:'dl',taskId:'st_dl',label:'Driving Licence',sub:'Rajasekhar · DLFAP62729122008',icon:'🪪',date:'2027-01-20',person:'Rajasekhar',policy:'DLFAP62729122008'},
+  {id:'bike_ins',taskId:'st_bike_ins',label:'Bike Insurance',sub:'Honda Activa 125 · TS08HJ8438',icon:'🛵',date:'2028-02-24',person:'Vasundhara',policy:'3005/430080806/00/000'}
 ];
 
 const ATTENDANCE = [
@@ -5779,6 +5779,7 @@ function setExpiryView(view) {
 }
 
 function buildTimeline() {
+  syncExpiryFromTasks();
   var vtlList = document.getElementById('vtl-list');
   var legend  = document.getElementById('vtl-legend');
   if (!vtlList) return;
@@ -5967,6 +5968,14 @@ function confirmReschedule(id) {
     const ev = evts.find(function(x){ return x.id === calId; });
     if (ev) { ev.date = newDate; saveCalEvents(evts); }
   } catch(err) {}
+  // Sync to linked Agenda task (taskId field)
+  try {
+    if (e.taskId) {
+      const ts = getSchedTasks();
+      const t = ts.find(function(x){ return x.id === e.taskId; });
+      if (t) { t.dueDate = newDate; saveSchedTasks(ts); }
+    }
+  } catch(err2) {}
   closeTlSheet();
   initExpiry(); animateExpBars(); buildTimeline();
   if (typeof auraRenderHome === 'function') auraRenderHome();
@@ -5975,10 +5984,23 @@ function confirmReschedule(id) {
   showToast('📅 ' + e.label + ' rescheduled to ' + fmtDate(newDate));
 }
 
+// ── Sync EXPIRY dates from linked Agenda tasks (taskId field) ──
+function syncExpiryFromTasks() {
+  try {
+    var tasks = getSchedTasks();
+    EXPIRY.forEach(function(e) {
+      if (!e.taskId) return;
+      var task = tasks.find(function(t) { return t.id === e.taskId; });
+      if (task && task.dueDate) e.date = task.dueDate;
+    });
+  } catch(err) {}
+}
+
 // ═══════════════════════════════════════
 // EXPIRY (original list)
 // ═══════════════════════════════════════
 function initExpiry() {
+  syncExpiryFromTasks();
   const sorted=[...EXPIRY].sort((a,b)=>daysUntil(a.date)-daysUntil(b.date));
   const overdue=sorted.filter(e=>daysUntil(e.date)<0).length;
   const urgent=sorted.filter(e=>{const d=daysUntil(e.date);return d>=0&&d<=90;}).length;
@@ -6608,7 +6630,10 @@ function saveSchedTask(){
   var tasks=getSchedTasks();
   if(editId){var idx=tasks.findIndex(function(t){return t.id===editId;});if(idx!==-1)tasks[idx]=Object.assign(tasks[idx],{title,dueDate:due,icon,notes,reminder,cat,member});}
   else{if(icon==='📋'&&CAT_ICONS[cat])icon=CAT_ICONS[cat];tasks.push({id:'st_'+Date.now(),title,dueDate:due,icon,notes,reminder,cat,member,sub:'',status:'pending',createdAt:new Date().toISOString()});}
-  saveSchedTasks(tasks);closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
+  saveSchedTasks(tasks);
+  // Sync due date to EXPIRY entry if this task is linked (editId case only — new tasks don't match)
+  if(editId&&due){try{var ex=EXPIRY.find(function(e){return e.taskId===editId;});if(ex)ex.date=due;}catch(e2){}}
+  closeSchedSheet('task');renderSchedTasks();updateSchedBadges();
   if(typeof showToast==='function')showToast(editId?'✅ Task updated':'✅ Task saved');
 }
 
