@@ -4022,12 +4022,17 @@ function tuCardHTML(item, showDate) {
   }
   var navTarget  = item.type === 'event' ? 'calendar' : 'scheduler';
   var cleanTitle = (item.title||'').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/u, '').trim() || (item.title||'');
+  var typeBadge = showDate
+    ? '<span class="tu-type-badge tu-tb-' + item.type + '">'
+      + (item.type === 'task' ? 'Task' : item.type === 'appt' ? 'Appt' : 'Event')
+      + '</span>'
+    : '';
   return '<div class="tu-item-card tu-cat-' + (item.cat||'other') + '" onclick="goPage(\'' + navTarget + '\')">'
     + '<div class="tu-card-top">'
     + '<span class="tu-card-icon">' + typeIcon + '</span>'
     + '<span class="tu-card-name">' + (cleanTitle || item.title) + '</span>'
     + '</div>'
-    + '<div class="tu-card-time">' + timeStr + '</div>'
+    + '<div class="tu-card-time">' + timeStr + typeBadge + '</div>'
     + '</div>';
 }
 
