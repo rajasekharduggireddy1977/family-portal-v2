@@ -3860,7 +3860,7 @@ var tuPickYear, tuPickMonth;
 
 var TU_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var TU_MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var TU_DOW      = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+var TU_DOW      = ['S','M','T','W','T','F','S'];
 var TU_MEMBER_NAMES = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
 
 function tuInit() {
@@ -4000,7 +4000,7 @@ function tuBuildUpcoming() {
   if (badgeEl) badgeEl.textContent = TU_MONTHS_S[tuSelMonth];
   var items = tuGetAllItems().filter(function(i){ return (i.date||'').slice(0,7) === moStr; });
   items.sort(function(a,b){
-    return b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||'');
+    return a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||'');
   });
   if (cntEl) cntEl.textContent = items.length;
   if (items.length === 0) {
