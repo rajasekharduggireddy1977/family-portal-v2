@@ -3857,7 +3857,7 @@ function auraRenderHome() {
 // ════════════════════════════════════════════════════════
 var tuSelYear, tuSelMonth, tuSelDay;
 var tuPickYear, tuPickMonth;
-var _tuIsExpanded = false;
+
 var TU_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var TU_MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var TU_DOW      = ['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -3869,7 +3869,6 @@ function tuInit() {
   tuSelMonth = now.getMonth();
   tuSelDay   = now.getDate();
   tuRefresh();
-  tuInitPullUp();
   var mp = document.getElementById('tu-month-prev');
   var mn = document.getElementById('tu-month-next');
   if (mp) mp.onclick = tuPrevMonth;
@@ -3973,7 +3972,7 @@ function tuBuildDayStrip() {
   if (activePill) setTimeout(function(){ activePill.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
 }
 
-function tuBuildToday(showAll) {
+function tuBuildToday() {
   var col   = document.getElementById('tu-today-col');
   var cntEl = document.getElementById('tu-today-count');
   if (!col) return;
@@ -3988,11 +3987,10 @@ function tuBuildToday(showAll) {
     col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">🌙</span>Nothing scheduled</div>';
     return;
   }
-  if (!showAll) items = items.slice(0, 7);
   col.innerHTML = items.map(function(item){ return tuCardHTML(item, false); }).join('');
 }
 
-function tuBuildUpcoming(showAll) {
+function tuBuildUpcoming() {
   var col     = document.getElementById('tu-upcoming-col');
   var cntEl   = document.getElementById('tu-upcoming-count');
   var badgeEl = document.getElementById('tu-upcoming-badge');
@@ -4001,7 +3999,6 @@ function tuBuildUpcoming(showAll) {
   var moStr = tuSelYear + '-' + pad(tuSelMonth + 1);
   if (badgeEl) badgeEl.textContent = TU_MONTHS_S[tuSelMonth];
   var items = tuGetAllItems().filter(function(i){ return (i.date||'').slice(0,7) === moStr; });
-  // Sort by date DESC (most recent date first)
   items.sort(function(a,b){
     return b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||'');
   });
@@ -4010,7 +4007,6 @@ function tuBuildUpcoming(showAll) {
     col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">📭</span>Nothing this month</div>';
     return;
   }
-  if (!showAll) items = items.slice(0, 7);
   col.innerHTML = items.map(function(item){ return tuCardHTML(item, true); }).join('');
 }
 
@@ -4039,115 +4035,6 @@ function tuScrollDays(dir) {
 }
 
 
-function tuInitPullUp() {
-  var handle = document.getElementById('tu-drag-handle');
-  if (!handle || handle._tuBound) return;
-  handle._tuBound = true;
-  var startY = 0, isDragging = false;
-  handle.addEventListener('touchstart', function(e) {
-    startY    = e.touches[0].clientY;
-    isDragging = false;
-  }, { passive: true });
-  handle.addEventListener('touchmove', function(e) {
-    var delta = e.touches[0].clientY - startY;
-    isDragging = Math.abs(delta) > 8;
-    if (_tuIsExpanded && delta > 0) {
-      var sheet = document.getElementById('tu-sheet');
-      if (sheet) sheet.style.transform = 'translateY(' + delta + 'px)';
-    }
-  }, { passive: true });
-  handle.addEventListener('touchend', function(e) {
-    var delta = e.changedTouches[0].clientY - startY;
-    var sheet = document.getElementById('tu-sheet');
-    if (!isDragging) {
-      if (_tuIsExpanded) tuCollapse(); else tuExpand();
-      return;
-    }
-    if (sheet) sheet.style.transform = '';
-    if (_tuIsExpanded && delta > 90) {
-      tuCollapse();
-    } else if (!_tuIsExpanded && delta < -60) {
-      tuExpand();
-    }
-  }, { passive: true });
-  handle.addEventListener('click', function() {
-    if (!isDragging) {
-      if (_tuIsExpanded) tuCollapse(); else tuExpand();
-    }
-  });
-}
-
-function tuExpand() {
-  var sheet = document.getElementById('tu-sheet');
-  if (!sheet || _tuIsExpanded) return;
-  // Reset both column lists to top
-  var tc = document.getElementById('tu-today-col');
-  var uc = document.getElementById('tu-upcoming-col');
-  if (tc) tc.scrollTop = 0;
-  if (uc) uc.scrollTop = 0;
-  // Lock parent page scroll
-  var pv = document.getElementById('page-view');
-  if (pv) { pv._tuPrevOverflow = pv.style.overflow; pv.style.overflow = 'hidden'; }
-  document.body.style.overflow = 'hidden';
-  var rect = sheet.getBoundingClientRect();
-  sheet.classList.add('tu-is-expanded');
-  sheet.style.cssText = [
-    'position:fixed',
-    'top:' + Math.max(0, rect.top) + 'px',
-    'left:0',
-    'right:0',
-    'bottom:0',
-    'z-index:500',
-    'border-radius:16px 16px 0 0',
-    'margin:0',
-    'background:#080D18',
-    'border:1px solid rgba(255,255,255,.1)',
-    'transition:none'
-  ].join(';');
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      sheet.style.transition = 'top 0.35s cubic-bezier(0.32,0.72,0,1), border-radius 0.35s';
-      sheet.style.top = '0';
-      sheet.style.borderRadius = '0';
-      // Show all items in expanded mode
-      tuBuildToday(true);
-      tuBuildUpcoming(true);
-    });
-  });
-  var bd = document.getElementById('tu-expand-bd');
-  if (!bd) {
-    bd = document.createElement('div');
-    bd.id = 'tu-expand-bd';
-    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0);z-index:499;transition:background 0.3s;pointer-events:none;';
-    document.body.appendChild(bd);
-  }
-  requestAnimationFrame(function(){ if (bd) bd.style.background = 'rgba(0,0,0,.55)'; });
-  _tuIsExpanded = true;
-}
-
-function tuCollapse() {
-  var sheet = document.getElementById('tu-sheet');
-  if (!sheet || !_tuIsExpanded) return;
-  sheet.style.transform = '';
-  sheet.style.transition = 'top 0.3s cubic-bezier(0.4,0,0.6,1)';
-  sheet.style.top = '100vh';
-  var bd = document.getElementById('tu-expand-bd');
-  if (bd) bd.style.background = 'rgba(0,0,0,0)';
-  setTimeout(function() {
-    sheet.classList.remove('tu-is-expanded');
-    sheet.style.cssText = '';
-    // Restore parent scroll
-    var pv = document.getElementById('page-view');
-    if (pv) pv.style.overflow = pv._tuPrevOverflow || '';
-    document.body.style.overflow = '';
-    _tuIsExpanded = false;
-    var bd2 = document.getElementById('tu-expand-bd');
-    if (bd2) bd2.remove();
-    // Restore 7-item limit
-    tuBuildToday(false);
-    tuBuildUpcoming(false);
-  }, 330);
-}
 
 // ════════════════════════════════════════════════════════
 // [OLD auraRenderHome body removed — replaced by tuInit above]
