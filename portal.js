@@ -3861,8 +3861,7 @@ var tuPickYear, tuPickMonth;
 var TU_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 var TU_MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var TU_DOW      = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-var TU_MEMBER_NAMES   = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
-var TU_MEMBER_AVATARS = { rajasekhar:{i:'RD',c:'#2a5099'}, vasundhara:{i:'VD',c:'#8b3060'}, josritha:{i:'JD',c:'#2a7a50'}, jeevan:{i:'JV',c:'#8b7030'}, all:{i:'FA',c:'#3a607b'} };
+var TU_MEMBER_NAMES = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
 
 function tuInit() {
   var now = new Date();
@@ -3872,8 +3871,8 @@ function tuInit() {
   tuRefresh();
   var mp = document.getElementById('tu-month-prev');
   var mn = document.getElementById('tu-month-next');
-  if (mp) mp.onclick = tuPrevWeek;
-  if (mn) mn.onclick = tuNextWeek;
+  if (mp) mp.onclick = tuPrevMonth;
+  if (mn) mn.onclick = tuNextMonth;
 }
 
 function tuRefresh() {
@@ -3884,15 +3883,17 @@ function tuRefresh() {
   tuBuildUpcoming();
 }
 
-function tuPrevWeek() {
-  var d = new Date(tuSelYear, tuSelMonth, tuSelDay - 7);
-  tuSelYear = d.getFullYear(); tuSelMonth = d.getMonth(); tuSelDay = d.getDate();
+function tuPrevMonth() {
+  tuSelMonth--;
+  if (tuSelMonth < 0) { tuSelMonth = 11; tuSelYear--; }
+  tuSelDay = 1;
   tuRefresh();
 }
 
-function tuNextWeek() {
-  var d = new Date(tuSelYear, tuSelMonth, tuSelDay + 7);
-  tuSelYear = d.getFullYear(); tuSelMonth = d.getMonth(); tuSelDay = d.getDate();
+function tuNextMonth() {
+  tuSelMonth++;
+  if (tuSelMonth > 11) { tuSelMonth = 0; tuSelYear++; }
+  tuSelDay = 1;
   tuRefresh();
 }
 
@@ -3926,53 +3927,49 @@ function tuBuildDayStrip() {
   var strip = document.getElementById('tu-days-scroll');
   if (!strip) return;
   var pad = function(n){ return String(n).padStart(2,'0'); };
-  // Find Sunday of the week containing the selected date
-  var selDate = new Date(tuSelYear, tuSelMonth, tuSelDay);
-  var weekStart = new Date(selDate);
-  weekStart.setDate(selDate.getDate() - selDate.getDay());
-  var now = new Date();
-  var todayStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+  var moStr = tuSelYear + '-' + pad(tuSelMonth + 1);
+  var daysInMonth = new Date(tuSelYear, tuSelMonth + 1, 0).getDate();
   var eventDays = new Set();
-  tuGetAllItems().forEach(function(item){ if (item.date) eventDays.add(item.date); });
-  var DOW_HDR = ['S','M','T','W','T','F','S'];
-  var hdrHtml = DOW_HDR.map(function(h){ return '<span class="tu-wk-hdr">' + h + '</span>'; }).join('');
-  var daysHtml = '';
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(weekStart); d.setDate(weekStart.getDate() + i);
-    var dy = d.getFullYear(), dm = d.getMonth(), dd = d.getDate();
-    var dStr = dy + '-' + pad(dm+1) + '-' + pad(dd);
-    var isActive = dy === tuSelYear && dm === tuSelMonth && dd === tuSelDay;
-    var isToday  = dStr === todayStr;
-    var hasDot   = eventDays.has(dStr);
-    var isDim    = dm !== tuSelMonth;
-    daysHtml += '<div class="tu-week-day'
-      + (isActive           ? ' active'  : '')
-      + (isToday && !isActive ? ' today' : '')
-      + (hasDot             ? ' has-dot' : '')
-      + (isDim              ? ' dim'     : '')
-      + '" data-y="' + dy + '" data-m="' + dm + '" data-d="' + dd + '">'
-      + '<span class="tu-wd-num">' + dd + '</span>'
+  tuGetAllItems().forEach(function(item){
+    if ((item.date||'').slice(0,7) === moStr) eventDays.add(parseInt(item.date.slice(8), 10));
+  });
+  var now = new Date();
+  var isCurMonth = tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth();
+  var todayNum = isCurMonth ? now.getDate() : -1;
+  var html = '';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dow = new Date(tuSelYear, tuSelMonth, d).getDay();
+    var isActive = d === tuSelDay;
+    var hasEvt   = eventDays.has(d);
+    var isToday  = d === todayNum;
+    html += '<div class="tu-day-pill'
+      + (isActive ? ' tu-day-active' : '')
+      + (hasEvt   ? ' tu-has-event'  : '')
+      + '" data-day="' + d + '"'
+      + (isToday && !isActive ? ' style="border-color:rgba(62,207,142,.4);"' : '')
+      + '>'
+      + '<span class="tu-day-name">' + TU_DOW[dow] + '</span>'
+      + '<span class="tu-day-num">' + d + '</span>'
+      + '<div class="tu-day-dot"></div>'
       + '</div>';
   }
-  strip.innerHTML = '<div class="tu-week-hdr-row">' + hdrHtml + '</div>'
-    + '<div class="tu-week-dates-row">' + daysHtml + '</div>';
+  strip.innerHTML = html;
   strip.onclick = function(e) {
-    var cell = e.target.closest('.tu-week-day');
-    if (!cell) return;
-    tuSelYear  = parseInt(cell.getAttribute('data-y'), 10);
-    tuSelMonth = parseInt(cell.getAttribute('data-m'), 10);
-    tuSelDay   = parseInt(cell.getAttribute('data-d'), 10);
-    var lbl = document.getElementById('tu-month-label');
-    if (lbl) lbl.textContent = TU_MONTHS[tuSelMonth] + ' ' + tuSelYear;
-    strip.querySelectorAll('.tu-week-day').forEach(function(c){ c.classList.remove('active'); });
-    cell.classList.add('active');
+    var pill = e.target.closest('.tu-day-pill');
+    if (!pill) return;
+    tuSelDay = parseInt(pill.getAttribute('data-day'), 10);
+    strip.querySelectorAll('.tu-day-pill').forEach(function(p){ p.classList.remove('tu-day-active'); });
+    pill.classList.add('tu-day-active');
     tuBuildToday();
     var cnt = document.getElementById('tu-today-count');
     if (cnt) {
-      var selStr = tuSelYear + '-' + pad(tuSelMonth+1) + '-' + pad(tuSelDay);
+      var pad2 = function(n){ return String(n).padStart(2,'0'); };
+      var selStr = tuSelYear + '-' + pad2(tuSelMonth+1) + '-' + pad2(tuSelDay);
       cnt.textContent = tuGetAllItems().filter(function(i){ return i.date === selStr; }).length;
     }
   };
+  var activePill = strip.querySelector('.tu-day-active');
+  if (activePill) setTimeout(function(){ activePill.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
 }
 
 function tuBuildToday() {
@@ -4014,29 +4011,21 @@ function tuBuildUpcoming() {
 }
 
 function tuCardHTML(item, showDate) {
-  var memberKey  = (item.member||'').toLowerCase();
-  var av         = TU_MEMBER_AVATARS[memberKey] || {i:'··', c:'#3a3a5c'};
-  var memberName = TU_MEMBER_NAMES[memberKey] || '';
-  var timeStr;
+  var typeIcon  = item.type === 'task' ? '📋' : item.type === 'appt' ? '🏥' : '🗓';
+  var timeStr   = item.time ? item.time : (item.type === 'task' ? 'Task' : 'All day');
   if (showDate && item.date) {
     var d   = new Date(item.date + 'T12:00:00');
     var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
     timeStr = dow + ' ' + d.getDate() + (item.time ? ' · ' + item.time : '');
-  } else {
-    timeStr = item.time ? item.time : (item.type === 'task' ? 'Task' : 'All day');
   }
-  var metaParts  = [];
-  if (timeStr)    metaParts.push(timeStr);
-  if (memberName) metaParts.push(memberName);
   var navTarget  = item.type === 'event' ? 'calendar' : 'scheduler';
   var cleanTitle = (item.title||'').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/u, '').trim() || (item.title||'');
   return '<div class="tu-item-card tu-cat-' + (item.cat||'other') + '" onclick="goPage(\'' + navTarget + '\')">'
-    + '<div class="tu-avatar" style="background:' + av.c + '">' + av.i + '</div>'
-    + '<div class="tu-card-body">'
-    + '<div class="tu-card-name">' + (cleanTitle || item.title) + '</div>'
-    + '<div class="tu-card-meta">' + metaParts.join(' · ') + '</div>'
+    + '<div class="tu-card-top">'
+    + '<span class="tu-card-icon">' + typeIcon + '</span>'
+    + '<span class="tu-card-name">' + (cleanTitle || item.title) + '</span>'
     + '</div>'
-    + '<div class="tu-card-chevron">&#8250;</div>'
+    + '<div class="tu-card-time">' + timeStr + '</div>'
     + '</div>';
 }
 
