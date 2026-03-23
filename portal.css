@@ -5744,7 +5744,7 @@ body.dash-active #content{
 .tu-day-pill.tu-has-event .tu-day-dot{background:#3ecf8e;}
 .tu-day-pill.tu-day-active.tu-has-event .tu-day-dot{background:rgba(255,255,255,.7);}
 /* Column lists */
-.tu-col-list{display:flex;flex-direction:column;gap:5px;overflow-y:auto;max-height:260px;scrollbar-width:none;}
+.tu-col-list{display:flex;flex-direction:column;gap:5px;overflow-y:visible;scrollbar-width:none;}
 .tu-col-list::-webkit-scrollbar{display:none;}
 /* Item cards */
 .tu-item-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:7px 8px;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;overflow:hidden;}
