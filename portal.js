@@ -4001,7 +4001,6 @@ function tuCardHTML(item, showDate) {
     var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
     timeStr = dow + ' ' + d.getDate() + (item.time ? ' · ' + item.time : '');
   }
-  var memberName = item.member ? (TU_MEMBER_NAMES[item.member.toLowerCase()] || item.member) : '';
   var navTarget  = item.type === 'event' ? 'calendar' : 'scheduler';
   var cleanTitle = (item.title||'').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/u, '').trim() || (item.title||'');
   return '<div class="tu-item-card tu-cat-' + (item.cat||'other') + '" onclick="goPage(\'' + navTarget + '\')">'
@@ -4010,8 +4009,6 @@ function tuCardHTML(item, showDate) {
     + '<span class="tu-card-name">' + (cleanTitle || item.title) + '</span>'
     + '</div>'
     + '<div class="tu-card-time">' + timeStr + '</div>'
-    + '<span class="tu-card-tag">' + (item.cat||'general') + '</span>'
-    + (memberName ? '<span class="tu-card-member">' + memberName + '</span>' : '')
     + '</div>';
 }
 

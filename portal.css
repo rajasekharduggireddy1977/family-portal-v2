@@ -5745,12 +5745,10 @@ body.dash-active #content{
 .tu-item-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:8px 9px;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;overflow:hidden;}
 .tu-item-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#4A9EFF;border-radius:3px 0 0 3px;}
 .tu-item-card:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.13);}
-.tu-card-top{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.tu-card-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
 .tu-card-icon{font-size:12px;flex-shrink:0;}
 .tu-card-name{font-size:11px;font-weight:600;color:#e8ecf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
-.tu-card-time{font-size:9.5px;color:rgba(175,195,225,.82);font-weight:500;margin-bottom:3px;}
-.tu-card-tag{display:inline-block;font-size:8px;font-weight:500;color:rgba(180,200,230,.72);background:rgba(255,255,255,.08);padding:2px 6px;border-radius:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-.tu-card-member{display:block;font-size:8px;color:rgba(160,180,215,.6);margin-top:2px;}
+.tu-card-time{font-size:9px;color:rgba(175,195,225,.78);font-weight:500;}
 /* Card stripe by category */
 .tu-item-card.tu-cat-health::before{background:linear-gradient(to bottom,#FF6B6B,#FF3B4E);}
 .tu-item-card.tu-cat-finance::before{background:linear-gradient(to bottom,#C9A84C,#8B6E2E);}
