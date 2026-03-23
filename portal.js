@@ -3870,13 +3870,32 @@ function tuInit() {
   tuSelDay   = now.getDate();
   tuRefresh();
   tuInitPullUp();
+  var mp = document.getElementById('tu-month-prev');
+  var mn = document.getElementById('tu-month-next');
+  if (mp) mp.onclick = tuPrevMonth;
+  if (mn) mn.onclick = tuNextMonth;
 }
 
 function tuRefresh() {
-  tuBuildMonthStrip();
+  var lbl = document.getElementById('tu-month-label');
+  if (lbl) lbl.textContent = TU_MONTHS[tuSelMonth] + ' ' + tuSelYear;
   tuBuildDayStrip();
   tuBuildToday();
   tuBuildUpcoming();
+}
+
+function tuPrevMonth() {
+  tuSelMonth--;
+  if (tuSelMonth < 0) { tuSelMonth = 11; tuSelYear--; }
+  tuSelDay = 1;
+  tuRefresh();
+}
+
+function tuNextMonth() {
+  tuSelMonth++;
+  if (tuSelMonth > 11) { tuSelMonth = 0; tuSelYear++; }
+  tuSelDay = 1;
+  tuRefresh();
 }
 
 function tuGetAllItems() {
@@ -4017,43 +4036,6 @@ function tuScrollDays(dir) {
   if (scroll) scroll.scrollBy({ left: dir * 160, behavior: 'smooth' });
 }
 
-function tuBuildMonthStrip() {
-  var strip = document.getElementById('tu-month-strip');
-  if (!strip) return;
-  var now = new Date();
-  var curYear  = now.getFullYear();
-  var curMonth = now.getMonth();
-  // Render -6 to +18 months relative to today
-  var html = '';
-  for (var offset = -6; offset <= 18; offset++) {
-    var d = new Date(curYear, curMonth + offset, 1);
-    var y = d.getFullYear();
-    var m = d.getMonth();
-    var isActive  = y === tuSelYear  && m === tuSelMonth;
-    var isCurrent = y === curYear    && m === curMonth;
-    html += '<div class="tu-month-pill'
-      + (isActive  ? ' tu-mp-active'  : '')
-      + (isCurrent && !isActive ? ' tu-mp-current' : '')
-      + '" data-y="' + y + '" data-m="' + m + '">'
-      + TU_MONTHS_S[m] + ' ' + String(y).slice(2)
-      + '</div>';
-  }
-  strip.innerHTML = html;
-  strip.onclick = function(e) {
-    var pill = e.target.closest('.tu-month-pill');
-    if (!pill) return;
-    tuSelYear  = parseInt(pill.getAttribute('data-y'), 10);
-    tuSelMonth = parseInt(pill.getAttribute('data-m'), 10);
-    tuSelDay   = (tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth()) ? now.getDate() : 1;
-    strip.querySelectorAll('.tu-month-pill').forEach(function(p){ p.classList.remove('tu-mp-active'); });
-    pill.classList.add('tu-mp-active');
-    tuBuildDayStrip();
-    tuBuildToday();
-    tuBuildUpcoming();
-  };
-  var active = strip.querySelector('.tu-mp-active');
-  if (active) setTimeout(function(){ active.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
-}
 
 function tuInitPullUp() {
   var handle = document.getElementById('tu-drag-handle');
@@ -4096,9 +4078,11 @@ function tuInitPullUp() {
 function tuExpand() {
   var sheet = document.getElementById('tu-sheet');
   if (!sheet || _tuIsExpanded) return;
-  // Reset content scroll to top
-  var cs = document.getElementById('tu-content-scroll');
-  if (cs) cs.scrollTop = 0;
+  // Reset both column lists to top
+  var tc = document.getElementById('tu-today-col');
+  var uc = document.getElementById('tu-upcoming-col');
+  if (tc) tc.scrollTop = 0;
+  if (uc) uc.scrollTop = 0;
   // Lock parent page scroll
   var pv = document.getElementById('page-view');
   if (pv) { pv._tuPrevOverflow = pv.style.overflow; pv.style.overflow = 'hidden'; }

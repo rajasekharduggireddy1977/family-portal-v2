@@ -628,33 +628,44 @@
           </div>
         </div>
 
-        <!-- Month strip + Days strip -->
-        <div class="tu-days-wrap">
-          <div class="tu-month-strip" id="tu-month-strip"></div>
-          <div class="tu-days-scroll" id="tu-days-scroll"></div>
-        </div>
+        <!-- Two-column body -->
+        <div class="tu-body">
 
-        <!-- Column headers -->
-        <div class="tu-col-hdrs">
-          <div class="tu-col-hdr-item">
-            <span class="tu-col-title">Today's Schedule</span>
-            <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
-          </div>
-          <div class="tu-col-hdr-item">
-            <div class="tu-col-title-wrap">
-              <span class="tu-col-title">Upcoming</span>
-              <span class="tu-month-badge" id="tu-upcoming-badge">Mar</span>
+          <!-- TODAY column -->
+          <div class="tu-today-wrap">
+            <div class="tu-sect-hdr">
+              <span class="tu-col-title">Today's Schedule</span>
+              <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
             </div>
-            <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
+            <!-- Month nav -->
+            <div class="tu-month-nav">
+              <button class="tu-nav-arrow" id="tu-month-prev">&#8249;</button>
+              <span class="tu-month-label" id="tu-month-label">March 2026</span>
+              <button class="tu-nav-arrow" id="tu-month-next">&#8250;</button>
+            </div>
+            <!-- Day strip with arrows -->
+            <div class="tu-day-nav">
+              <button class="tu-nav-arrow" onclick="tuScrollDays(-1)">&#8249;</button>
+              <div class="tu-days-scroll" id="tu-days-scroll"></div>
+              <button class="tu-nav-arrow" onclick="tuScrollDays(1)">&#8250;</button>
+            </div>
+            <!-- Today list -->
+            <div class="tu-col-list" id="tu-today-col"></div>
           </div>
-        </div>
 
-        <!-- Two-column content -->
-        <div class="tu-content-scroll" id="tu-content-scroll">
-          <div class="tu-two-col">
-            <div class="tu-col" id="tu-today-col"></div>
-            <div class="tu-col" id="tu-upcoming-col"></div>
+          <!-- UPCOMING column -->
+          <div class="tu-upcoming-wrap">
+            <div class="tu-sect-hdr">
+              <div class="tu-col-title-wrap">
+                <span class="tu-col-title">Upcoming</span>
+                <span class="tu-month-badge" id="tu-upcoming-badge">Mar</span>
+              </div>
+              <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
+            </div>
+            <!-- Upcoming list -->
+            <div class="tu-col-list" id="tu-upcoming-col"></div>
           </div>
+
         </div>
       </div>
 
