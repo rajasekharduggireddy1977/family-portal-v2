@@ -3886,14 +3886,16 @@ function tuRefresh() {
 function tuPrevMonth() {
   tuSelMonth--;
   if (tuSelMonth < 0) { tuSelMonth = 11; tuSelYear--; }
-  tuSelDay = 1;
+  var now = new Date();
+  tuSelDay = (tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth()) ? now.getDate() : 1;
   tuRefresh();
 }
 
 function tuNextMonth() {
   tuSelMonth++;
   if (tuSelMonth > 11) { tuSelMonth = 0; tuSelYear++; }
-  tuSelDay = 1;
+  var now = new Date();
+  tuSelDay = (tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth()) ? now.getDate() : 1;
   tuRefresh();
 }
 
