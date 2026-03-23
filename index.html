@@ -604,82 +604,83 @@
         </div>
       </div>
 
-      <!-- ③④ CALENDAR WIDGET — Today + Upcoming -->
-      <div class="cw-widget fade-up delay-2">
+      <!-- ③④ TODAY & UPCOMING — pull-up sheet -->
+      <div class="tu-sheet fade-up delay-2" id="tu-sheet">
+        <div class="tu-drag-handle-area" id="tu-drag-handle">
+          <div class="tu-handle-pill"></div>
+        </div>
 
-        <!-- Mobile tab switcher -->
-        <div class="cw-tabs">
-          <div class="cw-tab cw-tab-active" onclick="cwSwitchTab('today')" id="cw-tab-today">
-            <span class="cw-tab-dot"></span> Today
+        <!-- Stats row -->
+        <div class="tu-stats-row">
+          <div class="tu-stat-card">
+            <div class="tu-stat-ico">📅</div>
+            <div class="tu-stat-txt">
+              <div class="tu-stat-num" id="tu-today-count">0</div>
+              <div class="tu-stat-lbl">Today's Items</div>
+            </div>
           </div>
-          <div class="cw-tab cw-tab-blue" onclick="cwSwitchTab('upcoming')" id="cw-tab-upcoming">
-            <span class="cw-tab-dot"></span> Upcoming
+          <div class="tu-stat-card">
+            <div class="tu-stat-ico">🔖</div>
+            <div class="tu-stat-txt">
+              <div class="tu-stat-num" id="tu-upcoming-count">0</div>
+              <div class="tu-stat-lbl">Upcoming</div>
+            </div>
           </div>
         </div>
 
-        <!-- LEFT: TODAY PANEL -->
-        <div class="cw-panel-today" id="cwPanelToday">
-          <div class="cw-orb1"></div>
-          <div class="cw-orb2"></div>
-
-          <div class="cw-today-hdr">
-            <div class="cw-today-title">
-              <span class="cw-live-dot"></span>
-              Today
+        <!-- Days strip -->
+        <div class="tu-days-wrap">
+          <div class="tu-days-hdr">
+            <div class="tu-month-sel-btn" id="tu-month-sel-btn">
+              <span id="tu-month-sel-label">March 2026</span>
+              <span class="tu-sel-arrow">▾</span>
             </div>
-            <span class="cw-cal-link" onclick="goPage('scheduler')">Agenda →</span>
-          </div>
-
-          <div class="cw-date-hero">
-            <div class="cw-day-num" id="cwDayNum">—</div>
-            <div class="cw-day-info">
-              <div class="cw-day-name" id="cwDayName">—</div>
-              <div class="cw-month-year" id="cwMonthYear">—</div>
+            <div class="tu-strip-nav">
+              <button class="tu-strip-btn" onclick="tuScrollDays(-1)">&#8249;</button>
+              <button class="tu-strip-btn" onclick="tuScrollDays(1)">&#8250;</button>
             </div>
           </div>
-
-          <div class="cw-sep"></div>
-
-          <div class="cw-mini-cal">
-            <div class="cw-mini-cal-hdr">
-              <span class="cw-mini-cal-month" id="cwMiniCalMonth"></span>
-              <div class="cw-mini-cal-nav">
-                <div class="cw-mini-nav-btn" onclick="cwMonthNav(-1)">&#8249;</div>
-                <div class="cw-mini-nav-btn" onclick="cwMonthNav(1)">&#8250;</div>
-              </div>
-            </div>
-            <div class="cw-mini-cal-grid" id="cwMiniCalGrid"></div>
-          </div>
-
-          <div id="aura-today-timeline"></div>
+          <div class="tu-days-scroll" id="tu-days-scroll"></div>
         </div>
 
-        <!-- RIGHT: UPCOMING PANEL -->
-        <div class="cw-panel-upcoming" id="cwPanelUpcoming">
-          <div class="cw-upcoming-hdr">
-            <div class="cw-upcoming-title">
-              <span class="cw-upcoming-dot"></span>
-              Upcoming
-            </div>
-            <div class="cw-month-switcher">
-              <div class="cw-month-btn" onclick="ovMonthNav(-1)">&#8249;</div>
-              <span class="cw-month-label" id="ov-month-label"></span>
-              <div class="cw-month-btn" onclick="ovMonthNav(1)">&#8250;</div>
-            </div>
+        <!-- Column headers -->
+        <div class="tu-col-hdrs">
+          <div class="tu-col-hdr-item">
+            <span class="tu-col-title">Today</span>
+            <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
           </div>
-
-          <div class="cw-events-list" id="ov-month-events"></div>
-
-          <div class="cw-upcoming-footer">
-            <span class="cw-footer-count">Showing <strong id="cw-evt-count">—</strong> events</span>
-            <span class="cw-footer-link" onclick="goPage('scheduler')">All events →</span>
+          <div class="tu-col-hdr-item">
+            <div class="tu-col-title-wrap">
+              <span class="tu-col-title">Upcoming</span>
+              <span class="tu-month-badge" id="tu-upcoming-badge">Mar</span>
+            </div>
+            <span class="tu-col-link" onclick="goPage('scheduler')">View All</span>
           </div>
         </div>
 
-      </div><!-- /.cw-widget -->
+        <!-- Two-column content -->
+        <div class="tu-content-scroll" id="tu-content-scroll">
+          <div class="tu-two-col">
+            <div class="tu-col" id="tu-today-col"></div>
+            <div class="tu-col" id="tu-upcoming-col"></div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Hidden stubs — backward-compat -->
-      <div style="display:none!important;"><div id="gr-cards"></div><div id="gr-empty"></div><div id="gr-now-clock"></div></div>
+      <!-- Month/Year picker overlay -->
+      <div class="tu-picker-overlay" id="tu-picker-overlay">
+        <div class="tu-picker-sheet" id="tu-picker-sheet">
+          <div class="tu-picker-handle"></div>
+          <div class="tu-picker-title">Select Month &amp; Year</div>
+          <div class="tu-year-row">
+            <button class="tu-year-nav" id="tu-year-prev">&#8249;</button>
+            <span class="tu-year-label" id="tu-picker-year">2026</span>
+            <button class="tu-year-nav" id="tu-year-next">&#8250;</button>
+          </div>
+          <div class="tu-month-grid" id="tu-month-grid"></div>
+          <button class="tu-picker-apply" id="tu-picker-apply">Apply</button>
+        </div>
+      </div>
 
       <!-- ── CRITICAL ALERTS ───────────── -->
       <div class="home-section-divider fade-up delay-3"></div>

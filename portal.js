@@ -3844,6 +3844,340 @@ function auraRenderAlerts() {
 
 /* ── Home Panel ── */
 function auraRenderHome() {
+  tuInit();
+}
+
+// ════════════════════════════════════════════════════════
+// TODAY & UPCOMING — pull-up sheet  (§ TU_SHEET)
+// tuInit, tuRefresh, tuGetAllItems, tuBuildDayStrip,
+// tuBuildToday, tuBuildUpcoming, tuCardHTML,
+// tuScrollDays, tuOpenPicker, tuClosePicker,
+// tuRenderPickerYear, tuRenderMonthGrid, tuApplyPicker,
+// tuInitPullUp, tuExpand, tuCollapse
+// ════════════════════════════════════════════════════════
+var tuSelYear, tuSelMonth, tuSelDay;
+var tuPickYear, tuPickMonth;
+var _tuIsExpanded = false;
+var TU_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var TU_MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var TU_DOW      = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+var TU_MEMBER_NAMES = { rajasekhar:'Rajasekhar', vasundhara:'Vasundhara', josritha:'Josritha', jeevan:'Jeevan', all:'Family' };
+
+function tuInit() {
+  var now = new Date();
+  tuSelYear  = now.getFullYear();
+  tuSelMonth = now.getMonth();
+  tuSelDay   = now.getDate();
+  tuPickYear  = tuSelYear;
+  tuPickMonth = tuSelMonth;
+  tuRefresh();
+  tuInitPullUp();
+  var btn = document.getElementById('tu-month-sel-btn');
+  if (btn) btn.onclick = function() { tuOpenPicker(); };
+  var yp = document.getElementById('tu-year-prev');
+  var yn = document.getElementById('tu-year-next');
+  var ap = document.getElementById('tu-picker-apply');
+  if (yp) yp.onclick = function(){ tuPickYear--; tuRenderPickerYear(); tuRenderMonthGrid(); };
+  if (yn) yn.onclick = function(){ tuPickYear++; tuRenderPickerYear(); tuRenderMonthGrid(); };
+  if (ap) ap.onclick = function(){ tuApplyPicker(); };
+  var ov = document.getElementById('tu-picker-overlay');
+  if (ov) ov.addEventListener('click', function(e){ if (e.target === ov) tuClosePicker(); });
+}
+
+function tuRefresh() {
+  var labelEl = document.getElementById('tu-month-sel-label');
+  if (labelEl) labelEl.textContent = TU_MONTHS[tuSelMonth] + ' ' + tuSelYear;
+  tuBuildDayStrip();
+  tuBuildToday();
+  tuBuildUpcoming();
+}
+
+function tuGetAllItems() {
+  var items = [];
+  try {
+    var calRaw = localStorage.getItem('fp_cal_events');
+    if (calRaw) JSON.parse(calRaw)
+      .filter(function(e){ return e.cat !== 'education'; })
+      .forEach(function(e){
+        items.push({ date:e.date||'', time:e.start||e.time||'', title:e.title||'', cat:e.cat||'other', member:((e.members||[])[0]||''), type:'event' });
+      });
+  } catch(ex) {}
+  try {
+    var tasks = typeof getSchedTasks==='function' ? getSchedTasks() : JSON.parse(localStorage.getItem('fp_sched_tasks')||'[]');
+    tasks.filter(function(t){ return t.status!=='done' && t.dueDate; })
+      .forEach(function(t){
+        items.push({ date:t.dueDate, time:'', title:(t.icon||'📋')+' '+t.title, cat:t.cat||'other', member:t.member||'', type:'task' });
+      });
+  } catch(ex) {}
+  try {
+    var appts = typeof getApptsV4==='function' ? getApptsV4() : JSON.parse(localStorage.getItem('fp_appts_v4')||'[]');
+    appts.forEach(function(a){
+      items.push({ date:a.date||'', time:a.time||'', title:a.title||'', cat:a.type||'other', member:a.member||'', type:'appt' });
+    });
+  } catch(ex) {}
+  return items;
+}
+
+function tuBuildDayStrip() {
+  var strip = document.getElementById('tu-days-scroll');
+  if (!strip) return;
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var moStr = tuSelYear + '-' + pad(tuSelMonth + 1);
+  var daysInMonth = new Date(tuSelYear, tuSelMonth + 1, 0).getDate();
+  var eventDays = new Set();
+  tuGetAllItems().forEach(function(item){
+    if ((item.date||'').slice(0,7) === moStr) eventDays.add(parseInt(item.date.slice(8), 10));
+  });
+  var now = new Date();
+  var isCurMonth = tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth();
+  var todayNum = isCurMonth ? now.getDate() : -1;
+  var html = '';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dow = new Date(tuSelYear, tuSelMonth, d).getDay();
+    var isActive = d === tuSelDay;
+    var hasEvt   = eventDays.has(d);
+    var isToday  = d === todayNum;
+    html += '<div class="tu-day-pill'
+      + (isActive ? ' tu-day-active' : '')
+      + (hasEvt   ? ' tu-has-event'  : '')
+      + '" data-day="' + d + '"'
+      + (isToday && !isActive ? ' style="border-color:rgba(62,207,142,.4);"' : '')
+      + '>'
+      + '<span class="tu-day-name">' + TU_DOW[dow] + '</span>'
+      + '<span class="tu-day-num">' + d + '</span>'
+      + '<div class="tu-day-dot"></div>'
+      + '</div>';
+  }
+  strip.innerHTML = html;
+  strip.onclick = function(e) {
+    var pill = e.target.closest('.tu-day-pill');
+    if (!pill) return;
+    tuSelDay = parseInt(pill.getAttribute('data-day'), 10);
+    strip.querySelectorAll('.tu-day-pill').forEach(function(p){ p.classList.remove('tu-day-active'); });
+    pill.classList.add('tu-day-active');
+    tuBuildToday();
+    var cnt = document.getElementById('tu-today-count');
+    if (cnt) {
+      var pad2 = function(n){ return String(n).padStart(2,'0'); };
+      var selStr = tuSelYear + '-' + pad2(tuSelMonth+1) + '-' + pad2(tuSelDay);
+      cnt.textContent = tuGetAllItems().filter(function(i){ return i.date === selStr; }).length;
+    }
+  };
+  var activePill = strip.querySelector('.tu-day-active');
+  if (activePill) setTimeout(function(){ activePill.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
+}
+
+function tuBuildToday() {
+  var col   = document.getElementById('tu-today-col');
+  var cntEl = document.getElementById('tu-today-count');
+  if (!col) return;
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var selStr = tuSelYear + '-' + pad(tuSelMonth+1) + '-' + pad(tuSelDay);
+  var items = tuGetAllItems().filter(function(i){ return i.date === selStr; });
+  items.sort(function(a,b){
+    return (a.time||'ZZ').localeCompare(b.time||'ZZ') || (a.title||'').localeCompare(b.title||'');
+  });
+  if (cntEl) cntEl.textContent = items.length;
+  if (items.length === 0) {
+    col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">🌙</span>Nothing scheduled</div>';
+    return;
+  }
+  col.innerHTML = items.map(function(item){ return tuCardHTML(item, false); }).join('');
+}
+
+function tuBuildUpcoming() {
+  var col     = document.getElementById('tu-upcoming-col');
+  var cntEl   = document.getElementById('tu-upcoming-count');
+  var badgeEl = document.getElementById('tu-upcoming-badge');
+  if (!col) return;
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var moStr = tuSelYear + '-' + pad(tuSelMonth + 1);
+  if (badgeEl) badgeEl.textContent = TU_MONTHS_S[tuSelMonth];
+  var items = tuGetAllItems().filter(function(i){ return (i.date||'').slice(0,7) === moStr; });
+  // Sort by date DESC (most recent date first)
+  items.sort(function(a,b){
+    return b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||'');
+  });
+  if (cntEl) cntEl.textContent = items.length;
+  if (items.length === 0) {
+    col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">📭</span>Nothing this month</div>';
+    return;
+  }
+  col.innerHTML = items.map(function(item){ return tuCardHTML(item, true); }).join('');
+}
+
+function tuCardHTML(item, showDate) {
+  var typeIcon  = item.type === 'task' ? '📋' : item.type === 'appt' ? '🏥' : '🗓';
+  var timeStr   = item.time ? item.time : (item.type === 'task' ? 'Task' : 'All day');
+  if (showDate && item.date) {
+    var d   = new Date(item.date + 'T12:00:00');
+    var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    timeStr = dow + ' ' + d.getDate() + (item.time ? ' · ' + item.time : '');
+  }
+  var memberName = item.member ? (TU_MEMBER_NAMES[item.member.toLowerCase()] || item.member) : '';
+  var navTarget  = item.type === 'event' ? 'calendar' : 'scheduler';
+  var cleanTitle = (item.title||'').replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{1F000}-\u{1FFFF}]\s*/u, '').trim() || (item.title||'');
+  return '<div class="tu-item-card tu-cat-' + (item.cat||'other') + '" onclick="goPage(\'' + navTarget + '\')">'
+    + '<div class="tu-card-top">'
+    + '<span class="tu-card-icon">' + typeIcon + '</span>'
+    + '<span class="tu-card-name">' + (cleanTitle || item.title) + '</span>'
+    + '</div>'
+    + '<div class="tu-card-time">' + timeStr + '</div>'
+    + '<span class="tu-card-tag">' + (item.cat||'general') + '</span>'
+    + (memberName ? '<span class="tu-card-member">' + memberName + '</span>' : '')
+    + '</div>';
+}
+
+function tuScrollDays(dir) {
+  var scroll = document.getElementById('tu-days-scroll');
+  if (scroll) scroll.scrollBy({ left: dir * 160, behavior: 'smooth' });
+}
+
+function tuOpenPicker() {
+  tuPickYear  = tuSelYear;
+  tuPickMonth = tuSelMonth;
+  tuRenderPickerYear();
+  tuRenderMonthGrid();
+  var ov = document.getElementById('tu-picker-overlay');
+  if (ov) ov.classList.add('open');
+}
+
+function tuClosePicker() {
+  var ov = document.getElementById('tu-picker-overlay');
+  if (ov) ov.classList.remove('open');
+}
+
+function tuRenderPickerYear() {
+  var el = document.getElementById('tu-picker-year');
+  if (el) el.textContent = tuPickYear;
+}
+
+function tuRenderMonthGrid() {
+  var grid = document.getElementById('tu-month-grid');
+  if (!grid) return;
+  var now = new Date();
+  var html = '';
+  TU_MONTHS_S.forEach(function(m, i) {
+    var isSelected = i === tuPickMonth;
+    var isCurrent  = i === now.getMonth() && tuPickYear === now.getFullYear();
+    html += '<div class="tu-month-chip'
+      + (isSelected ? ' tu-mc-selected' : '')
+      + (isCurrent  ? ' tu-mc-current'  : '')
+      + '" data-mi="' + i + '">' + m + '</div>';
+  });
+  grid.innerHTML = html;
+  grid.onclick = function(e) {
+    var chip = e.target.closest('.tu-month-chip');
+    if (!chip) return;
+    tuPickMonth = parseInt(chip.getAttribute('data-mi'), 10);
+    tuRenderMonthGrid();
+  };
+}
+
+function tuApplyPicker() {
+  tuSelYear  = tuPickYear;
+  tuSelMonth = tuPickMonth;
+  tuSelDay   = 1;
+  tuClosePicker();
+  tuRefresh();
+}
+
+function tuInitPullUp() {
+  var handle = document.getElementById('tu-drag-handle');
+  if (!handle || handle._tuBound) return;
+  handle._tuBound = true;
+  var startY = 0, isDragging = false;
+  handle.addEventListener('touchstart', function(e) {
+    startY    = e.touches[0].clientY;
+    isDragging = false;
+  }, { passive: true });
+  handle.addEventListener('touchmove', function(e) {
+    var delta = e.touches[0].clientY - startY;
+    isDragging = Math.abs(delta) > 8;
+    if (_tuIsExpanded && delta > 0) {
+      var sheet = document.getElementById('tu-sheet');
+      if (sheet) sheet.style.transform = 'translateY(' + delta + 'px)';
+    }
+  }, { passive: true });
+  handle.addEventListener('touchend', function(e) {
+    var delta = e.changedTouches[0].clientY - startY;
+    var sheet = document.getElementById('tu-sheet');
+    if (!isDragging) {
+      if (_tuIsExpanded) tuCollapse(); else tuExpand();
+      return;
+    }
+    if (sheet) sheet.style.transform = '';
+    if (_tuIsExpanded && delta > 90) {
+      tuCollapse();
+    } else if (!_tuIsExpanded && delta < -60) {
+      tuExpand();
+    }
+  }, { passive: true });
+  handle.addEventListener('click', function() {
+    if (!isDragging) {
+      if (_tuIsExpanded) tuCollapse(); else tuExpand();
+    }
+  });
+}
+
+function tuExpand() {
+  var sheet = document.getElementById('tu-sheet');
+  if (!sheet || _tuIsExpanded) return;
+  var rect = sheet.getBoundingClientRect();
+  sheet.style.cssText = [
+    'position:fixed',
+    'top:' + rect.top + 'px',
+    'left:0',
+    'right:0',
+    'bottom:0',
+    'z-index:500',
+    'border-radius:16px 16px 0 0',
+    'margin:0',
+    'overflow-y:auto',
+    'background:linear-gradient(160deg,#080D18 0%,#0A0C14 60%,#070910 100%)',
+    'border:1px solid rgba(255,255,255,.07)',
+    'box-shadow:0 0 0 100vw rgba(0,0,0,0)',
+    'transition:none'
+  ].join(';');
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      sheet.style.transition = 'top 0.35s cubic-bezier(0.32,0.72,0,1), border-radius 0.35s';
+      sheet.style.top = '0';
+      sheet.style.borderRadius = '0';
+    });
+  });
+  var bd = document.getElementById('tu-expand-bd');
+  if (!bd) {
+    bd = document.createElement('div');
+    bd.id = 'tu-expand-bd';
+    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0);z-index:499;transition:background 0.3s;pointer-events:all;';
+    bd.addEventListener('click', tuCollapse);
+    document.body.appendChild(bd);
+  }
+  requestAnimationFrame(function(){ if (bd) bd.style.background = 'rgba(0,0,0,.5)'; });
+  _tuIsExpanded = true;
+}
+
+function tuCollapse() {
+  var sheet = document.getElementById('tu-sheet');
+  if (!sheet || !_tuIsExpanded) return;
+  sheet.style.transform = '';
+  sheet.style.transition = 'top 0.3s cubic-bezier(0.4,0,0.6,1)';
+  sheet.style.top = '100vh';
+  var bd = document.getElementById('tu-expand-bd');
+  if (bd) bd.style.background = 'rgba(0,0,0,0)';
+  setTimeout(function() {
+    sheet.style.cssText = '';
+    _tuIsExpanded = false;
+    var bd2 = document.getElementById('tu-expand-bd');
+    if (bd2) bd2.remove();
+  }, 330);
+}
+
+// ════════════════════════════════════════════════════════
+// [OLD auraRenderHome body removed — replaced by tuInit above]
+// ════════════════════════════════════════════════════════
+function _tuOldHomeBodyStart() {
   var now = new Date();
   // Local date string — correct for IST and all timezones (not UTC)
   var todayStr = now.getFullYear() + '-'
