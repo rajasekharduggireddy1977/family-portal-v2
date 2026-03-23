@@ -3973,7 +3973,7 @@ function tuBuildDayStrip() {
   if (activePill) setTimeout(function(){ activePill.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
 }
 
-function tuBuildToday() {
+function tuBuildToday(showAll) {
   var col   = document.getElementById('tu-today-col');
   var cntEl = document.getElementById('tu-today-count');
   if (!col) return;
@@ -3988,10 +3988,11 @@ function tuBuildToday() {
     col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">🌙</span>Nothing scheduled</div>';
     return;
   }
+  if (!showAll) items = items.slice(0, 7);
   col.innerHTML = items.map(function(item){ return tuCardHTML(item, false); }).join('');
 }
 
-function tuBuildUpcoming() {
+function tuBuildUpcoming(showAll) {
   var col     = document.getElementById('tu-upcoming-col');
   var cntEl   = document.getElementById('tu-upcoming-count');
   var badgeEl = document.getElementById('tu-upcoming-badge');
@@ -4009,6 +4010,7 @@ function tuBuildUpcoming() {
     col.innerHTML = '<div class="tu-empty-state"><span class="tu-empty-icon">📭</span>Nothing this month</div>';
     return;
   }
+  if (!showAll) items = items.slice(0, 7);
   col.innerHTML = items.map(function(item){ return tuCardHTML(item, true); }).join('');
 }
 
@@ -4107,6 +4109,9 @@ function tuExpand() {
       sheet.style.transition = 'top 0.35s cubic-bezier(0.32,0.72,0,1), border-radius 0.35s';
       sheet.style.top = '0';
       sheet.style.borderRadius = '0';
+      // Show all items in expanded mode
+      tuBuildToday(true);
+      tuBuildUpcoming(true);
     });
   });
   var bd = document.getElementById('tu-expand-bd');
@@ -4138,6 +4143,9 @@ function tuCollapse() {
     _tuIsExpanded = false;
     var bd2 = document.getElementById('tu-expand-bd');
     if (bd2) bd2.remove();
+    // Restore 7-item limit
+    tuBuildToday(false);
+    tuBuildUpcoming(false);
   }, 330);
 }
 
