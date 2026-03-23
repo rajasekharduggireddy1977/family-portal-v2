@@ -3868,25 +3868,12 @@ function tuInit() {
   tuSelYear  = now.getFullYear();
   tuSelMonth = now.getMonth();
   tuSelDay   = now.getDate();
-  tuPickYear  = tuSelYear;
-  tuPickMonth = tuSelMonth;
   tuRefresh();
   tuInitPullUp();
-  var btn = document.getElementById('tu-month-sel-btn');
-  if (btn) btn.onclick = function() { tuOpenPicker(); };
-  var yp = document.getElementById('tu-year-prev');
-  var yn = document.getElementById('tu-year-next');
-  var ap = document.getElementById('tu-picker-apply');
-  if (yp) yp.onclick = function(){ tuPickYear--; tuRenderPickerYear(); tuRenderMonthGrid(); };
-  if (yn) yn.onclick = function(){ tuPickYear++; tuRenderPickerYear(); tuRenderMonthGrid(); };
-  if (ap) ap.onclick = function(){ tuApplyPicker(); };
-  var ov = document.getElementById('tu-picker-overlay');
-  if (ov) ov.addEventListener('click', function(e){ if (e.target === ov) tuClosePicker(); });
 }
 
 function tuRefresh() {
-  var labelEl = document.getElementById('tu-month-sel-label');
-  if (labelEl) labelEl.textContent = TU_MONTHS[tuSelMonth] + ' ' + tuSelYear;
+  tuBuildMonthStrip();
   tuBuildDayStrip();
   tuBuildToday();
   tuBuildUpcoming();
@@ -4033,53 +4020,42 @@ function tuScrollDays(dir) {
   if (scroll) scroll.scrollBy({ left: dir * 160, behavior: 'smooth' });
 }
 
-function tuOpenPicker() {
-  tuPickYear  = tuSelYear;
-  tuPickMonth = tuSelMonth;
-  tuRenderPickerYear();
-  tuRenderMonthGrid();
-  var ov = document.getElementById('tu-picker-overlay');
-  if (ov) ov.classList.add('open');
-}
-
-function tuClosePicker() {
-  var ov = document.getElementById('tu-picker-overlay');
-  if (ov) ov.classList.remove('open');
-}
-
-function tuRenderPickerYear() {
-  var el = document.getElementById('tu-picker-year');
-  if (el) el.textContent = tuPickYear;
-}
-
-function tuRenderMonthGrid() {
-  var grid = document.getElementById('tu-month-grid');
-  if (!grid) return;
+function tuBuildMonthStrip() {
+  var strip = document.getElementById('tu-month-strip');
+  if (!strip) return;
   var now = new Date();
+  var curYear  = now.getFullYear();
+  var curMonth = now.getMonth();
+  // Render -6 to +18 months relative to today
   var html = '';
-  TU_MONTHS_S.forEach(function(m, i) {
-    var isSelected = i === tuPickMonth;
-    var isCurrent  = i === now.getMonth() && tuPickYear === now.getFullYear();
-    html += '<div class="tu-month-chip'
-      + (isSelected ? ' tu-mc-selected' : '')
-      + (isCurrent  ? ' tu-mc-current'  : '')
-      + '" data-mi="' + i + '">' + m + '</div>';
-  });
-  grid.innerHTML = html;
-  grid.onclick = function(e) {
-    var chip = e.target.closest('.tu-month-chip');
-    if (!chip) return;
-    tuPickMonth = parseInt(chip.getAttribute('data-mi'), 10);
-    tuRenderMonthGrid();
+  for (var offset = -6; offset <= 18; offset++) {
+    var d = new Date(curYear, curMonth + offset, 1);
+    var y = d.getFullYear();
+    var m = d.getMonth();
+    var isActive  = y === tuSelYear  && m === tuSelMonth;
+    var isCurrent = y === curYear    && m === curMonth;
+    html += '<div class="tu-month-pill'
+      + (isActive  ? ' tu-mp-active'  : '')
+      + (isCurrent && !isActive ? ' tu-mp-current' : '')
+      + '" data-y="' + y + '" data-m="' + m + '">'
+      + TU_MONTHS_S[m] + ' ' + String(y).slice(2)
+      + '</div>';
+  }
+  strip.innerHTML = html;
+  strip.onclick = function(e) {
+    var pill = e.target.closest('.tu-month-pill');
+    if (!pill) return;
+    tuSelYear  = parseInt(pill.getAttribute('data-y'), 10);
+    tuSelMonth = parseInt(pill.getAttribute('data-m'), 10);
+    tuSelDay   = (tuSelYear === now.getFullYear() && tuSelMonth === now.getMonth()) ? now.getDate() : 1;
+    strip.querySelectorAll('.tu-month-pill').forEach(function(p){ p.classList.remove('tu-mp-active'); });
+    pill.classList.add('tu-mp-active');
+    tuBuildDayStrip();
+    tuBuildToday();
+    tuBuildUpcoming();
   };
-}
-
-function tuApplyPicker() {
-  tuSelYear  = tuPickYear;
-  tuSelMonth = tuPickMonth;
-  tuSelDay   = 1;
-  tuClosePicker();
-  tuRefresh();
+  var active = strip.querySelector('.tu-mp-active');
+  if (active) setTimeout(function(){ active.scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' }); }, 80);
 }
 
 function tuInitPullUp() {
@@ -4123,20 +4099,26 @@ function tuInitPullUp() {
 function tuExpand() {
   var sheet = document.getElementById('tu-sheet');
   if (!sheet || _tuIsExpanded) return;
+  // Reset content scroll to top
+  var cs = document.getElementById('tu-content-scroll');
+  if (cs) cs.scrollTop = 0;
+  // Lock parent page scroll
+  var pv = document.getElementById('page-view');
+  if (pv) { pv._tuPrevOverflow = pv.style.overflow; pv.style.overflow = 'hidden'; }
+  document.body.style.overflow = 'hidden';
   var rect = sheet.getBoundingClientRect();
+  sheet.classList.add('tu-is-expanded');
   sheet.style.cssText = [
     'position:fixed',
-    'top:' + rect.top + 'px',
+    'top:' + Math.max(0, rect.top) + 'px',
     'left:0',
     'right:0',
     'bottom:0',
     'z-index:500',
     'border-radius:16px 16px 0 0',
     'margin:0',
-    'overflow-y:auto',
-    'background:linear-gradient(160deg,#080D18 0%,#0A0C14 60%,#070910 100%)',
-    'border:1px solid rgba(255,255,255,.07)',
-    'box-shadow:0 0 0 100vw rgba(0,0,0,0)',
+    'background:#080D18',
+    'border:1px solid rgba(255,255,255,.1)',
     'transition:none'
   ].join(';');
   requestAnimationFrame(function() {
@@ -4150,11 +4132,10 @@ function tuExpand() {
   if (!bd) {
     bd = document.createElement('div');
     bd.id = 'tu-expand-bd';
-    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0);z-index:499;transition:background 0.3s;pointer-events:all;';
-    bd.addEventListener('click', tuCollapse);
+    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0);z-index:499;transition:background 0.3s;pointer-events:none;';
     document.body.appendChild(bd);
   }
-  requestAnimationFrame(function(){ if (bd) bd.style.background = 'rgba(0,0,0,.5)'; });
+  requestAnimationFrame(function(){ if (bd) bd.style.background = 'rgba(0,0,0,.55)'; });
   _tuIsExpanded = true;
 }
 
@@ -4167,7 +4148,12 @@ function tuCollapse() {
   var bd = document.getElementById('tu-expand-bd');
   if (bd) bd.style.background = 'rgba(0,0,0,0)';
   setTimeout(function() {
+    sheet.classList.remove('tu-is-expanded');
     sheet.style.cssText = '';
+    // Restore parent scroll
+    var pv = document.getElementById('page-view');
+    if (pv) pv.style.overflow = pv._tuPrevOverflow || '';
+    document.body.style.overflow = '';
     _tuIsExpanded = false;
     var bd2 = document.getElementById('tu-expand-bd');
     if (bd2) bd2.remove();

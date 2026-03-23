@@ -628,18 +628,9 @@
           </div>
         </div>
 
-        <!-- Days strip -->
+        <!-- Month strip + Days strip -->
         <div class="tu-days-wrap">
-          <div class="tu-days-hdr">
-            <div class="tu-month-sel-btn" id="tu-month-sel-btn">
-              <span id="tu-month-sel-label">March 2026</span>
-              <span class="tu-sel-arrow">▾</span>
-            </div>
-            <div class="tu-strip-nav">
-              <button class="tu-strip-btn" onclick="tuScrollDays(-1)">&#8249;</button>
-              <button class="tu-strip-btn" onclick="tuScrollDays(1)">&#8250;</button>
-            </div>
-          </div>
+          <div class="tu-month-strip" id="tu-month-strip"></div>
           <div class="tu-days-scroll" id="tu-days-scroll"></div>
         </div>
 
@@ -664,21 +655,6 @@
             <div class="tu-col" id="tu-today-col"></div>
             <div class="tu-col" id="tu-upcoming-col"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- Month/Year picker overlay -->
-      <div class="tu-picker-overlay" id="tu-picker-overlay">
-        <div class="tu-picker-sheet" id="tu-picker-sheet">
-          <div class="tu-picker-handle"></div>
-          <div class="tu-picker-title">Select Month &amp; Year</div>
-          <div class="tu-year-row">
-            <button class="tu-year-nav" id="tu-year-prev">&#8249;</button>
-            <span class="tu-year-label" id="tu-picker-year">2026</span>
-            <button class="tu-year-nav" id="tu-year-next">&#8250;</button>
-          </div>
-          <div class="tu-month-grid" id="tu-month-grid"></div>
-          <button class="tu-picker-apply" id="tu-picker-apply">Apply</button>
         </div>
       </div>
 
