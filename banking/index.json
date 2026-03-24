@@ -1,6 +1,6 @@
 {
   "accounts": [
-    { "bank": "icici", "label": "ICICI Bank", "icon": "🏦", "files": ["2026-03"] },
+    { "bank": "icici", "label": "ICICI Bank", "icon": "🏦", "files": ["2026-01", "2026-03"] },
     { "bank": "hdfc",  "label": "HDFC Bank",  "icon": "🏛️", "files": [] },
     { "bank": "axis",  "label": "Axis Bank",  "icon": "🏧", "files": [] }
   ]

@@ -1,0 +1,914 @@
+{
+  "report_metadata": {
+    "account_holder": "Raja Sekhar Reddy",
+    "account_number": "020201506595",
+    "bank": "ICICI Bank",
+    "account_type": "Savings Account (INR)",
+    "period": "January 2026",
+    "period_key": "2026-01",
+    "generated_on": "2026-03-24",
+    "total_transactions": 45,
+    "source_file": "ICICI_24-03-2026.pdf"
+  },
+  "financial_overview": {
+    "opening_balance_inr": 37519.04,
+    "closing_balance_inr": 164954.03,
+    "total_income_inr": 231743.0,
+    "total_expenses_inr": 104308.01,
+    "net_inr": 127434.99,
+    "currency": "INR"
+  },
+  "income_expense_breakdown": {
+    "total_income_inr": 231743.0,
+    "income_transaction_count": 10,
+    "total_expense_inr": 104308.01,
+    "expense_transaction_count": 35,
+    "net_inr": 127434.99
+  },
+  "category_totals": [
+    {
+      "category": "Cash Deposit (Self)",
+      "type": "Income",
+      "total_inr": 96000.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "type": "Income",
+      "total_inr": 60000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Cash Deposit (Third Party)",
+      "type": "Income",
+      "total_inr": 50000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Education (KLU Bowrampet)",
+      "type": "Expense",
+      "total_inr": 30000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Rental Income (Sony Shop)",
+      "type": "Income",
+      "total_inr": 20700.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Education (Allen Career Institute)",
+      "type": "Expense",
+      "total_inr": 20000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Cash Withdrawal (Cardless)",
+      "type": "Expense",
+      "total_inr": 14500.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Family Transfer (B. Venkat Reddy)",
+      "type": "Expense",
+      "total_inr": 14250.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "type": "Expense",
+      "total_inr": 12000.0,
+      "transaction_count": 8
+    },
+    {
+      "category": "FD/RD Interest",
+      "type": "Income",
+      "total_inr": 5038.0,
+      "transaction_count": 4
+    },
+    {
+      "category": "Family Transfer (Rajesh Reddy)",
+      "type": "Expense",
+      "total_inr": 3000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Credit Card Payment (Self)",
+      "type": "Expense",
+      "total_inr": 2330.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Groceries (Swiggy Stores/Instamart)",
+      "type": "Expense",
+      "total_inr": 1856.0,
+      "transaction_count": 4
+    },
+    {
+      "category": "Food & Dining (Swiggy)",
+      "type": "Expense",
+      "total_inr": 1349.0,
+      "transaction_count": 4
+    },
+    {
+      "category": "Healthcare (Doctor Consultation)",
+      "type": "Expense",
+      "total_inr": 1100.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Utilities (Jio)",
+      "type": "Expense",
+      "total_inr": 899.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Bank Charges (Debit Card Annual Fee)",
+      "type": "Expense",
+      "total_inr": 824.82,
+      "transaction_count": 1
+    },
+    {
+      "category": "Personal Transfer / Miscellaneous",
+      "type": "Expense",
+      "total_inr": 810.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Utilities (Airtel Mobile/Broadband)",
+      "type": "Expense",
+      "total_inr": 400.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Entertainment (BookMyShow)",
+      "type": "Expense",
+      "total_inr": 390.12,
+      "transaction_count": 1
+    },
+    {
+      "category": "Groceries (Ratnadeep Supermarket)",
+      "type": "Expense",
+      "total_inr": 300.07,
+      "transaction_count": 1
+    },
+    {
+      "category": "Subscriptions (Apple Services)",
+      "type": "Expense",
+      "total_inr": 200.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Entertainment (Zee5 Subscription)",
+      "type": "Expense",
+      "total_inr": 99.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Refund / Mandate Reversal",
+      "type": "Income",
+      "total_inr": 5.0,
+      "transaction_count": 1
+    }
+  ],
+  "recurring_payments": [
+    {
+      "description": "Subscriptions (Apple Services)",
+      "occurrences": 2,
+      "amount_per_occurrence_inr": 100.0,
+      "total_paid_inr": 200.0
+    },
+    {
+      "description": "Self Transfer Out (Own PhonePe Account)",
+      "occurrences": 8,
+      "amount_per_occurrence_inr": 1500.0,
+      "total_paid_inr": 12000.0
+    }
+  ],
+  "large_transactions": [
+    {
+      "sno": 11,
+      "date": "2026-01-06",
+      "month": "January 2026",
+      "remarks": "UPI/PAPPU KUMA/guntru.vijay@y/Payment fr/YES BANK L/476423540101",
+      "type": "Income",
+      "category": "Rental Income (Sony Shop)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 20700.0,
+      "amount_inr": 20700.0,
+      "balance_inr": 45486.04,
+      "flags": [
+        "LARGE_TRANSACTION",
+        "RENTAL_INCOME"
+      ]
+    },
+    {
+      "sno": 18,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "MMT/IMPS/601011918548/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 60000.0,
+      "amount_inr": 60000.0,
+      "balance_inr": 102096.04,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 21,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "UPI/ALLEN CARE/allencareerins/UPI/HDFC BANK/601004019305",
+      "type": "Expense",
+      "category": "Education (Allen Career Institute)",
+      "withdrawal_inr": 20000.0,
+      "deposit_inr": 0,
+      "amount_inr": 20000.0,
+      "balance_inr": 81401.04,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 32,
+      "date": "2026-01-21",
+      "month": "January 2026",
+      "remarks": "CAM/13131SRY/CASH DEP-Other/21-01-26/4983",
+      "type": "Income",
+      "category": "Cash Deposit (Third Party)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 50000.0,
+      "amount_inr": 50000.0,
+      "balance_inr": 118854.92,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 38,
+      "date": "2026-01-25",
+      "month": "January 2026",
+      "remarks": "UPI/KLU BOWRAM/klubowrampet.7/Payment fr/HDFC BANK/797168230378",
+      "type": "Expense",
+      "category": "Education (KLU Bowrampet)",
+      "withdrawal_inr": 30000.0,
+      "deposit_inr": 0,
+      "amount_inr": 30000.0,
+      "balance_inr": 87527.85,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 44,
+      "date": "2026-01-31",
+      "month": "January 2026",
+      "remarks": "CAM/56901HRY/CASH DEP-Self/31-01-26/8519",
+      "type": "Income",
+      "category": "Cash Deposit (Self)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 48000.0,
+      "amount_inr": 48000.0,
+      "balance_inr": 116954.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 45,
+      "date": "2026-01-31",
+      "month": "January 2026",
+      "remarks": "CAM/56901HRY/CASH DEP-Self/31-01-26/8521",
+      "type": "Income",
+      "category": "Cash Deposit (Self)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 48000.0,
+      "amount_inr": 48000.0,
+      "balance_inr": 164954.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    }
+  ],
+  "transactions": [
+    {
+      "sno": 1,
+      "date": "2026-01-01",
+      "month": "January 2026",
+      "remarks": "UPI/Mr KOYYAPU/koyyapu777@oka/UPI/INDIAN BAN/636779205568",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 360.0,
+      "deposit_inr": 0,
+      "amount_inr": 360.0,
+      "balance_inr": 37159.04,
+      "flags": []
+    },
+    {
+      "sno": 2,
+      "date": "2026-01-01",
+      "month": "January 2026",
+      "remarks": "UPI/APPLE MEDI/appleservices./UPI Mandat/HDFC BANK/102346974812",
+      "type": "Expense",
+      "category": "Subscriptions (Apple Services)",
+      "withdrawal_inr": 5.0,
+      "deposit_inr": 0,
+      "amount_inr": 5.0,
+      "balance_inr": 37154.04,
+      "flags": []
+    },
+    {
+      "sno": 3,
+      "date": "2026-01-01",
+      "month": "January 2026",
+      "remarks": "UPI/APPLE MEDI/appleservices./Mandate Re/HDFC BANK/102346992859",
+      "type": "Income",
+      "category": "Refund / Mandate Reversal",
+      "withdrawal_inr": 0,
+      "deposit_inr": 5.0,
+      "amount_inr": 5.0,
+      "balance_inr": 37159.04,
+      "flags": []
+    },
+    {
+      "sno": 4,
+      "date": "2026-01-02",
+      "month": "January 2026",
+      "remarks": "Int on FD/RD XXX1176 Tds:0. Int:1201 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1201.0,
+      "amount_inr": 1201.0,
+      "balance_inr": 39861.04,
+      "flags": []
+    },
+    {
+      "sno": 5,
+      "date": "2026-01-02",
+      "month": "January 2026",
+      "remarks": "Int on FD/RD XXX1177 Tds:0. Int:1501 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1501.0,
+      "amount_inr": 1501.0,
+      "balance_inr": 38660.04,
+      "flags": []
+    },
+    {
+      "sno": 6,
+      "date": "2026-01-04",
+      "month": "January 2026",
+      "remarks": "UPL/757137695642/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 38361.04,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 7,
+      "date": "2026-01-04",
+      "month": "January 2026",
+      "remarks": "UPI/SWIGGY/upiswiggy@icic/UPI/ICICI Bank/637083662505",
+      "type": "Expense",
+      "category": "Food & Dining (Swiggy)",
+      "withdrawal_inr": 204.0,
+      "deposit_inr": 0,
+      "amount_inr": 204.0,
+      "balance_inr": 38157.04,
+      "flags": []
+    },
+    {
+      "sno": 8,
+      "date": "2026-01-05",
+      "month": "January 2026",
+      "remarks": "Int on FD/RD XXX1717 Tds:0. Int:1135 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1135.0,
+      "amount_inr": 1135.0,
+      "balance_inr": 39292.04,
+      "flags": []
+    },
+    {
+      "sno": 9,
+      "date": "2026-01-05",
+      "month": "January 2026",
+      "remarks": "UPI/Swiggy/swiggy319952.r/Swiggy/AIRTEL PAY/600526956930",
+      "type": "Expense",
+      "category": "Food & Dining (Swiggy)",
+      "withdrawal_inr": 506.0,
+      "deposit_inr": 0,
+      "amount_inr": 506.0,
+      "balance_inr": 38786.04,
+      "flags": []
+    },
+    {
+      "sno": 10,
+      "date": "2026-01-05",
+      "month": "January 2026",
+      "remarks": "CCW/S1CNQ158/13936800/6013/Cardless Cash WDL/IMB",
+      "type": "Expense",
+      "category": "Cash Withdrawal (Cardless)",
+      "withdrawal_inr": 14000.0,
+      "deposit_inr": 0,
+      "amount_inr": 14000.0,
+      "balance_inr": 24786.04,
+      "flags": []
+    },
+    {
+      "sno": 11,
+      "date": "2026-01-06",
+      "month": "January 2026",
+      "remarks": "UPI/PAPPU KUMA/guntru.vijay@y/Payment fr/YES BANK L/476423540101",
+      "type": "Income",
+      "category": "Rental Income (Sony Shop)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 20700.0,
+      "amount_inr": 20700.0,
+      "balance_inr": 45486.04,
+      "flags": [
+        "LARGE_TRANSACTION",
+        "RENTAL_INCOME"
+      ]
+    },
+    {
+      "sno": 12,
+      "date": "2026-01-06",
+      "month": "January 2026",
+      "remarks": "UPI/Swiggy/swiggystores@i/UPI/ICICI Bank/637286006339",
+      "type": "Expense",
+      "category": "Groceries (Swiggy Stores/Instamart)",
+      "withdrawal_inr": 616.0,
+      "deposit_inr": 0,
+      "amount_inr": 616.0,
+      "balance_inr": 44870.04,
+      "flags": []
+    },
+    {
+      "sno": 13,
+      "date": "2026-01-07",
+      "month": "January 2026",
+      "remarks": "UPI/Swiggy/swiggystores@i/UPI/ICICI Bank/637338792401",
+      "type": "Expense",
+      "category": "Groceries (Swiggy Stores/Instamart)",
+      "withdrawal_inr": 536.0,
+      "deposit_inr": 0,
+      "amount_inr": 536.0,
+      "balance_inr": 44334.04,
+      "flags": []
+    },
+    {
+      "sno": 14,
+      "date": "2026-01-07",
+      "month": "January 2026",
+      "remarks": "UPI/Swiggy/swiggy319952.r/Swiggy/AIRTEL PAY/600785639924",
+      "type": "Expense",
+      "category": "Food & Dining (Swiggy)",
+      "withdrawal_inr": 226.0,
+      "deposit_inr": 0,
+      "amount_inr": 226.0,
+      "balance_inr": 44108.04,
+      "flags": []
+    },
+    {
+      "sno": 15,
+      "date": "2026-01-08",
+      "month": "January 2026",
+      "remarks": "UPL/454325544614/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 42608.04,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 16,
+      "date": "2026-01-09",
+      "month": "January 2026",
+      "remarks": "UPI/Swiggy Ltd/swiggyupi@axb/UPI/AXIS BANK/637538758398",
+      "type": "Expense",
+      "category": "Food & Dining (Swiggy)",
+      "withdrawal_inr": 413.0,
+      "deposit_inr": 0,
+      "amount_inr": 413.0,
+      "balance_inr": 42195.04,
+      "flags": []
+    },
+    {
+      "sno": 17,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "UPI/ZEE20ENTER/zee5@ptybl/Oidzee587e/YES BANK L/601001547592",
+      "type": "Expense",
+      "category": "Entertainment (Zee5 Subscription)",
+      "withdrawal_inr": 99.0,
+      "deposit_inr": 0,
+      "amount_inr": 99.0,
+      "balance_inr": 42096.04,
+      "flags": []
+    },
+    {
+      "sno": 18,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "MMT/IMPS/601011918548/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 60000.0,
+      "amount_inr": 60000.0,
+      "balance_inr": 102096.04,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 19,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "UPI/102435202918/UPI Mandate/appleservices.b/HDFC BANK LTD",
+      "type": "Expense",
+      "category": "Subscriptions (Apple Services)",
+      "withdrawal_inr": 195.0,
+      "deposit_inr": 0,
+      "amount_inr": 195.0,
+      "balance_inr": 101901.04,
+      "flags": []
+    },
+    {
+      "sno": 20,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "CCW/S1CNQ158/13971989/6257/Cardless Cash WDL/IMB",
+      "type": "Expense",
+      "category": "Cash Withdrawal (Cardless)",
+      "withdrawal_inr": 500.0,
+      "deposit_inr": 0,
+      "amount_inr": 500.0,
+      "balance_inr": 101401.04,
+      "flags": []
+    },
+    {
+      "sno": 21,
+      "date": "2026-01-10",
+      "month": "January 2026",
+      "remarks": "UPI/ALLEN CARE/allencareerins/UPI/HDFC BANK/601004019305",
+      "type": "Expense",
+      "category": "Education (Allen Career Institute)",
+      "withdrawal_inr": 20000.0,
+      "deposit_inr": 0,
+      "amount_inr": 20000.0,
+      "balance_inr": 81401.04,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 22,
+      "date": "2026-01-11",
+      "month": "January 2026",
+      "remarks": "UPI/KASINAANNA/Q433413271@ybl/Payment fr/YES BANK L/573595393579",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 450.0,
+      "deposit_inr": 0,
+      "amount_inr": 450.0,
+      "balance_inr": 80951.04,
+      "flags": []
+    },
+    {
+      "sno": 23,
+      "date": "2026-01-11",
+      "month": "January 2026",
+      "remarks": "UPL/856190056710/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 79451.04,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 24,
+      "date": "2026-01-13",
+      "month": "January 2026",
+      "remarks": "UPI/RAJESH RED/rajeshduggired/UPI/State Bank/601331700015",
+      "type": "Expense",
+      "category": "Family Transfer (Rajesh Reddy)",
+      "withdrawal_inr": 3000.0,
+      "deposit_inr": 0,
+      "amount_inr": 3000.0,
+      "balance_inr": 76451.04,
+      "flags": []
+    },
+    {
+      "sno": 25,
+      "date": "2026-01-14",
+      "month": "January 2026",
+      "remarks": "UPI/BIGTREE EN/bookmyshow@axb/UPI/AXIS BANK/601415392971",
+      "type": "Expense",
+      "category": "Entertainment (BookMyShow)",
+      "withdrawal_inr": 390.12,
+      "deposit_inr": 0,
+      "amount_inr": 390.12,
+      "balance_inr": 76060.92,
+      "flags": []
+    },
+    {
+      "sno": 26,
+      "date": "2026-01-18",
+      "month": "January 2026",
+      "remarks": "UPL/983486992581/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 74560.92,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 27,
+      "date": "2026-01-19",
+      "month": "January 2026",
+      "remarks": "BIL/001147465281/ICICI BANK CREDIT CA/524193124963",
+      "type": "Expense",
+      "category": "Credit Card Payment (Self)",
+      "withdrawal_inr": 649.0,
+      "deposit_inr": 0,
+      "amount_inr": 649.0,
+      "balance_inr": 73911.92,
+      "flags": []
+    },
+    {
+      "sno": 28,
+      "date": "2026-01-19",
+      "month": "January 2026",
+      "remarks": "BIL/001147465299/ICICI BANK CREDIT CA/431581008926",
+      "type": "Expense",
+      "category": "Credit Card Payment (Self)",
+      "withdrawal_inr": 1681.0,
+      "deposit_inr": 0,
+      "amount_inr": 1681.0,
+      "balance_inr": 72230.92,
+      "flags": []
+    },
+    {
+      "sno": 29,
+      "date": "2026-01-19",
+      "month": "January 2026",
+      "remarks": "UPI/SWIGGY LIM/swiggyinstamar/UPI/AXIS BANK/601948953727",
+      "type": "Expense",
+      "category": "Groceries (Swiggy Stores/Instamart)",
+      "withdrawal_inr": 376.0,
+      "deposit_inr": 0,
+      "amount_inr": 376.0,
+      "balance_inr": 71854.92,
+      "flags": []
+    },
+    {
+      "sno": 30,
+      "date": "2026-01-20",
+      "month": "January 2026",
+      "remarks": "UPL/905054071717/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 70354.92,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 31,
+      "date": "2026-01-21",
+      "month": "January 2026",
+      "remarks": "UPL/398625834023/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 68854.92,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 32,
+      "date": "2026-01-21",
+      "month": "January 2026",
+      "remarks": "CAM/13131SRY/CASH DEP-Other/21-01-26/4983",
+      "type": "Income",
+      "category": "Cash Deposit (Third Party)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 50000.0,
+      "amount_inr": 50000.0,
+      "balance_inr": 118854.92,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 33,
+      "date": "2026-01-23",
+      "month": "January 2026",
+      "remarks": "Int on FD/RD XXX1268 Tds:0. Int:1201 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1201.0,
+      "amount_inr": 1201.0,
+      "balance_inr": 120055.92,
+      "flags": []
+    },
+    {
+      "sno": 34,
+      "date": "2026-01-24",
+      "month": "January 2026",
+      "remarks": "UPI/RATNADEEP/RATNADEEPVIKRA/Payment fo/YES BANK L/922217134043",
+      "type": "Expense",
+      "category": "Groceries (Ratnadeep Supermarket)",
+      "withdrawal_inr": 300.07,
+      "deposit_inr": 0,
+      "amount_inr": 300.07,
+      "balance_inr": 119755.85,
+      "flags": []
+    },
+    {
+      "sno": 35,
+      "date": "2026-01-24",
+      "month": "January 2026",
+      "remarks": "UPI/SWIGGY LIM/swiggyinstamar/UPI/AXIS BANK/639057883613",
+      "type": "Expense",
+      "category": "Groceries (Swiggy Stores/Instamart)",
+      "withdrawal_inr": 328.0,
+      "deposit_inr": 0,
+      "amount_inr": 328.0,
+      "balance_inr": 119427.85,
+      "flags": []
+    },
+    {
+      "sno": 36,
+      "date": "2026-01-24",
+      "month": "January 2026",
+      "remarks": "UPI/AIRTEL/3041083890.adt/Enter the/AIRTEL PAY/777272487355",
+      "type": "Expense",
+      "category": "Utilities (Airtel Mobile/Broadband)",
+      "withdrawal_inr": 400.0,
+      "deposit_inr": 0,
+      "amount_inr": 400.0,
+      "balance_inr": 119027.85,
+      "flags": []
+    },
+    {
+      "sno": 37,
+      "date": "2026-01-24",
+      "month": "January 2026",
+      "remarks": "UPL/644710924394/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 117527.85,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 38,
+      "date": "2026-01-25",
+      "month": "January 2026",
+      "remarks": "UPI/KLU BOWRAM/klubowrampet.7/Payment fr/HDFC BANK/797168230378",
+      "type": "Expense",
+      "category": "Education (KLU Bowrampet)",
+      "withdrawal_inr": 30000.0,
+      "deposit_inr": 0,
+      "amount_inr": 30000.0,
+      "balance_inr": 87527.85,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 39,
+      "date": "2026-01-27",
+      "month": "January 2026",
+      "remarks": "UPI/RELIANCE J/jio@citibank/JIO20BR000/CITIBANK C/063577395978",
+      "type": "Expense",
+      "category": "Utilities (Jio)",
+      "withdrawal_inr": 899.0,
+      "deposit_inr": 0,
+      "amount_inr": 899.0,
+      "balance_inr": 86628.85,
+      "flags": []
+    },
+    {
+      "sno": 40,
+      "date": "2026-01-27",
+      "month": "January 2026",
+      "remarks": "MMT/IMPS/602707000830/Family/B VenkatRe/SBIN0003055",
+      "type": "Expense",
+      "category": "Family Transfer (B. Venkat Reddy)",
+      "withdrawal_inr": 14250.0,
+      "deposit_inr": 0,
+      "amount_inr": 14250.0,
+      "balance_inr": 72378.85,
+      "flags": []
+    },
+    {
+      "sno": 41,
+      "date": "2026-01-28",
+      "month": "January 2026",
+      "remarks": "UPL/243440723534/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 70878.85,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 42,
+      "date": "2026-01-28",
+      "month": "January 2026",
+      "remarks": "DCardfee3919DEC25-NOV26+GST",
+      "type": "Expense",
+      "category": "Bank Charges (Debit Card Annual Fee)",
+      "withdrawal_inr": 824.82,
+      "deposit_inr": 0,
+      "amount_inr": 824.82,
+      "balance_inr": 70054.03,
+      "flags": []
+    },
+    {
+      "sno": 43,
+      "date": "2026-01-31",
+      "month": "January 2026",
+      "remarks": "UPI/Dr Kiran E/Q280905445@ybl/Payment fr/YES BANK L/743802200045",
+      "type": "Expense",
+      "category": "Healthcare (Doctor Consultation)",
+      "withdrawal_inr": 1100.0,
+      "deposit_inr": 0,
+      "amount_inr": 1100.0,
+      "balance_inr": 68954.03,
+      "flags": []
+    },
+    {
+      "sno": 44,
+      "date": "2026-01-31",
+      "month": "January 2026",
+      "remarks": "CAM/56901HRY/CASH DEP-Self/31-01-26/8519",
+      "type": "Income",
+      "category": "Cash Deposit (Self)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 48000.0,
+      "amount_inr": 48000.0,
+      "balance_inr": 116954.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 45,
+      "date": "2026-01-31",
+      "month": "January 2026",
+      "remarks": "CAM/56901HRY/CASH DEP-Self/31-01-26/8521",
+      "type": "Income",
+      "category": "Cash Deposit (Self)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 48000.0,
+      "amount_inr": 48000.0,
+      "balance_inr": 164954.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    }
+  ]
+}

@@ -5907,6 +5907,34 @@ body.dash-active #content{
    § BUDGET ANALYSIS   Statement analysis panel (panel 4)
    ──────────────────────────────────────────────── */
 
+/* Account meta bar */
+.bgt-an-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 14px 0;
+}
+.bgt-an-meta span {
+  font-size: 11px;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+/* Opening → Closing balance row */
+.bgt-an-bal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.bgt-an-bal-item b { font-family: var(--font-mono); font-size: 13px; }
+.bgt-an-bal-arr { opacity: 0.4; }
+
 /* Selector row */
 .bgt-an-sel-row {
   display: flex;

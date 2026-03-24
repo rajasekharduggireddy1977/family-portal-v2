@@ -12074,9 +12074,9 @@ function _bgtRenderAnalysisShell(el, idx) {
     return '<option value="' + f + '"' + sel + '>' + _bgtFmtPeriodLabel(f) + '</option>';
   }).join('') : '';
 
-  var filterBtns = ['all','credit','debit'].map(function(t) {
+  var filterBtns = ['all','Income','Expense'].map(function(t) {
     var ac = (_bgtAnalysisTxFilter === t) ? ' bgt-an-fbtn-active' : '';
-    var lbl = t === 'all' ? 'All' : t === 'credit' ? '↑ Income' : '↓ Expenses';
+    var lbl = t === 'all' ? 'All' : t === 'Income' ? '↑ Income' : '↓ Expenses';
     return '<button class="bgt-an-fbtn' + ac + '" onclick="_bgtAnSetFilter(\'' + t + '\')">' + lbl + '</button>';
   }).join('');
 
@@ -12137,82 +12137,107 @@ function _bgtRenderAnalysisBody(data) {
   var body = document.getElementById('bgt-an-body');
   if (!body) return;
 
-  var income = data.summary.income || 0;
-  var expenses = data.summary.expenses || 0;
-  var savings = data.summary.savings || 0;
+  // Real Cowork schema: financial_overview, category_totals, recurring_payments, large_transactions
+  var ov = data.financial_overview || {};
+  var income   = ov.total_income_inr   || 0;
+  var expenses = ov.total_expenses_inr || 0;
+  var savings  = ov.net_inr            || 0;
+  var openBal  = ov.opening_balance_inr;
+  var closeBal = ov.closing_balance_inr;
   var savingsRate = income > 0 ? Math.round(savings / income * 100) : 0;
+  var meta = data.report_metadata || {};
 
-  // Summary chips
+  // Account info bar
+  var infoHtml = (meta.account_holder || meta.period) ?
+    '<div class="bgt-an-meta">' +
+      (meta.account_holder ? '<span>' + meta.account_holder + '</span>' : '') +
+      (meta.account_type   ? '<span>' + meta.account_type + '</span>' : '') +
+      (meta.period         ? '<span>' + meta.period + '</span>' : '') +
+    '</div>' : '';
+
+  // Summary chips + balance row
   var summaryHtml =
     '<div class="bgt-an-summary">' +
       '<div class="bgt-an-chip bgt-an-chip-inc"><div class="bgt-an-chip-val">' + bgtFmt(income) + '</div><div class="bgt-an-chip-lbl">Income</div></div>' +
       '<div class="bgt-an-chip bgt-an-chip-exp"><div class="bgt-an-chip-val">' + bgtFmt(expenses) + '</div><div class="bgt-an-chip-lbl">Expenses</div></div>' +
       '<div class="bgt-an-chip bgt-an-chip-sav"><div class="bgt-an-chip-val">' + savingsRate + '%</div><div class="bgt-an-chip-lbl">Saved</div></div>' +
-    '</div>';
+    '</div>' +
+    (openBal != null && closeBal != null ?
+      '<div class="bgt-an-bal-row">' +
+        '<span class="bgt-an-bal-item">Open <b>' + bgtFmt(openBal) + '</b></span>' +
+        '<span class="bgt-an-bal-arr">→</span>' +
+        '<span class="bgt-an-bal-item">Close <b class="' + (closeBal >= openBal ? 'bgt-an-credit' : 'bgt-an-debit') + '">' + bgtFmt(closeBal) + '</b></span>' +
+      '</div>' : '');
 
-  // Category bars
-  var cats = (data.categories || []).slice().sort(function(a,b){ return b.amount - a.amount; });
-  var maxAmt = cats[0] ? cats[0].amount : 1;
+  // Category bars — expense categories only, sorted by amount
+  var cats = (data.category_totals || [])
+    .filter(function(c) { return c.type === 'Expense'; })
+    .slice().sort(function(a,b) { return b.total_inr - a.total_inr; });
+  var maxAmt = cats[0] ? cats[0].total_inr : 1;
   var catsHtml = '<div class="bgt-an-section-hdr">Spend by Category</div>' +
-    cats.map(function(cat) {
-      var pct = Math.round(cat.amount / maxAmt * 100);
-      var sharePct = expenses > 0 ? Math.round(cat.amount / expenses * 100) : 0;
+    (cats.length ? cats.map(function(cat) {
+      var pct = Math.round(cat.total_inr / maxAmt * 100);
+      var sharePct = expenses > 0 ? Math.round(cat.total_inr / expenses * 100) : 0;
       return '<div class="bgt-an-cat-row">' +
         '<div class="bgt-an-cat-top">' +
-          '<span class="bgt-an-cat-name">' + cat.name + '</span>' +
-          '<span class="bgt-an-cat-amt">' + bgtFmt(cat.amount) + ' <span class="bgt-an-cat-pct">(' + sharePct + '%)</span></span>' +
+          '<span class="bgt-an-cat-name">' + cat.category + '</span>' +
+          '<span class="bgt-an-cat-amt">' + bgtFmt(cat.total_inr) + ' <span class="bgt-an-cat-pct">(' + sharePct + '%)</span></span>' +
         '</div>' +
         '<div class="bgt-an-bar"><div class="bgt-an-bar-fill" data-bw="' + pct + '" style="width:0"></div></div>' +
       '</div>';
-    }).join('');
+    }).join('') : '<div class="bgt-an-empty-sub">No expense categories found</div>');
 
-  // Recurring
-  var recurring = data.recurring || [];
+  // Recurring payments
+  var recurring = data.recurring_payments || [];
   var recurHtml = '<div class="bgt-an-section-hdr">Recurring Payments</div>' +
     (recurring.length ? recurring.map(function(r) {
+      var freq = r.occurrences > 1 ? r.occurrences + '× this period' : 'once';
       return '<div class="bgt-an-txn-row">' +
-        '<div class="bgt-an-txn-desc">' + r.name + ' <span class="bgt-an-txn-cat">' + r.frequency + '</span></div>' +
-        '<div class="bgt-an-txn-amt bgt-an-debit">' + bgtFmt(r.amount) + '</div>' +
+        '<div class="bgt-an-txn-desc">' + r.description + ' <span class="bgt-an-txn-cat">' + freq + '</span></div>' +
+        '<div class="bgt-an-txn-amt bgt-an-debit">' + bgtFmt(r.amount_per_occurrence_inr) + '</div>' +
       '</div>';
     }).join('') : '<div class="bgt-an-empty-sub">No recurring payments detected</div>');
 
-  // Flagged
-  var flagged = data.flagged || [];
+  // Large / flagged transactions
+  var flagged = data.large_transactions || [];
   var flagHtml = flagged.length ?
-    '<div class="bgt-an-section-hdr">⚠️ Flagged Transactions</div>' +
+    '<div class="bgt-an-section-hdr">⚠️ Large Transactions</div>' +
     flagged.map(function(f) {
+      var isIncome = f.type === 'Income';
+      var flagStr = (f.flags || []).filter(function(x){ return x !== 'LARGE_TRANSACTION'; }).join(' · ');
       return '<div class="bgt-an-txn-row bgt-an-flagged">' +
         '<div class="bgt-an-txn-left">' +
           '<div class="bgt-an-txn-date">' + f.date + '</div>' +
-          '<div class="bgt-an-txn-desc">' + f.description + '</div>' +
-          '<div class="bgt-an-txn-reason">' + f.reason + '</div>' +
+          '<div class="bgt-an-txn-desc">' + f.remarks + '</div>' +
+          '<div class="bgt-an-txn-reason">' + f.category + (flagStr ? ' · ' + flagStr : '') + '</div>' +
         '</div>' +
-        '<div class="bgt-an-txn-amt bgt-an-debit">' + bgtFmt(f.amount) + '</div>' +
+        '<div class="bgt-an-txn-amt ' + (isIncome ? 'bgt-an-credit' : 'bgt-an-debit') + '">' +
+          (isIncome ? '+' : '−') + bgtFmt(f.amount_inr) +
+        '</div>' +
       '</div>';
     }).join('') : '';
 
-  // Transactions
+  // All transactions with filter
   var txns = (data.transactions || []).filter(function(t) {
     if (_bgtAnalysisTxFilter === 'all') return true;
     return t.type === _bgtAnalysisTxFilter;
   });
   var txHtml = '<div class="bgt-an-section-hdr">Transactions (' + txns.length + ')</div>' +
     (txns.length ? txns.map(function(t) {
-      var isCredit = t.type === 'credit';
+      var isIncome = t.type === 'Income';
       return '<div class="bgt-an-txn-row">' +
         '<div class="bgt-an-txn-left">' +
           '<div class="bgt-an-txn-date">' + t.date + '</div>' +
-          '<div class="bgt-an-txn-desc">' + t.description + '</div>' +
+          '<div class="bgt-an-txn-desc">' + t.remarks + '</div>' +
           '<div class="bgt-an-txn-cat">' + t.category + '</div>' +
         '</div>' +
-        '<div class="bgt-an-txn-amt ' + (isCredit ? 'bgt-an-credit' : 'bgt-an-debit') + '">' +
-          (isCredit ? '+' : '−') + bgtFmt(t.amount) +
+        '<div class="bgt-an-txn-amt ' + (isIncome ? 'bgt-an-credit' : 'bgt-an-debit') + '">' +
+          (isIncome ? '+' : '−') + bgtFmt(t.amount_inr) +
         '</div>' +
       '</div>';
     }).join('') : '<div class="bgt-an-empty-sub">No transactions</div>');
 
-  body.innerHTML = summaryHtml + catsHtml + recurHtml + flagHtml + txHtml;
-  // Animate bars
+  body.innerHTML = infoHtml + summaryHtml + catsHtml + recurHtml + flagHtml + txHtml;
   setTimeout(function() {
     body.querySelectorAll('[data-bw]').forEach(function(el) {
       el.style.width = el.getAttribute('data-bw') + '%';
