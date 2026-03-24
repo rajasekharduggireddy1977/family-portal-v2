@@ -12055,6 +12055,14 @@ function renderBgtAnalysis() {
         if (first) {
           _bgtAnalysisBank = first.bank;
           _bgtAnalysisPeriod = first.files[first.files.length - 1]; // latest period
+          // Update month label + nav buttons now that period is known
+          var lbl = document.getElementById('bgt-an-month-label');
+          if (lbl) lbl.textContent = _bgtFmtPeriodLabel(_bgtAnalysisPeriod);
+          var files = first.files;
+          var ci = files.length - 1;
+          var btns = document.querySelectorAll('.bgt-an-nav-btn');
+          if (btns[0]) { btns[0].disabled = ci <= 0; btns[0].classList.toggle('disabled', ci <= 0); }
+          if (btns[1]) { btns[1].disabled = true; btns[1].classList.add('disabled'); }
           _bgtLoadAnalysisFile(el, idx);
         }
       } else {
