@@ -11269,6 +11269,7 @@ function bgtFmt(n) {
 
 function bgtAnimateBars() {
   document.querySelectorAll('[data-bw]').forEach(function(el) {
+    if (el.classList.contains('bgt-an-bar-fill')) return; // analysis bars animate once on load only
     el.style.width = el.getAttribute('data-bw') + '%';
   });
 }
@@ -11312,7 +11313,12 @@ function bgtInitSwipe() {
   }, {passive:false});
 
   function onRelease() {
-    if (!dragging) { bgtGoPanel(_bgtPanel, 0); return; }
+    if (!dragging) {
+      // Only snap-back if horizontal intent was locked (i.e. user started a swipe)
+      // Ignore pure taps and vertical scrolls — those should not re-trigger bgtGoPanel
+      if (intentH) bgtGoPanel(_bgtPanel, 0);
+      return;
+    }
     var elapsed = Math.max(1, Date.now()-t0);
     var velocity = ddx / elapsed; // signed px/ms
     var spd = Math.abs(velocity);
