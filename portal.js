@@ -12038,6 +12038,9 @@ function renderBgtAnalysis() {
   var el = document.getElementById('bgt-p4');
   if (!el) return;
 
+  // If data already loaded, skip re-render entirely
+  if (_bgtAnalysisData && document.getElementById('bgt-an-body')) return;
+
   // Always show selector + load index
   fetch('./banking/index.json?_=' + Date.now())
     .then(function(r) { return r.json(); })
