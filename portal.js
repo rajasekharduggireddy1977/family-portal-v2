@@ -12260,8 +12260,12 @@ function _bgtAnOpenSheet(type) {
   _bgtAnSheet = type;
   var data = _bgtAnalysisData;
   if (!data) return;
-  var container = document.getElementById('bgt-an-sheets');
-  if (!container) return;
+  // Mount on body — bgt-p4 is inside a CSS-transformed track, which breaks position:fixed
+  var existing = document.getElementById('bgt-an-sheet-overlay');
+  if (existing) existing.remove();
+  var container = document.createElement('div');
+  container.id = 'bgt-an-sheet-overlay';
+  document.body.appendChild(container);
 
   var ov = data.financial_overview || {};
   var expenses = ov.total_expenses_inr || 0;
@@ -12361,8 +12365,8 @@ function _bgtAnCloseSheet() {
   if (!panel) return;
   panel.classList.remove('bgt-sh-open');
   setTimeout(function() {
-    var c = document.getElementById('bgt-an-sheets');
-    if (c) c.innerHTML = '';
+    var c = document.getElementById('bgt-an-sheet-overlay');
+    if (c) c.remove();
     _bgtAnSheet = null;
   }, 350);
 }

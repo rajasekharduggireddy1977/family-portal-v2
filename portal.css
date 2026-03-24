@@ -6001,8 +6001,8 @@ body.dash-active #content{
 .bgt-an-empty code { font-family: var(--font-mono); background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
 /* ── Bottom sheets ── */
-.bgt-an-sheets { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
-.bgt-an-sheets:not(:empty) { pointer-events: all; }
+.bgt-an-sheets { display: none; } /* legacy — sheets now mount on body via #bgt-an-sheet-overlay */
+#bgt-an-sheet-overlay { position: fixed; inset: 0; z-index: 200; }
 .bgt-sh-backdrop {
   position: absolute; inset: 0; background: rgba(0,0,0,.6);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
