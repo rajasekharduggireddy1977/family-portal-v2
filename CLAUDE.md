@@ -23,11 +23,13 @@ C:\Users\Raj\Documents\GitHub\family-portal-v2\
 
 ## ⚡ PORTAL EDITING PROTOCOL
 
-> **For multi-step or multi-file changes, use the `/portal-edit` skill.**
-
 > **NEVER run preview verification after edits** — skip all `preview_*` calls (screenshot, eval, snapshot) unless explicitly asked. Commit + push → report back is sufficient.
 
 > **NEVER read `portal.js` or `portal.css` in full** — always grep → targeted Read → Edit.
+
+> **NEVER launch portal-edit skill for large rewrites** — it loads heavy SKILL.md context + a sub-agent and wastes tokens without completing. Do all edits directly: grep → Read → Edit → commit.
+
+> **NEVER start a preview server unless user explicitly asks to preview.** After previewing, always stop it with `preview_stop`. A running server triggers a built-in Stop hook "[Verification Required]" on every response — stopping the server is the only fix.
 
 ### Workflow
 ```
@@ -154,4 +156,4 @@ When editing portal data (expiry items, documents, member info), mirror changes 
 
 ---
 
-*Last updated: 2026-03-24*
+*Last updated: 2026-03-24 — added preview server stop rule + portal-edit skill token warning*
