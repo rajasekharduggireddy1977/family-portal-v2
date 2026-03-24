@@ -5903,6 +5903,223 @@ body.dash-active #content{
 [data-theme="light"] .ov-mem-role{color:var(--text2);}
 [data-theme="light"] .ov-vital-lbl{color:var(--text2);}
 
+/* ────────────────────────────────────────────────
+   § BUDGET ANALYSIS   Statement analysis panel (panel 4)
+   ──────────────────────────────────────────────── */
+
+/* Selector row */
+.bgt-an-sel-row {
+  display: flex;
+  gap: 8px;
+  padding: 14px 14px 0;
+}
+.bgt-an-sel {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 10px;
+  font-family: var(--font);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Filter buttons */
+.bgt-an-filter-row {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px 4px;
+}
+.bgt-an-fbtn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2);
+  font-size: 12px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.18s;
+}
+.bgt-an-fbtn-active {
+  background: rgba(255,210,80,0.15);
+  border-color: rgba(255,210,80,0.4);
+  color: #ffd250;
+  font-weight: 600;
+}
+
+/* Summary chips row */
+.bgt-an-summary {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px 0;
+}
+.bgt-an-chip {
+  flex: 1;
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.bgt-an-chip-val {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-bottom: 2px;
+}
+.bgt-an-chip-lbl {
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bgt-an-chip-inc { background: rgba(0,200,100,0.08); border-color: rgba(0,200,100,0.2); }
+.bgt-an-chip-inc .bgt-an-chip-val { color: #00e57a; }
+.bgt-an-chip-exp { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.2); }
+.bgt-an-chip-exp .bgt-an-chip-val { color: #ff6060; }
+.bgt-an-chip-sav { background: rgba(255,210,80,0.08); border-color: rgba(255,210,80,0.2); }
+.bgt-an-chip-sav .bgt-an-chip-val { color: #ffd250; }
+
+/* Section headers */
+.bgt-an-section-hdr {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  padding: 16px 14px 6px;
+}
+
+/* Category bars */
+.bgt-an-cat-row {
+  padding: 6px 14px;
+}
+.bgt-an-cat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.bgt-an-cat-name {
+  font-size: 13px;
+  color: var(--text);
+}
+.bgt-an-cat-amt {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+}
+.bgt-an-cat-pct {
+  font-size: 10px;
+  color: var(--text2);
+  font-weight: 400;
+}
+.bgt-an-bar {
+  height: 5px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bgt-an-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,210,80,0.7), rgba(255,140,50,0.7));
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Transaction rows */
+.bgt-an-txn-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.bgt-an-txn-left {
+  flex: 1;
+  min-width: 0;
+}
+.bgt-an-txn-date {
+  font-size: 10px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+  margin-bottom: 2px;
+}
+.bgt-an-txn-desc {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bgt-an-txn-cat {
+  font-size: 10px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.bgt-an-txn-reason {
+  font-size: 10px;
+  color: #ff9040;
+  margin-top: 2px;
+}
+.bgt-an-txn-amt {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.bgt-an-credit { color: #00e57a; }
+.bgt-an-debit  { color: #ff6060; }
+
+/* Flagged row */
+.bgt-an-flagged {
+  background: rgba(255,80,40,0.06);
+  border-left: 3px solid rgba(255,80,40,0.5);
+  border-radius: 0 6px 6px 0;
+  margin: 2px 0;
+}
+
+/* Empty states */
+.bgt-an-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.bgt-an-empty code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.bgt-an-empty-sub {
+  padding: 10px 14px;
+  color: var(--text2);
+  font-size: 13px;
+  font-style: italic;
+}
+.bgt-an-loading {
+  padding: 30px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+/* Light theme */
+[data-theme="light"] .bgt-an-sel { background: #fff; color: #1a1a2e; }
+[data-theme="light"] .bgt-an-fbtn { background: #f4f4f8; color: #555; }
+[data-theme="light"] .bgt-an-chip-inc { background: rgba(0,180,80,0.06); }
+[data-theme="light"] .bgt-an-chip-exp { background: rgba(220,50,50,0.06); }
+[data-theme="light"] .bgt-an-chip-sav { background: rgba(200,150,0,0.06); }
+
 /* ████████████████████████████████████████████████
    § BANK_VAULT   Bank vault carousel — cards, chip picker, gradients
    ████████████████████████████████████████████████ */

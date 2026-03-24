@@ -1,0 +1,62 @@
+{
+  "period": "March 2026",
+  "bank": "ICICI",
+  "account": "Rajasekhar",
+  "generated": "2026-03-24",
+  "summary": {
+    "income": 95000,
+    "expenses": 62450,
+    "savings": 32550
+  },
+  "categories": [
+    { "name": "Groceries & Supermart", "amount": 8200, "count": 12 },
+    { "name": "Utilities & Bills",     "amount": 6800, "count": 5  },
+    { "name": "Dining & Swiggy",       "amount": 4100, "count": 9  },
+    { "name": "Fuel & Transport",       "amount": 3800, "count": 6  },
+    { "name": "Health & Pharmacy",      "amount": 3200, "count": 4  },
+    { "name": "Shopping & Amazon",      "amount": 9500, "count": 7  },
+    { "name": "Insurance Premiums",     "amount": 21502,"count": 1  },
+    { "name": "Education",              "amount": 2500, "count": 2  },
+    { "name": "Entertainment",          "amount": 1200, "count": 3  },
+    { "name": "Miscellaneous",          "amount": 1648, "count": 8  }
+  ],
+  "transactions": [
+    { "date": "2026-03-01", "description": "SALARY CREDIT — DATASPEAKS", "amount": 95000, "type": "credit", "category": "Income" },
+    { "date": "2026-03-02", "description": "ICICI HEALTH INS PREMIUM",   "amount": 21502, "type": "debit",  "category": "Insurance Premiums" },
+    { "date": "2026-03-03", "description": "SWIGGY ORDER",               "amount": 680,   "type": "debit",  "category": "Dining & Swiggy" },
+    { "date": "2026-03-04", "description": "AMAZON PURCHASE",            "amount": 2499,  "type": "debit",  "category": "Shopping & Amazon" },
+    { "date": "2026-03-05", "description": "RELIANCE SMART SUPERSTORE",  "amount": 1840,  "type": "debit",  "category": "Groceries & Supermart" },
+    { "date": "2026-03-06", "description": "BPCL FUEL STATION",          "amount": 2200,  "type": "debit",  "category": "Fuel & Transport" },
+    { "date": "2026-03-07", "description": "ELECTRICITY BILL — TSSPDCL", "amount": 1850,  "type": "debit",  "category": "Utilities & Bills" },
+    { "date": "2026-03-08", "description": "APOLLO PHARMACY",            "amount": 1200,  "type": "debit",  "category": "Health & Pharmacy" },
+    { "date": "2026-03-10", "description": "ZOMATO ORDER",               "amount": 540,   "type": "debit",  "category": "Dining & Swiggy" },
+    { "date": "2026-03-11", "description": "AMAZON PURCHASE",            "amount": 4800,  "type": "debit",  "category": "Shopping & Amazon" },
+    { "date": "2026-03-12", "description": "D-MART HYDERABAD",           "amount": 2600,  "type": "debit",  "category": "Groceries & Supermart" },
+    { "date": "2026-03-13", "description": "KL UNIVERSITY FEE",          "amount": 2500,  "type": "debit",  "category": "Education" },
+    { "date": "2026-03-14", "description": "BSNL BROADBAND",             "amount": 999,   "type": "debit",  "category": "Utilities & Bills" },
+    { "date": "2026-03-15", "description": "NETFLIX SUBSCRIPTION",       "amount": 649,   "type": "debit",  "category": "Entertainment" },
+    { "date": "2026-03-17", "description": "SWIGGY INSTAMART",           "amount": 680,   "type": "debit",  "category": "Dining & Swiggy" },
+    { "date": "2026-03-18", "description": "INDANE GAS BOOKING",         "amount": 860,   "type": "debit",  "category": "Utilities & Bills" },
+    { "date": "2026-03-19", "description": "AMAZON PURCHASE",            "amount": 2201,  "type": "debit",  "category": "Shopping & Amazon" },
+    { "date": "2026-03-20", "description": "RELIANCE SMART",             "amount": 1760,  "type": "debit",  "category": "Groceries & Supermart" },
+    { "date": "2026-03-21", "description": "UBER AUTO",                  "amount": 380,   "type": "debit",  "category": "Fuel & Transport" },
+    { "date": "2026-03-22", "description": "MEDPLUS PHARMACY",           "amount": 980,   "type": "debit",  "category": "Health & Pharmacy" },
+    { "date": "2026-03-23", "description": "HOTSTAR SUBSCRIPTION",       "amount": 299,   "type": "debit",  "category": "Entertainment" },
+    { "date": "2026-03-24", "description": "JIOFIBER PLAN",              "amount": 999,   "type": "debit",  "category": "Utilities & Bills" },
+    { "date": "2026-03-25", "description": "HP PETROL BUNK",             "amount": 1220,  "type": "debit",  "category": "Fuel & Transport" },
+    { "date": "2026-03-26", "description": "BIG BASKET ORDER",           "amount": 2000,  "type": "debit",  "category": "Groceries & Supermart" },
+    { "date": "2026-03-28", "description": "ATM WITHDRAWAL — 58000",     "amount": 58000, "type": "debit",  "category": "Miscellaneous" }
+  ],
+  "recurring": [
+    { "name": "ICICI Health Insurance", "amount": 21502, "frequency": "yearly",  "next_due": "2027-08-06" },
+    { "name": "Netflix",                "amount": 649,   "frequency": "monthly", "next_due": "2026-04-15" },
+    { "name": "Hotstar",                "amount": 299,   "frequency": "monthly", "next_due": "2026-04-23" },
+    { "name": "JioFiber",               "amount": 999,   "frequency": "monthly", "next_due": "2026-04-24" },
+    { "name": "BSNL Broadband",         "amount": 999,   "frequency": "monthly", "next_due": "2026-04-14" },
+    { "name": "Indane Gas",             "amount": 860,   "frequency": "monthly", "next_due": "2026-04-18" }
+  ],
+  "flagged": [
+    { "date": "2026-03-28", "description": "ATM WITHDRAWAL — 58000", "amount": 58000, "reason": "Large cash withdrawal — verify usage" },
+    { "date": "2026-03-02", "description": "ICICI HEALTH INS PREMIUM", "amount": 21502, "reason": "Annual insurance premium — large debit" }
+  ]
+}

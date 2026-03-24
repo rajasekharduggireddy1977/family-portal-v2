@@ -11220,6 +11220,7 @@ function bgtGoPanel(idx, vel) {
   _bgtPanel = idx;
   // Always re-render Summary with fresh data when navigating to it
   if (idx === 3) { var _sd=bgtGetData(); renderBgtSummary(_sd, bgtCalc(_sd)); }
+  if (idx === 4) { renderBgtAnalysis(); }
   var track = document.getElementById('budget-track');
   if (!track) return;
   var w = window.innerWidth;
@@ -11306,7 +11307,7 @@ function bgtInitSwipe() {
     e.preventDefault();
     dragging = true;
     ddx = dx;
-    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===3&&dx<0) ? 0.08 : 1;
+    var resist = (_bgtPanel===0&&dx>0)||(_bgtPanel===4&&dx<0) ? 0.08 : 1;
     track.style.transform = 'translateX(' + (baseX() + dx * resist) + 'px)';
   }, {passive:false});
 
@@ -11318,7 +11319,7 @@ function bgtInitSwipe() {
     var w = window.innerWidth;
     // Lower threshold for fast flicks, higher for slow drags
     var th = spd > 0.35 ? w * 0.10 : w * 0.20;
-    if (ddx < -th && _bgtPanel < 3) bgtGoPanel(_bgtPanel+1, spd);
+    if (ddx < -th && _bgtPanel < 4) bgtGoPanel(_bgtPanel+1, spd);
     else if (ddx > th && _bgtPanel > 0) bgtGoPanel(_bgtPanel-1, spd);
     else bgtGoPanel(_bgtPanel, spd * 0.4); // snap back — use partial speed for feel
     dragging = false;
@@ -12024,6 +12025,199 @@ function renderBgtSummary(d, c) {
       '</div>';
     }).join('');
   }
+}
+
+// ── Analysis panel (panel 4) ──
+
+var _bgtAnalysisData = null;
+var _bgtAnalysisBank = null;
+var _bgtAnalysisPeriod = null;
+var _bgtAnalysisTxFilter = 'all';
+
+function renderBgtAnalysis() {
+  var el = document.getElementById('bgt-p4');
+  if (!el) return;
+
+  // Always show selector + load index
+  fetch('./banking/index.json?_=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(idx) {
+      _bgtRenderAnalysisShell(el, idx);
+      // Auto-load first available file
+      if (!_bgtAnalysisBank || !_bgtAnalysisPeriod) {
+        var first = idx.accounts.find(function(a) { return a.files && a.files.length; });
+        if (first) {
+          _bgtAnalysisBank = first.bank;
+          _bgtAnalysisPeriod = first.files[0];
+          _bgtLoadAnalysisFile(el, idx);
+        }
+      } else {
+        _bgtLoadAnalysisFile(el, idx);
+      }
+    })
+    .catch(function() {
+      el.innerHTML = '<div class="bgt-an-empty">No analysis data yet.<br>Run Cowork prompt on a bank statement,<br>commit JSON to <code>banking/{bank}/{YYYY-MM}.json</code></div>';
+    });
+}
+
+function _bgtRenderAnalysisShell(el, idx) {
+  // Selector row — rendered once, updated on change
+  var bankOpts = idx.accounts.map(function(a) {
+    var sel = (_bgtAnalysisBank === a.bank) ? ' selected' : '';
+    var dis = (!a.files || !a.files.length) ? ' disabled' : '';
+    return '<option value="' + a.bank + '"' + sel + dis + '>' + a.icon + ' ' + a.label + (dis ? ' (no data)' : '') + '</option>';
+  }).join('');
+
+  var selBankObj = idx.accounts.find(function(a) { return a.bank === _bgtAnalysisBank; });
+  var periodOpts = selBankObj && selBankObj.files ? selBankObj.files.map(function(f) {
+    var sel = (_bgtAnalysisPeriod === f) ? ' selected' : '';
+    return '<option value="' + f + '"' + sel + '>' + _bgtFmtPeriodLabel(f) + '</option>';
+  }).join('') : '';
+
+  var filterBtns = ['all','credit','debit'].map(function(t) {
+    var ac = (_bgtAnalysisTxFilter === t) ? ' bgt-an-fbtn-active' : '';
+    var lbl = t === 'all' ? 'All' : t === 'credit' ? '↑ Income' : '↓ Expenses';
+    return '<button class="bgt-an-fbtn' + ac + '" onclick="_bgtAnSetFilter(\'' + t + '\')">' + lbl + '</button>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="bgt-an-sel-row">' +
+      '<select class="bgt-an-sel" id="bgt-an-bank-sel" onchange="_bgtAnBankChange(this.value)">' + bankOpts + '</select>' +
+      '<select class="bgt-an-sel" id="bgt-an-period-sel" onchange="_bgtAnPeriodChange(this.value)">' + periodOpts + '</select>' +
+    '</div>' +
+    '<div class="bgt-an-filter-row">' + filterBtns + '</div>' +
+    '<div id="bgt-an-body"><div class="bgt-an-loading">Loading analysis…</div></div>';
+}
+
+function _bgtFmtPeriodLabel(f) {
+  // f = "2026-03" → "March 2026"
+  var parts = f.split('-');
+  if (parts.length !== 2) return f;
+  var months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var m = parseInt(parts[1], 10);
+  return (months[m] || parts[1]) + ' ' + parts[0];
+}
+
+function _bgtAnBankChange(bank) {
+  _bgtAnalysisBank = bank;
+  _bgtAnalysisPeriod = null;
+  renderBgtAnalysis();
+}
+
+function _bgtAnPeriodChange(period) {
+  _bgtAnalysisPeriod = period;
+  fetch('./banking/index.json?_=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(idx) { _bgtLoadAnalysisFile(document.getElementById('bgt-p4'), idx); })
+    .catch(function() {});
+}
+
+function _bgtAnSetFilter(type) {
+  _bgtAnalysisTxFilter = type;
+  if (_bgtAnalysisData) _bgtRenderAnalysisBody(_bgtAnalysisData);
+}
+
+function _bgtLoadAnalysisFile(el, idx) {
+  if (!_bgtAnalysisBank || !_bgtAnalysisPeriod) return;
+  var body = document.getElementById('bgt-an-body');
+  if (body) body.innerHTML = '<div class="bgt-an-loading">Loading…</div>';
+  fetch('./banking/' + _bgtAnalysisBank + '/' + _bgtAnalysisPeriod + '.json?_=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      _bgtAnalysisData = data;
+      _bgtRenderAnalysisBody(data);
+    })
+    .catch(function() {
+      var b = document.getElementById('bgt-an-body');
+      if (b) b.innerHTML = '<div class="bgt-an-empty">Could not load file.<br>Check banking/' + _bgtAnalysisBank + '/' + _bgtAnalysisPeriod + '.json exists.</div>';
+    });
+}
+
+function _bgtRenderAnalysisBody(data) {
+  var body = document.getElementById('bgt-an-body');
+  if (!body) return;
+
+  var income = data.summary.income || 0;
+  var expenses = data.summary.expenses || 0;
+  var savings = data.summary.savings || 0;
+  var savingsRate = income > 0 ? Math.round(savings / income * 100) : 0;
+
+  // Summary chips
+  var summaryHtml =
+    '<div class="bgt-an-summary">' +
+      '<div class="bgt-an-chip bgt-an-chip-inc"><div class="bgt-an-chip-val">' + bgtFmt(income) + '</div><div class="bgt-an-chip-lbl">Income</div></div>' +
+      '<div class="bgt-an-chip bgt-an-chip-exp"><div class="bgt-an-chip-val">' + bgtFmt(expenses) + '</div><div class="bgt-an-chip-lbl">Expenses</div></div>' +
+      '<div class="bgt-an-chip bgt-an-chip-sav"><div class="bgt-an-chip-val">' + savingsRate + '%</div><div class="bgt-an-chip-lbl">Saved</div></div>' +
+    '</div>';
+
+  // Category bars
+  var cats = (data.categories || []).slice().sort(function(a,b){ return b.amount - a.amount; });
+  var maxAmt = cats[0] ? cats[0].amount : 1;
+  var catsHtml = '<div class="bgt-an-section-hdr">Spend by Category</div>' +
+    cats.map(function(cat) {
+      var pct = Math.round(cat.amount / maxAmt * 100);
+      var sharePct = expenses > 0 ? Math.round(cat.amount / expenses * 100) : 0;
+      return '<div class="bgt-an-cat-row">' +
+        '<div class="bgt-an-cat-top">' +
+          '<span class="bgt-an-cat-name">' + cat.name + '</span>' +
+          '<span class="bgt-an-cat-amt">' + bgtFmt(cat.amount) + ' <span class="bgt-an-cat-pct">(' + sharePct + '%)</span></span>' +
+        '</div>' +
+        '<div class="bgt-an-bar"><div class="bgt-an-bar-fill" data-bw="' + pct + '" style="width:0"></div></div>' +
+      '</div>';
+    }).join('');
+
+  // Recurring
+  var recurring = data.recurring || [];
+  var recurHtml = '<div class="bgt-an-section-hdr">Recurring Payments</div>' +
+    (recurring.length ? recurring.map(function(r) {
+      return '<div class="bgt-an-txn-row">' +
+        '<div class="bgt-an-txn-desc">' + r.name + ' <span class="bgt-an-txn-cat">' + r.frequency + '</span></div>' +
+        '<div class="bgt-an-txn-amt bgt-an-debit">' + bgtFmt(r.amount) + '</div>' +
+      '</div>';
+    }).join('') : '<div class="bgt-an-empty-sub">No recurring payments detected</div>');
+
+  // Flagged
+  var flagged = data.flagged || [];
+  var flagHtml = flagged.length ?
+    '<div class="bgt-an-section-hdr">⚠️ Flagged Transactions</div>' +
+    flagged.map(function(f) {
+      return '<div class="bgt-an-txn-row bgt-an-flagged">' +
+        '<div class="bgt-an-txn-left">' +
+          '<div class="bgt-an-txn-date">' + f.date + '</div>' +
+          '<div class="bgt-an-txn-desc">' + f.description + '</div>' +
+          '<div class="bgt-an-txn-reason">' + f.reason + '</div>' +
+        '</div>' +
+        '<div class="bgt-an-txn-amt bgt-an-debit">' + bgtFmt(f.amount) + '</div>' +
+      '</div>';
+    }).join('') : '';
+
+  // Transactions
+  var txns = (data.transactions || []).filter(function(t) {
+    if (_bgtAnalysisTxFilter === 'all') return true;
+    return t.type === _bgtAnalysisTxFilter;
+  });
+  var txHtml = '<div class="bgt-an-section-hdr">Transactions (' + txns.length + ')</div>' +
+    (txns.length ? txns.map(function(t) {
+      var isCredit = t.type === 'credit';
+      return '<div class="bgt-an-txn-row">' +
+        '<div class="bgt-an-txn-left">' +
+          '<div class="bgt-an-txn-date">' + t.date + '</div>' +
+          '<div class="bgt-an-txn-desc">' + t.description + '</div>' +
+          '<div class="bgt-an-txn-cat">' + t.category + '</div>' +
+        '</div>' +
+        '<div class="bgt-an-txn-amt ' + (isCredit ? 'bgt-an-credit' : 'bgt-an-debit') + '">' +
+          (isCredit ? '+' : '−') + bgtFmt(t.amount) +
+        '</div>' +
+      '</div>';
+    }).join('') : '<div class="bgt-an-empty-sub">No transactions</div>');
+
+  body.innerHTML = summaryHtml + catsHtml + recurHtml + flagHtml + txHtml;
+  // Animate bars
+  setTimeout(function() {
+    body.querySelectorAll('[data-bw]').forEach(function(el) {
+      el.style.width = el.getAttribute('data-bw') + '%';
+    });
+  }, 60);
 }
 
 // ── CRUD helpers ──
