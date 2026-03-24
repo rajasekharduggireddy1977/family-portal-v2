@@ -1,0 +1,904 @@
+{
+  "report_metadata": {
+    "account_holder": "Raja Sekhar Reddy",
+    "account_number": "020201506595",
+    "bank": "ICICI Bank",
+    "account_type": "Savings Account (INR)",
+    "period": "February 2026",
+    "period_key": "2026-02",
+    "generated_on": "2026-03-24",
+    "total_transactions": 45,
+    "source_file": "ICICI_24-03-2026.pdf"
+  },
+  "financial_overview": {
+    "opening_balance_inr": 164954.03,
+    "closing_balance_inr": 7268.41,
+    "total_income_inr": 164537.0,
+    "total_expenses_inr": 322222.62,
+    "net_inr": -157685.62,
+    "currency": "INR"
+  },
+  "income_expense_breakdown": {
+    "total_income_inr": 164537.0,
+    "income_transaction_count": 8,
+    "total_expense_inr": 322222.62,
+    "expense_transaction_count": 37,
+    "net_inr": -157685.62
+  },
+  "category_totals": [
+    {
+      "category": "Family Transfer (Yashodhara Bona)",
+      "type": "Expense",
+      "total_inr": 200000.0,
+      "transaction_count": 2
+    },
+    {
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "type": "Income",
+      "total_inr": 140000.0,
+      "transaction_count": 4
+    },
+    {
+      "category": "Self Transfer Out",
+      "type": "Expense",
+      "total_inr": 25000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Shopping (Lenskart - Eyewear)",
+      "type": "Expense",
+      "total_inr": 24034.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Rental Income (Sony Shop)",
+      "type": "Income",
+      "total_inr": 20700.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "type": "Expense",
+      "total_inr": 18000.0,
+      "transaction_count": 12
+    },
+    {
+      "category": "Family Transfer (B. Venkat Reddy)",
+      "type": "Expense",
+      "total_inr": 14550.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Rent (NoBroker)",
+      "type": "Expense",
+      "total_inr": 7000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Personal Transfer / Miscellaneous",
+      "type": "Expense",
+      "total_inr": 6900.0,
+      "transaction_count": 7
+    },
+    {
+      "category": "Utilities (Atria Convergence Broadband)",
+      "type": "Expense",
+      "total_inr": 5900.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Shopping (Pantaloons/Aditya Birla)",
+      "type": "Expense",
+      "total_inr": 5006.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Credit Card Payment (Self)",
+      "type": "Expense",
+      "total_inr": 4827.8,
+      "transaction_count": 2
+    },
+    {
+      "category": "FD/RD Interest",
+      "type": "Income",
+      "total_inr": 3837.0,
+      "transaction_count": 3
+    },
+    {
+      "category": "Insurance (LIC)",
+      "type": "Expense",
+      "total_inr": 2682.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Insurance (ICICI Lombard)",
+      "type": "Expense",
+      "total_inr": 2651.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Shopping (Landmark)",
+      "type": "Expense",
+      "total_inr": 2121.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Utilities (Airtel Mobile/Broadband)",
+      "type": "Expense",
+      "total_inr": 1178.82,
+      "transaction_count": 1
+    },
+    {
+      "category": "Education (KLU Bowrampet)",
+      "type": "Expense",
+      "total_inr": 1000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Transport (Fuel)",
+      "type": "Expense",
+      "total_inr": 1000.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Subscriptions (Apple Services)",
+      "type": "Expense",
+      "total_inr": 195.0,
+      "transaction_count": 1
+    },
+    {
+      "category": "Bank Charges (Cash Deposit Fee)",
+      "type": "Expense",
+      "total_inr": 177.0,
+      "transaction_count": 1
+    }
+  ],
+  "recurring_payments": [
+    {
+      "description": "Self Transfer Out (Own PhonePe Account)",
+      "occurrences": 12,
+      "amount_per_occurrence_inr": 1500.0,
+      "total_paid_inr": 18000.0
+    },
+    {
+      "description": "Subscriptions (Apple Services)",
+      "occurrences": 1,
+      "amount_per_occurrence_inr": 195.0,
+      "total_paid_inr": 195.0
+    }
+  ],
+  "large_transactions": [
+    {
+      "sno": 48,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603222932238/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 75000.0,
+      "amount_inr": 75000.0,
+      "balance_inr": 237454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 49,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "BIL/INFT/FB17947179/Family/YASHODHARA BONA",
+      "type": "Expense",
+      "category": "Family Transfer (Yashodhara Bona)",
+      "withdrawal_inr": 199000.0,
+      "deposit_inr": 0,
+      "amount_inr": 199000.0,
+      "balance_inr": 38454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 50,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603222476811/Family/RAJASEKHAR/UTIB0000008",
+      "type": "Expense",
+      "category": "Self Transfer Out",
+      "withdrawal_inr": 25000.0,
+      "deposit_inr": 0,
+      "amount_inr": 25000.0,
+      "balance_inr": 13454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 59,
+      "date": "2026-02-05",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603617970508/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 25000.0,
+      "amount_inr": 25000.0,
+      "balance_inr": 28063.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 62,
+      "date": "2026-02-07",
+      "month": "February 2026",
+      "remarks": "UPI/SONY BEAUT/gvkongole-1@ok/UPI/HDFC BANK/640431999463",
+      "type": "Income",
+      "category": "Rental Income (Sony Shop)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 20700.0,
+      "amount_inr": 20700.0,
+      "balance_inr": 32713.41,
+      "flags": [
+        "LARGE_TRANSACTION",
+        "RENTAL_INCOME"
+      ]
+    },
+    {
+      "sno": 89,
+      "date": "2026-02-28",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/605928490088/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 30000.0,
+      "amount_inr": 30000.0,
+      "balance_inr": 31302.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 90,
+      "date": "2026-02-28",
+      "month": "February 2026",
+      "remarks": "UPI/LENSKART/LENSKARTOFFLIN/Payment fo/YES BANK L/487996104476",
+      "type": "Expense",
+      "category": "Shopping (Lenskart - Eyewear)",
+      "withdrawal_inr": 24034.0,
+      "deposit_inr": 0,
+      "amount_inr": 24034.0,
+      "balance_inr": 7268.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    }
+  ],
+  "transactions": [
+    {
+      "sno": 46,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "BIL/INFT/FB17738988/Family/YASHODHARA BONA",
+      "type": "Expense",
+      "category": "Family Transfer (Yashodhara Bona)",
+      "withdrawal_inr": 1000.0,
+      "deposit_inr": 0,
+      "amount_inr": 1000.0,
+      "balance_inr": 163954.03,
+      "flags": []
+    },
+    {
+      "sno": 47,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "UPL/020186260153/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 162454.03,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 48,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603222932238/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 75000.0,
+      "amount_inr": 75000.0,
+      "balance_inr": 237454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 49,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "BIL/INFT/FB17947179/Family/YASHODHARA BONA",
+      "type": "Expense",
+      "category": "Family Transfer (Yashodhara Bona)",
+      "withdrawal_inr": 199000.0,
+      "deposit_inr": 0,
+      "amount_inr": 199000.0,
+      "balance_inr": 38454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 50,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603222476811/Family/RAJASEKHAR/UTIB0000008",
+      "type": "Expense",
+      "category": "Self Transfer Out",
+      "withdrawal_inr": 25000.0,
+      "deposit_inr": 0,
+      "amount_inr": 25000.0,
+      "balance_inr": 13454.03,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 51,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "UPI/NOBROKER T/nobrokertechno/UPI/AXIS BANK/639872666578",
+      "type": "Expense",
+      "category": "Rent (NoBroker)",
+      "withdrawal_inr": 7000.0,
+      "deposit_inr": 0,
+      "amount_inr": 7000.0,
+      "balance_inr": 6454.03,
+      "flags": []
+    },
+    {
+      "sno": 52,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "UPI/Airtel/airtel-billpay/Airtel Pos/YES BANK L/639872974355",
+      "type": "Expense",
+      "category": "Utilities (Airtel Mobile/Broadband)",
+      "withdrawal_inr": 1178.82,
+      "deposit_inr": 0,
+      "amount_inr": 1178.82,
+      "balance_inr": 5275.21,
+      "flags": []
+    },
+    {
+      "sno": 53,
+      "date": "2026-02-01",
+      "month": "February 2026",
+      "remarks": "BIL/INFT/001153025530/CC BillPay-3002/Self",
+      "type": "Expense",
+      "category": "Credit Card Payment (Self)",
+      "withdrawal_inr": 4178.8,
+      "deposit_inr": 0,
+      "amount_inr": 4178.8,
+      "balance_inr": 1096.41,
+      "flags": []
+    },
+    {
+      "sno": 54,
+      "date": "2026-02-02",
+      "month": "February 2026",
+      "remarks": "Int on FD/RD XXX1176 Tds:0. Int:1201 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1201.0,
+      "amount_inr": 1201.0,
+      "balance_inr": 3798.41,
+      "flags": []
+    },
+    {
+      "sno": 55,
+      "date": "2026-02-02",
+      "month": "February 2026",
+      "remarks": "Int on FD/RD XXX1177 Tds:0. Int:1501 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1501.0,
+      "amount_inr": 1501.0,
+      "balance_inr": 2597.41,
+      "flags": []
+    },
+    {
+      "sno": 56,
+      "date": "2026-02-04",
+      "month": "February 2026",
+      "remarks": "UPI/MANGALI GA/paytmqr2810050/Payment fr/YES BANK L/030202294674",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 370.0,
+      "deposit_inr": 0,
+      "amount_inr": 370.0,
+      "balance_inr": 3428.41,
+      "flags": []
+    },
+    {
+      "sno": 57,
+      "date": "2026-02-04",
+      "month": "February 2026",
+      "remarks": "UPL/133504628802/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 1928.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 58,
+      "date": "2026-02-05",
+      "month": "February 2026",
+      "remarks": "Int on FD/RD XXX1717 Tds:0. Int:1135 and TAX:0",
+      "type": "Income",
+      "category": "FD/RD Interest",
+      "withdrawal_inr": 0,
+      "deposit_inr": 1135.0,
+      "amount_inr": 1135.0,
+      "balance_inr": 3063.41,
+      "flags": []
+    },
+    {
+      "sno": 59,
+      "date": "2026-02-05",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603617970508/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 25000.0,
+      "amount_inr": 25000.0,
+      "balance_inr": 28063.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 60,
+      "date": "2026-02-05",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/603618987388/B VenkatRe/SBIN0003055",
+      "type": "Expense",
+      "category": "Family Transfer (B. Venkat Reddy)",
+      "withdrawal_inr": 14550.0,
+      "deposit_inr": 0,
+      "amount_inr": 14550.0,
+      "balance_inr": 13513.41,
+      "flags": []
+    },
+    {
+      "sno": 61,
+      "date": "2026-02-07",
+      "month": "February 2026",
+      "remarks": "UPL/414353210987/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 12013.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 62,
+      "date": "2026-02-07",
+      "month": "February 2026",
+      "remarks": "UPI/SONY BEAUT/gvkongole-1@ok/UPI/HDFC BANK/640431999463",
+      "type": "Income",
+      "category": "Rental Income (Sony Shop)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 20700.0,
+      "amount_inr": 20700.0,
+      "balance_inr": 32713.41,
+      "flags": [
+        "LARGE_TRANSACTION",
+        "RENTAL_INCOME"
+      ]
+    },
+    {
+      "sno": 63,
+      "date": "2026-02-08",
+      "month": "February 2026",
+      "remarks": "UPI/KLU BOWRAM/klubowrampet.7/Payment fr/HDFC BANK/360046388361",
+      "type": "Expense",
+      "category": "Education (KLU Bowrampet)",
+      "withdrawal_inr": 1000.0,
+      "deposit_inr": 0,
+      "amount_inr": 1000.0,
+      "balance_inr": 31713.41,
+      "flags": []
+    },
+    {
+      "sno": 64,
+      "date": "2026-02-09",
+      "month": "February 2026",
+      "remarks": "UPI/XXXPGN KOT/9391094884@ybl/Payment fr/Kotak Mahi/501809221364",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 500.0,
+      "deposit_inr": 0,
+      "amount_inr": 500.0,
+      "balance_inr": 31213.41,
+      "flags": []
+    },
+    {
+      "sno": 65,
+      "date": "2026-02-10",
+      "month": "February 2026",
+      "remarks": "UPL/073013023446/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 29713.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 66,
+      "date": "2026-02-10",
+      "month": "February 2026",
+      "remarks": "UPI/102680677953/Execution test/appleservices.b/HDFC BANK LTD",
+      "type": "Expense",
+      "category": "Subscriptions (Apple Services)",
+      "withdrawal_inr": 195.0,
+      "deposit_inr": 0,
+      "amount_inr": 195.0,
+      "balance_inr": 29518.41,
+      "flags": []
+    },
+    {
+      "sno": 67,
+      "date": "2026-02-11",
+      "month": "February 2026",
+      "remarks": "UPL/567401074105/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 28018.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 68,
+      "date": "2026-02-11",
+      "month": "February 2026",
+      "remarks": "UPI/LANDMARK H/Vyapar.1730316/Payment fr/HDFC BANK/969646509196",
+      "type": "Expense",
+      "category": "Shopping (Landmark)",
+      "withdrawal_inr": 2121.0,
+      "deposit_inr": 0,
+      "amount_inr": 2121.0,
+      "balance_inr": 25897.41,
+      "flags": []
+    },
+    {
+      "sno": 69,
+      "date": "2026-02-11",
+      "month": "February 2026",
+      "remarks": "UPI/SUNDEEP SA/9885898892-2@y/Payment fr/Kotak Mahi/742130620901",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 2200.0,
+      "deposit_inr": 0,
+      "amount_inr": 2200.0,
+      "balance_inr": 23697.41,
+      "flags": []
+    },
+    {
+      "sno": 70,
+      "date": "2026-02-12",
+      "month": "February 2026",
+      "remarks": "UPI/Nannapanen/8125033646@mbk/Payment fr/PPIW/261352532143",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 22197.41,
+      "flags": []
+    },
+    {
+      "sno": 71,
+      "date": "2026-02-13",
+      "month": "February 2026",
+      "remarks": "UPL/908760083039/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 20697.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 72,
+      "date": "2026-02-14",
+      "month": "February 2026",
+      "remarks": "BIL/ONL/001161969555/Life Insur/LIC_CICI26Q1BSX",
+      "type": "Expense",
+      "category": "Insurance (LIC)",
+      "withdrawal_inr": 2682.0,
+      "deposit_inr": 0,
+      "amount_inr": 2682.0,
+      "balance_inr": 18015.41,
+      "flags": []
+    },
+    {
+      "sno": 73,
+      "date": "2026-02-15",
+      "month": "February 2026",
+      "remarks": "UPI/M PUSHPA/Q631326371@ybl/Payment fr/YES BANK L/678078460263",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 280.0,
+      "deposit_inr": 0,
+      "amount_inr": 280.0,
+      "balance_inr": 17735.41,
+      "flags": []
+    },
+    {
+      "sno": 74,
+      "date": "2026-02-15",
+      "month": "February 2026",
+      "remarks": "UPL/940227436165/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 16235.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 75,
+      "date": "2026-02-18",
+      "month": "February 2026",
+      "remarks": "UPL/949720437025/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 14735.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 76,
+      "date": "2026-02-19",
+      "month": "February 2026",
+      "remarks": "UPI/ATRIA CONV/actcorp1.payu@/UPIIntent/HDFC BANK/605065063243",
+      "type": "Expense",
+      "category": "Utilities (Atria Convergence Broadband)",
+      "withdrawal_inr": 5900.0,
+      "deposit_inr": 0,
+      "amount_inr": 5900.0,
+      "balance_inr": 8835.41,
+      "flags": []
+    },
+    {
+      "sno": 77,
+      "date": "2026-02-20",
+      "month": "February 2026",
+      "remarks": "UPI/Krishna Ki/gpay-121988272/Payment fr/AXIS BANK/737967608726",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 350.0,
+      "deposit_inr": 0,
+      "amount_inr": 350.0,
+      "balance_inr": 8485.41,
+      "flags": []
+    },
+    {
+      "sno": 78,
+      "date": "2026-02-20",
+      "month": "February 2026",
+      "remarks": "UPL/419832935161/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 6985.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 79,
+      "date": "2026-02-21",
+      "month": "February 2026",
+      "remarks": "CashDep Chgs 01-31JAN26+GST",
+      "type": "Expense",
+      "category": "Bank Charges (Cash Deposit Fee)",
+      "withdrawal_inr": 177.0,
+      "deposit_inr": 0,
+      "amount_inr": 177.0,
+      "balance_inr": 6808.41,
+      "flags": []
+    },
+    {
+      "sno": 80,
+      "date": "2026-02-22",
+      "month": "February 2026",
+      "remarks": "BIL/INFT/001164731474/CC BillPay-9000/Self",
+      "type": "Expense",
+      "category": "Credit Card Payment (Self)",
+      "withdrawal_inr": 649.0,
+      "deposit_inr": 0,
+      "amount_inr": 649.0,
+      "balance_inr": 6159.41,
+      "flags": []
+    },
+    {
+      "sno": 81,
+      "date": "2026-02-23",
+      "month": "February 2026",
+      "remarks": "UPI/Pump 7/Q424084238@ybl/Payment fr/YES BANK L/584458460175",
+      "type": "Expense",
+      "category": "Transport (Fuel)",
+      "withdrawal_inr": 1000.0,
+      "deposit_inr": 0,
+      "amount_inr": 1000.0,
+      "balance_inr": 5159.41,
+      "flags": []
+    },
+    {
+      "sno": 82,
+      "date": "2026-02-23",
+      "month": "February 2026",
+      "remarks": "UPL/072674358419/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 3659.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 83,
+      "date": "2026-02-23",
+      "month": "February 2026",
+      "remarks": "UPI/ICICI LOM/icicilombard2@/o6cypHqKy3/ICICI Bank/198866753354",
+      "type": "Expense",
+      "category": "Insurance (ICICI Lombard)",
+      "withdrawal_inr": 2651.0,
+      "deposit_inr": 0,
+      "amount_inr": 2651.0,
+      "balance_inr": 1008.41,
+      "flags": []
+    },
+    {
+      "sno": 84,
+      "date": "2026-02-25",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/605620980868/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 10000.0,
+      "amount_inr": 10000.0,
+      "balance_inr": 11008.41,
+      "flags": []
+    },
+    {
+      "sno": 85,
+      "date": "2026-02-25",
+      "month": "February 2026",
+      "remarks": "UPI/ADITYA BIR/pantaloonsfash/Payment fo/HDFC BANK/295066781887",
+      "type": "Expense",
+      "category": "Shopping (Pantaloons/Aditya Birla)",
+      "withdrawal_inr": 5006.0,
+      "deposit_inr": 0,
+      "amount_inr": 5006.0,
+      "balance_inr": 6002.41,
+      "flags": []
+    },
+    {
+      "sno": 86,
+      "date": "2026-02-26",
+      "month": "February 2026",
+      "remarks": "UPL/048581760534/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 4502.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 87,
+      "date": "2026-02-27",
+      "month": "February 2026",
+      "remarks": "UPI/MANISH/prajapathimani/Payment fr/INDUSIND B/583989509998",
+      "type": "Expense",
+      "category": "Personal Transfer / Miscellaneous",
+      "withdrawal_inr": 1700.0,
+      "deposit_inr": 0,
+      "amount_inr": 1700.0,
+      "balance_inr": 2802.41,
+      "flags": []
+    },
+    {
+      "sno": 88,
+      "date": "2026-02-28",
+      "month": "February 2026",
+      "remarks": "UPL/545133024229/Payme/192168122001090021 69523881 469041634/ICICI",
+      "type": "Expense",
+      "category": "Self Transfer Out (Own PhonePe Account)",
+      "withdrawal_inr": 1500.0,
+      "deposit_inr": 0,
+      "amount_inr": 1500.0,
+      "balance_inr": 1302.41,
+      "flags": [
+        "SELF_TRANSFER"
+      ]
+    },
+    {
+      "sno": 89,
+      "date": "2026-02-28",
+      "month": "February 2026",
+      "remarks": "MMT/IMPS/605928490088/IMPS transactio/RAJASEKHAR/HDFC Bank",
+      "type": "Income",
+      "category": "Self Transfer In (HDFC→ICICI)",
+      "withdrawal_inr": 0,
+      "deposit_inr": 30000.0,
+      "amount_inr": 30000.0,
+      "balance_inr": 31302.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    },
+    {
+      "sno": 90,
+      "date": "2026-02-28",
+      "month": "February 2026",
+      "remarks": "UPI/LENSKART/LENSKARTOFFLIN/Payment fo/YES BANK L/487996104476",
+      "type": "Expense",
+      "category": "Shopping (Lenskart - Eyewear)",
+      "withdrawal_inr": 24034.0,
+      "deposit_inr": 0,
+      "amount_inr": 24034.0,
+      "balance_inr": 7268.41,
+      "flags": [
+        "LARGE_TRANSACTION"
+      ]
+    }
+  ]
+}
